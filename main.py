@@ -9,7 +9,7 @@ dew_point=[]
 wind=[]
 now = date.today()
 # for the data grid
-col = 52
+col = 56
 lines = 14
 
 # get the data
@@ -18,14 +18,14 @@ def get_meteo():
     try:
         y = requests.get('https://api.open-meteo.com/v1/forecast?latitude=47.289&longitude=8.915&'
                          'hourly=temperature_2m,wind_speed_10m,wind_direction_10m,dew_point_2m,'
-                         'direct_radiation,'
+                         'direct_radiation,precipitation,'
                          'temperature_900hPa,dew_point_900hPa,wind_speed_900hPa,wind_direction_900hPa,'
                          'temperature_850hPa,dew_point_850hPa,wind_speed_850hPa,wind_direction_850hPa,'
                          'temperature_800hPa,dew_point_800hPa,wind_speed_800hPa,wind_direction_800hPa,'
                          'temperature_700hPa,dew_point_700hPa,wind_speed_700hPa,wind_direction_700hPa,'
                          'temperature_600hPa,dew_point_600hPa,wind_speed_600hPa,wind_direction_600hPa,'
                          'temperature_500hPa,dew_point_500hPa,wind_speed_500hPa,wind_direction_500hPa'
-                         '', timeout=10)
+                         '&timezone=Europe%2FBerlin', timeout=10)
         response = json.loads(y.text)
         return response
     except requests.exceptions.ConnectTimeout:
@@ -101,37 +101,40 @@ def wind_direction (grad):
 # create thermal data lines
 def create_thermal_data(index):
     distanz = 0
-    k= 0
-    while k < lines-2:
-        box = [(2 * border + tx , border + ty/lines * (k)),(w - border, border + ty/lines * (k+1) )]
+    k= -1
+    while k < lines-3:
+        box = [(2 * border + tx , border + ty/lines * (k+1)),(w - border, border + ty/lines * (k+2) )]
         if 2 * int (k/2) == k:
             img1.rectangle(box, fill ="lightgrey", outline ="lightgrey")
-        if k==0:
-            img1.text((2 * border + tx + padding, border + padding + ty/lines * (k)), 'Zeit Wind  Sun  Temp Lift Base' ,(20,20,20), font=font)
+        if k == -1:
+            img1.text((2 * border + tx + padding, border + padding + ty/lines * (k+1)), 'Zeit   Wind   Sonne   Temp   Lift  Basis' ,(20,20,20), font=font)
         else:
-            content = str(k+8)
-            img1.text((2 * border + tx + padding, border + padding + ty/lines * (k)), content ,(20,20,20), font=font)
+            content = time[index+k][11:]
+            img1.text((2 * border + tx + padding, border + padding + ty/lines * (k+1)), content ,(20,20,20), font=font)
             # wind
             content = str(int(wind1500[index + k])) + " "  + wind_direction(wind_dir1500[index+k])
-            img1.text((2 * border + tx + padding + col * 0.8 , border + padding + ty/lines * (k)), content ,(20,20,20), font=font)
+            img1.text((2 * border + tx + padding + col * 1 , border + padding + ty/lines * (k+1)), content ,(20,20,20), font=font)
             # sun
             sun = int(abs(radiation[index + k]/8))
-            img1.text((2 * border + tx + padding + col * 2, border + padding + ty/lines * (k)), str(sun)+"%" ,(20,20,20), font=font)
+            img1.text((2 * border + tx + padding + col * 2, border + padding + ty/lines * (k+1)), str(sun)+"%" ,(20,20,20), font=font)
             # temp
             tmp = -int(100*((temp3000[index+k]-temp1000[index+k])/20))/100
-            img1.text((2 * border + tx + padding + col * 3, border + padding + ty/lines * (k)), str(tmp) ,(20,20,20), font=font)
+            img1.text((2 * border + tx + padding + col * 3, border + padding + ty/lines * (k+1)), str(tmp) ,(20,20,20), font=font)
             # lift
             lift= int((max(0,((max(0,(tmp-0.6)/(1-0.6))*5+sun/100)-1))*2)*10)/10
-            img1.text((2 * border + tx + padding + col * 4, border + padding + ty/lines * (k)), str(lift) ,(20,20,20), font=font)
+            img1.text((2 * border + tx + padding + col * 4, border + padding + ty/lines * (k+1)), str(lift) ,(20,20,20), font=font)
             #base
-            if lift > 0:
-                content = str(int(round(100*((temp1000[index+k]-dew1000[index+k])*100+1000))/100))
-                distanz = distanz + 5 * lift
+            if precipitation[index+k] > 0:
+                content = 'rain'
             else:
-                content = "-"
-            img1.text((2 * border + tx + padding + col * 5, border + padding + ty/lines * (k)), content ,(20,20,20), font=font)
+                if lift > 0:
+                    content = str(int(round(100*((temp1000[index+k]-dew1000[index+k])*100+1000))/100))
+                    distanz = distanz + 5 * lift
+                else:
+                    content = "-"
+            img1.text((2 * border + tx + padding + col * 5, border + padding + ty/lines * (k+1)), content ,(20,20,20), font=font)
         k=k+1
-    box = [(2 * border + tx , border + ty/lines * k),(w - border, border + ty/lines * (k+1) )]
+    box = [(2 * border + tx , border + ty/lines * k),(w - border, border + ty/lines * (k+2) )]
     img1.rectangle(box, fill ="lightgreen", outline ="lightgreen")
     img1.text((2 * border + tx + padding, border + padding + ty/lines * k), 'Potentielle Distanz = ' + str(distanz) + ' km' ,(20,20,20), font=font)
 
@@ -177,6 +180,7 @@ wind_dir4200 = hourly["wind_direction_600hPa"]
 wind_dir5600 = hourly["wind_direction_500hPa"]
 # other values
 radiation = hourly["direct_radiation"]
+precipitation = hourly["precipitation"]
 
 ###################
 # prepare diagram
@@ -193,8 +197,10 @@ offset = 0 # in winter = 1
 shape = [(border, border), (w - border, h - border)]
 
 # font
-font = ImageFont.load_default(size=20)
-font_sm = ImageFont.load_default(size=10)
+font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
+font_sm = ImageFont.truetype("arial.ttf", 14, encoding="unic")
+#font = ImageFont.load_default(size=20)
+#font_sm = ImageFont.load_default(size=10)
 
 #create new image
 img = Image.new("RGB", (w, h), color=(250,250,250,250))
@@ -210,7 +216,7 @@ print (len (time))
 i = 0
 j = 0
 while i < len (time):
-    if time[i][11:] == '12:00':
+    if time[i][11:] == '14:00':
         print(time[i], ' Posi:', i)
         x = datetime.datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]))
         print(x.strftime("%A"), x.strftime("%x"))
@@ -273,7 +279,7 @@ while i < len (time):
         # create temperature lines
         create_lines()
         # create thermal data
-        create_thermal_data(i)
+        create_thermal_data(i-4) # 14:00 - 4 = 10:00 Uhr
         # title
         img1.text((border , 10), "Alp Scheidegg forecast for " + x.strftime("%A")+ " " + x.strftime("%x") + ", data-source: open-meteo / ICON from " + now.strftime("%x") ,(20,20,20), font=font)
         #save the image here
