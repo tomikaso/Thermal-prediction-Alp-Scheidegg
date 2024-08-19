@@ -341,7 +341,7 @@ while i < len(time) and j < 6:
         img1.text((10, 35), "Alp Scheidegg forecast for " + x.strftime("%A") + " " + x.strftime(
             "%x") + ", data-source: open-meteo / ICON from " + now.strftime("%x"), (20, 20, 20), font=font)
         # save the image here
-        img.save("forecast" + str(j) + ".png")
+        img.save("/var/www/html/thermals/forecast" + str(j) + ".png")
 
         # reset variables
         j = j + 1
