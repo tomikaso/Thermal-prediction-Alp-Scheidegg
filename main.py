@@ -266,7 +266,7 @@ create_lines()
 print(len(time))
 i = 0
 j = 0
-while i < len(time):
+while i < len(time) and j < 6:
     if time[i][11:] == '14:00':
         print(time[i], ' Posi:', i, ' create forecast')
         x = datetime.datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]))
