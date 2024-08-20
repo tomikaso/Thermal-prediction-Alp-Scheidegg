@@ -153,7 +153,7 @@ def create_thermal_data(index):
                       (20, 20, 20), font=font)
             # lift
             if wind1500[index + k] <= 30:
-                lift = int((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * 10) / 10
+                lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2), 0.8) * 10) / 10
                 content = str(lift)
                 if wind_dir1500[index + k] < 120:
                     bise = 1
@@ -268,7 +268,7 @@ create_lines()
 print(len(time))
 i = 0
 j = 0
-while i < len(time) and j < 6:
+while i < len(time) and j < 5:
     if time[i][11:] == '14:00':
         print(time[i], ' Posi:', i, ' create forecast')
         x = datetime.datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]))
@@ -338,8 +338,8 @@ while i < len(time) and j < 6:
         # create thermal data
         create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
         # title
-        img1.text((10, 35), "Alp Scheidegg forecast for " + x.strftime("%A") + " " + x.strftime(
-            "%x") + ", data-source: open-meteo / ICON from " + now.strftime("%x"), (20, 20, 20), font=font)
+        img1.text((10, 30), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+                  + ", data-source: open-meteo / ICON from " + now.strftime("%d/%m/%Y"), (20, 20, 20), font=font)
         # save the image here
         img.save("/var/www/html/thermals/forecast" + str(j) + ".png")
 

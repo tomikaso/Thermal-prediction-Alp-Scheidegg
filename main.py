@@ -115,7 +115,7 @@ def wind_direction(grad):
 def create_thermal_data(index):
     # model-variables
     t1 = 0.6  # at this point thermals begin to be usable
-    tm = 1.1  # maximum possible temp
+    tm = 1.2  # maximum possible temp
     tf = 5  # temp factor
     distanz = 0
     bise = 0
@@ -153,7 +153,9 @@ def create_thermal_data(index):
                       (20, 20, 20), font=font)
             # lift
             if wind1500[index + k] <= 30:
-                lift = int((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * 10) / 10
+                lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2), 0.8) * 10) / 10
+                if tmp < t1:
+                    lift = 0
                 content = str(lift)
                 if wind_dir1500[index + k] < 120:
                     bise = 1
@@ -336,9 +338,9 @@ while i < len(time) and j < 6:
         # create thermal data
         create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
         # title
-        img1.text((10, 35), "Alp Scheidegg forecast for " + x.strftime("%A") + " " + x.strftime(
-            "%x") + ", data-source: open-meteo / ICON from " + now.strftime("%x"), (20, 20, 20), font=font)
-        # save the image here
+        img1.text((10, 30), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+          + ", data-source: open-meteo / ICON from " + now.strftime("%d/%m/%Y"), (20, 20, 20), font=font)
+# save the image here
         img.save("forecast" + str(j) + ".png")
 
         # reset variables
