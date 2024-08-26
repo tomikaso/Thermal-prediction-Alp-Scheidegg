@@ -80,24 +80,24 @@ def draw_wind(wind):
         direction = wind.pop()
         strength = int(wind.pop())
         hight = wind.pop()
-        if strength < 16 and direction > 180 and direction < 290:
+        if strength < 16 and direction > 180 and direction < 320:
             dot_color = "limegreen"
         elif strength < 30:
             dot_color = "orange"
         else:
             dot_color = "tomato"
         # wind-arrow
-        dx = wind_dot * 2 * math.sin(math.radians(direction)) + tx + border
-        dy = - wind_dot * 2 * math.cos(math.radians(direction)) + ty - hight / hmax * ty + border
-        dx1 = wind_dot * 0.5 * math.sin(math.radians(direction + 90)) + tx + border
-        dy1 = - wind_dot * 0.5 * math.cos(math.radians(direction + 90)) + ty - hight / hmax * ty + border
-        dx2 = wind_dot * 0.5 * math.sin(math.radians(direction - 90)) + tx + border
-        dy2 = - wind_dot * 0.5 * math.cos(math.radians(direction - 90)) + ty - hight / hmax * ty + border
-        img1.polygon([dx, dy, dx1, dy1, dx2, dy2], fill="black")
-        img1.ellipse((tx + border - wind_dot, ty - hight / hmax * ty - wind_dot + border, tx + border + wind_dot,
-                      ty - hight / hmax * ty + wind_dot + border), fill=dot_color)
-        img1.text((tx + border - wind_dot / 2, ty - hight / hmax * ty - wind_dot / 2 + border), str(strength),
-                  (20, 20, 20), font=font)
+        dx = wind_dot * 2.3 * math.sin(math.radians(direction+180)) + tx + border
+        dy = - wind_dot * 2.3 * math.cos(math.radians(direction+180)) + ty - hight / hmax * ty + border
+        dx1 = wind_dot * 2 * math.sin(math.radians(direction+320)) + tx + border
+        dy1 = - wind_dot * 2 * math.cos(math.radians(direction+320)) + ty - hight / hmax * ty + border
+        dx2 = wind_dot * 1 * math.sin(math.radians(direction)) + tx + border
+        dy2 = - wind_dot * 1 * math.cos(math.radians(direction)) + ty - hight / hmax * ty + border
+        dx3 = wind_dot * 2 * math.sin(math.radians(direction+40)) + tx + border
+        dy3 = - wind_dot * 2 * math.cos(math.radians(direction+40)) + ty - hight / hmax * ty + border
+        img1.polygon ([dx, dy, dx1, dy1, dx2, dy2, dx3, dy3], fill=dot_color)
+        img1.text((tx + border + wind_dot * 2, ty - hight / hmax * ty + border - wind_dot*1.5), str(strength) ,(20,20,20), font=font)
+
 
 
 # creating new Image object
@@ -119,12 +119,18 @@ def wind_direction(grad):
     wd = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW', 'N']
     return wd[int(0.5 + grad / 45)]
 
-def wind_color(strength):
-    color = ['palegreen', 'lawngreen', 'springgreen', 'limegreen', 'greenyellow', 'yellow', 'salmon', 'lightcoral', 'tomato', 'red']
+def wind_color(strength, direction):
+    if direction > 320 or direction < 120:
+        color = ['yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'orange', 'salmon', 'lightcoral', 'tomato', 'red']
+    else:
+        color = ['palegreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'yellow', 'salmon', 'lightcoral', 'tomato', 'red']
     return color[min(int(strength/5), 9)]
 
-def cloud_color(octas):
-    color = ['white', 'whitesmoke', 'gainsboro', 'lightgrey', 'lightgray', 'silver', 'darkgrey', 'darkgray', 'grey', 'gray']
+def cloud_color(octas, rain):
+    if rain > 0.5:
+        color = ['white', 'powderblue', 'lightblue', 'cornflowerblue', 'royalblue', 'blue', 'darkblue', 'navy', 'midnightblue']
+    else:
+        color = ['white', 'whitesmoke', 'gainsboro', 'lightgrey', 'lightgray', 'silver', 'darkgrey', 'darkgray', 'grey', 'gray']
     return color[min(int(octas), 8)]
 
 def temp_color(tmp):
@@ -177,7 +183,7 @@ def create_thermal_data(index):
             if wind1500[index + k] <= 20 and wind1900[index + k] <= 25:
                 lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2), 0.7) * 10) / 10
                 content = str(lift)
-                if wind_dir1500[index + k] < 120 and wind1500[index + k] > 10:
+                if wind_dir1500[index + k] < 120 and wind1500[index + k] > 5:
                     bise = 1
             else:
                 lift = 0
@@ -225,43 +231,44 @@ def wind_diagram(index):
         # wind
         content = str(int(wind4200[index + c])) + wind_direction(wind_dir4200[index + c])
         box = [(2 * border + c * col - pad, border - pad + 2 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 2.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind4200[index + c]), outline='white')
+        img1.rectangle(box, fill=wind_color(wind4200[index + c], wind_dir4200[index + c]), outline='white')
         img1.text((2 * border + c * col, border + 2 * ty / lines), content, (20, 20, 20), font=font)
 
         content = str(int(wind3000[index + c])) + wind_direction(wind_dir3000[index + c])
         box = [(2 * border + c * col - pad, border - pad + 3 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 3.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind3000[index + c]), outline='white')
+        img1.rectangle(box, fill=wind_color(wind3000[index + c], wind_dir3000[index + c]), outline='white')
         img1.text((2 * border + c * col, border + 3 * ty / lines), content, (20, 20, 20), font=font)
 
         content = str(int(wind1900[index + c])) + wind_direction(wind_dir1900[index + c])
         box = [(2 * border + c * col - pad, border - pad + 4 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 4.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind1900[index + c]), outline='white')
+        img1.rectangle(box, fill=wind_color(wind1900[index + c], wind_dir1900[index + c]), outline='white')
         img1.text((2 * border + c * col, border + 4 * ty / lines), content, (20, 20, 20), font=font)
 
         content = str(int(wind1500[index + c])) + wind_direction(wind_dir1500[index + c])
         box = [(2 * border + c * col - pad, border - pad + 5 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 5.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind1500[index + c]), outline='white')
+        img1.rectangle(box, fill=wind_color(wind1500[index + c], wind_dir1500[index + c]), outline='white')
         img1.text((2 * border + c * col, border + 5 * ty / lines), content, (20, 20, 20), font=font)
 
         content = str(int(wind1000[index + c])) + wind_direction(wind_dir1000[index + c])
         box = [(2 * border + c * col - pad, border - pad + 6 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 6.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind1000[index + c]), outline='white')
+        img1.rectangle(box, fill=wind_color(wind1000[index + c], wind_dir1000[index + c]), outline='white')
         img1.text((2 * border + c * col, border + 6 * ty / lines), content, (20, 20, 20), font=font)
         # clouds
         clouds_l = int(abs(cloud_cover_low[index + c] / 12.5))
         clouds_m = int(abs(cloud_cover_mid[index + c] / 12.5))
         clouds_h = int(abs(cloud_cover_high[index + c] / 12.5))
+        rain = precipitation[index + c]
         # clouds_high
         box = [(2 * border + c * col - pad, border - pad + 8 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 8.8 * ty / lines)]
-        img1.rectangle(box, fill=cloud_color(clouds_h), outline='white')
+        img1.rectangle(box, fill=cloud_color(clouds_h, rain), outline='white')
         img1.text((2 * border + c * col, border + 8 * ty / lines), "  " + str(clouds_h), (20, 20, 20), font=font)
         # clouds_mid
         box = [(2 * border + c * col - pad, border - pad + 9 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 9.8 * ty / lines)]
-        img1.rectangle(box, fill=cloud_color(clouds_m), outline='white')
+        img1.rectangle(box, fill=cloud_color(clouds_m, rain), outline='white')
         img1.text((2 * border + c * col, border + 9 * ty / lines), "  " + str(clouds_m), (20, 20, 20), font=font)
         # clouds_low
         box = [(2 * border + c * col - pad, border - pad + 10 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 10.8 * ty / lines)]
-        img1.rectangle(box, fill=cloud_color(clouds_l), outline='white')
+        img1.rectangle(box, fill=cloud_color(clouds_l, rain), outline='white')
         img1.text((2 * border + c * col, border + 10 * ty / lines), "  " + str(clouds_l), (20, 20, 20), font=font)
         # Temp until 3'000 meter
         grad3000 = -int(100 * ((temp3000[index + c] - temp1000[index + c]) / 19)) / 100
@@ -276,7 +283,7 @@ def wind_diagram(index):
         # Süd-Nord-Überdruck
         sn_diff = pressure_msl_locarno[index + c] - pressure_msl[index + c]
         box = [(2 * border + c * col - pad, border - pad + 14 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 14.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(max(0,(8 * sn_diff))), outline='white')
+        img1.rectangle(box, fill=wind_color(max(0,(8 * sn_diff)), 270), outline='white')
         img1.text((2 * border + c * col, border + 14 * ty / lines), str(int(sn_diff)) + "hPa", (20, 20, 20), font=font)
         c = c + 1
     z = 0
@@ -348,7 +355,7 @@ hmax = 6000
 border = 60
 tx, ty = 560, 560
 t_dist = 150
-wind_dot = 20
+wind_dot = 6
 padding = 5
 offset = 0  # in winter = 1
 shape = [(border, border), (w - border, h - border)]
