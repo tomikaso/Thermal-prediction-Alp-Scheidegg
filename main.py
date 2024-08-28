@@ -1,13 +1,13 @@
 import requests, json, datetime
 import math
 from PIL import Image, ImageDraw, ImageFont
-from datetime import date, time
+from datetime import datetime
 
 # initialize variable
 temp = []
 dew_point = []
 wind = []
-now = date.today()
+now = datetime.now()
 # for the data grid
 col = 56
 lines = 14
@@ -402,7 +402,7 @@ j = 0
 while i < len(time) and j < 6:
     if time[i][11:] == '14:00':
         print(time[i], ' Posi:', i, ' create forecast')
-        x = datetime.datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]))
+        x = datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]), 0, 0, 0)
         # fix scale
         if temp1900[i] > 0:
             offset = 0
@@ -470,7 +470,8 @@ while i < len(time) and j < 6:
         create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
         # title
         img1.text((10, 25), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-          + ", data-source: open-meteo / ICON from " + now.strftime("%d/%m/%Y"), (20, 20, 20), font=font)
+                  + ", data-source: open-meteo / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
+                  + " CET", (20, 20, 20), font=font)
 # save the image here
         img.save("forecast" + str(j) + ".png")
 
@@ -481,7 +482,8 @@ while i < len(time) and j < 6:
         img1.rectangle(shape, fill="#ffffff", outline="white")
         wind_diagram(i - 8) # 14:00 - 8 = 06:00Uhr
         img1.text((10, 25), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-                  + ", data-source: open-meteo / ICON from " + now.strftime("%d/%m/%Y"), (20, 20, 20), font=font)
+                  + ", data-source: open-meteo" + " / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
+                  + " CET", (20, 20, 20), font=font)
         img.save("meteo_wind" + str(j) + ".png")
 
         # reset variables
