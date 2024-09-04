@@ -1,4 +1,4 @@
-import requests, json, datetime
+import requests, json
 import math
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
@@ -24,8 +24,8 @@ def get_meteo():
                          'temperature_800hPa,dew_point_800hPa,wind_speed_800hPa,wind_direction_800hPa,'
                          'temperature_700hPa,dew_point_700hPa,wind_speed_700hPa,wind_direction_700hPa,'
                          'temperature_600hPa,dew_point_600hPa,wind_speed_600hPa,wind_direction_600hPa,'
-                         'temperature_500hPa,dew_point_500hPa,wind_speed_500hPa,wind_direction_500hPa'
-                         '&timezone=Europe%2FBerlin&models=icon_seamless', timeout=10)
+                         'temperature_500hPa,dew_point_500hPa,wind_speed_500hPa,wind_direction_500hPa,'
+                         'freezing_level_height&timezone=Europe%2FBerlin&models=icon_seamless', timeout=10)
         response = json.loads(y.text)
         return response
     except requests.exceptions.ConnectTimeout:
@@ -110,8 +110,6 @@ def draw_wind(wind):
         img1.polygon ([dx, dy, dx1, dy1, dx2, dy2, dx3, dy3], fill=dot_color)
         img1.text((tx + border + wind_dot * 2, ty - hight / hmax * ty + border - wind_dot*1.5), str(strength) ,(20,20,20), font=font)
 
-
-
 # creating new Image object
 def create_lines():
     i = 0
@@ -123,6 +121,7 @@ def create_lines():
             img1.line(shape_temp, fill="black", width=0)
             img1.line(shape_temp2, fill="black", width=0)
             img1.text((border + t_dist * i, h - border), str((i - offset) * 10), (20, 20, 20), font=font_sm)
+            img1.text((border + 70 + t_dist * i, border), str((i - offset - 3) * 10), (20, 20, 20), font=font_sm)
         i = i + 1
 
 
@@ -157,6 +156,7 @@ def create_thermal_data(index):
     tf = 5  # temp factor
     distanz = 0
     bise = 0
+    bise_start = 0
     foehn = 0
     extra_text = ""
     k = -1
@@ -201,6 +201,8 @@ def create_thermal_data(index):
                     bise = 2
                 elif wind_dir1500[index + k] < 120 and wind1500[index + k] > 5:
                     bise = 1
+                    if bise_start == 0:
+                        bise_start = k + 10
             else:
                 lift = 0
                 content = "Wind"
@@ -236,11 +238,15 @@ def create_thermal_data(index):
         extra_text = "(Bise)"
     elif bise == 1:
         extra_text = "(Bisentendenz)"
+        if bise_start > 12:
+            extra_text = "(Bisentendenz ab " + str(int(bise_start)) + "Uhr)"
     if foehn > 3:
         extra_text = "(Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!)"
     img1.rectangle(box, fill=color, outline=color)
     img1.text((2 * border + tx + padding, border + padding + ty / lines * k),
-              'Pot. Distanz = ' + str(distanz) + 'km ' + extra_text, (20, 20, 20), font=font)
+              'Pot. Distanz ' + str(distanz) + 'km ' + extra_text, (20, 20, 20), font=font)
+    img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)),
+              'Nullgradgrenze auf ' + str(int(freezing_level[index + 5])) + 'm. ', (20, 20, 20), font=font)
 
 # functions for the wind-diagram
 def wind_diagram(index):
@@ -271,7 +277,7 @@ def wind_diagram(index):
         img1.polygon(calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 5 * ty / lines, wind_dir1500[index + c]), fill='dimgrey')
 
         box = [(2 * border + c * col - pad, border - pad + 6 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 6.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind1900[index + c], wind_dir1000[index + c]), outline='white')
+        img1.rectangle(box, fill=wind_color(wind1000[index + c], wind_dir1000[index + c]), outline='white')
         img1.text((2 * border + c * col + 6 * pad, border + 6 * ty / lines), str(int(wind1000[index + c])), (20, 20, 20), font=font)
         img1.polygon(calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 6 * ty / lines, wind_dir1000[index + c]), fill='dimgrey')
         # clouds
@@ -281,7 +287,7 @@ def wind_diagram(index):
         rain = precipitation[index + c]
         # clouds_high
         box = [(2 * border + c * col - pad, border - pad + 8 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 8.8 * ty / lines)]
-        img1.rectangle(box, fill=cloud_color(clouds_h, rain), outline='white')
+        img1.rectangle(box, fill=cloud_color(clouds_h / 2, rain), outline='white')  # less color for high clouds
         img1.text((2 * border + c * col, border + 8 * ty / lines), "  " + str(clouds_h), (20, 20, 20), font=font)
         # clouds_mid
         box = [(2 * border + c * col - pad, border - pad + 9 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 9.8 * ty / lines)]
@@ -292,7 +298,7 @@ def wind_diagram(index):
         img1.rectangle(box, fill=cloud_color(clouds_l, rain), outline='white')
         img1.text((2 * border + c * col, border + 10 * ty / lines), "  " + str(clouds_l), (20, 20, 20), font=font)
         # Temp until 3'000 meter
-        grad3000 = -int(100 * ((temp3000[index + c] - temp1000[index + c]) / 19)) / 100
+        grad3000 = -int(100 * ((temp3000[index + c] - temp1900[index + c]) / 11)) / 100
         box = [(2 * border + c * col - pad, border - pad + 12 * ty / lines), (2 * border + (c+1) * col - pad, border - pad + 12.8 * ty / lines)]
         img1.rectangle(box, fill=temp_color(grad3000), outline='white')
         img1.text((2 * border + c * col, border + 12 * ty / lines), str(grad3000), (20, 20, 20), font=font)
@@ -360,6 +366,7 @@ cloud_cover_low = hourly["cloud_cover_low"]
 cloud_cover_mid = hourly["cloud_cover_mid"]
 cloud_cover_high = hourly["cloud_cover_high"]
 pressure_msl = hourly["pressure_msl"]
+freezing_level = hourly["freezing_level_height"]
 # get Locarno Pressure-Reference
 meteo_forcast_locarno = get_meteo_locarno()
 print(meteo_forcast_locarno)
