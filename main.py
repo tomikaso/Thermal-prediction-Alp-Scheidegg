@@ -188,7 +188,6 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 3, border + padding + ty / lines * (k + 1)),
                        str(clouds_l) + "-" + str(clouds_m) + "-" + str(clouds_h) , (20, 20, 20), font=font)
             # temp
-            # tmp = -int(100*((temp3000[index+k]-temp1000[index+k])/20))/100
             tmp = -int(100 * ((temp1900[index + k] - temp1000[index + k]) / 9)) / 100
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp),
                       (20, 20, 20), font=font)
@@ -197,17 +196,20 @@ def create_thermal_data(index):
                 begin_factor = pow(max(0, (temp700[index + k] - temp1000[index + k] - 3)), 0.3)
                 lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor, 0.7) * 10) / 10
                 content = str(lift)
-                if wind_dir1500[index + k] < 120 and wind1500[index + k] > 15:
-                    bise = 2
-                elif wind_dir1500[index + k] < 120 and wind1500[index + k] > 5:
-                    bise = 1
-                    if bise_start == 0:
-                        bise_start = k + 10
             else:
                 lift = 0
                 content = "Wind"
             img1.text((2 * border + tx + padding + col * 5, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
+            # bise
+            if (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 320) and wind1500[index + k] > 20:
+                bise = 3
+            elif (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 320) and wind1500[index + k] > 15:
+                bise = 2
+            elif (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 320) and wind1500[index + k] > 5 and bise == 0:
+                bise = 1
+                if bise_start == 0:
+                    bise_start = k + 10
             # base
             if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 3:
                 lift = 0
@@ -222,9 +224,10 @@ def create_thermal_data(index):
                     content = str(int(round(100 * ((temp1000[index + k] - dew1000[index + k]) * 100 + 1000)) / 100))
                 else:
                     content = "-"
-            distanz = int(distanz + 4 * lift)
             img1.text((2 * border + tx + padding + col * 6, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
+            if lift >= 1:
+                distanz = int(distanz + 4 * lift)
         k = k + 1
     box = [(2 * border + tx, border + ty / lines * k), (w - border, border + ty / lines * (k + 2))]
     color = "lightgrey"
@@ -234,7 +237,9 @@ def create_thermal_data(index):
         color = "springgreen"
     if distanz > 0 and distanz <= 50:
         color = "lightgreen"
-    if bise == 2:
+    if bise == 3:
+        extra_text = "(zügige Bise)"
+    elif bise == 2:
         extra_text = "(Bise)"
     elif bise == 1:
         extra_text = "(Bisentendenz)"
@@ -385,7 +390,6 @@ tx, ty = 560, 560
 t_dist = 150
 wind_dot = 6
 padding = 5
-offset = 0  # in winter = 1
 shape = [(border, border), (w - border, h - border)]
 
 # font
@@ -399,8 +403,6 @@ img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
 # create rectangle image
 img1 = ImageDraw.Draw(img) # Emagramm Image
 img1.rectangle(shape, fill="#ffffff", outline="white")
-# create temperature lines
-create_lines()
 
 # get the data ready
 print(len(time))
