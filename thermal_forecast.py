@@ -8,11 +8,15 @@ from datetime import datetime
 temp = []
 dew_point = []
 wind = []
+# varibles for the overview
+ov_days = []
+ov_potential = []
+ov_remark = []
 now = datetime.now()
 # for the data grid
 col = 56
 lines = 14
-
+wds = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag', 'Heute']
 
 # get the data
 def get_meteo():
@@ -125,13 +129,12 @@ def create_lines():
             img1.text((border + 70 + t_dist * i, border), str((i - offset - 3) * 10), (20, 20, 20), font=font_sm)
         i = i + 1
 
-
 # wind-direction
 def wind_direction(grad):
     wd = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW', 'N']
     return wd[int(0.5 + grad / 45)]
 def wind_color(strength, direction):
-    if direction > 320 or direction < 120:
+    if direction > 340 or direction < 120:
         color = ['yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'orange', 'salmon', 'lightcoral', 'tomato', 'red']
     else:
         color = ['palegreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'yellow', 'salmon', 'lightcoral', 'tomato', 'red']
@@ -147,15 +150,24 @@ def temp_color(tmp):
     color = ['lightgrey', 'palegreen', 'lawngreen', 'limegreen', 'orange']
     return color[min(int(max(0,(tmp-0.55)*10)), 4)]
 
+def lift_color(lft):
+    color = ['lightgrey', 'palegreen', 'lawngreen', 'limegreen', 'orange']
+    return color[min(int(max(0, lft)), 4)]
+
+def dist_color(dist):
+    color = ['whitesmoke', 'palegreen', 'lawngreen', 'limegreen', 'forestgreen']
+    return color[min(int(max(0, dist/40 + 0.99)), 4)]
+
 # create thermal data lines
 def create_thermal_data(index):
     # model-variables
     t1 = 0.6  # at this point thermals begin to be usable
     tm = 1.2  # maximum possible temp
     tf = 5  # temp factor
-    distanz = 0
+    distance = 0
     bise = 0
     bise_start = 0
+    strong_wind = 0
     foehn = 0
     extra_text = ""
     k = -1
@@ -198,8 +210,19 @@ def create_thermal_data(index):
             else:
                 lift = 0
                 content = "Wind"
+            if lift >= 1:  # real thermals with green background
+                distance = int(distance + 4 * lift)
+                greenbox = [(2 * border + tx + col * 5, border + ty / lines * (k + 1)),
+                            (2 * border + tx + col * 6, border + ty / lines * (k + 2))]
+                img1.rectangle(greenbox, fill=lift_color(lift), outline=lift_color(lift))
             img1.text((2 * border + tx + padding + col * 5, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
+
+            # strong wind
+            if wind1500[index + k] > 40:
+                strong_wind = 2
+            elif wind1500[index + k] > 30:
+                strong_wind = 1
             # bise
             if (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 320) and wind1500[index + k] > 20:
                 bise = 3
@@ -220,22 +243,19 @@ def create_thermal_data(index):
                 content = 'Regen'
             else:
                 if lift > 0:
-                    content = str(int(round(100 * ((temp1000[index + k] - dew1000[index + k]) * 100 + 1000)) / 100))
+                    content = str(int(round(100 * ((temp1000[index + k] - dew1000[index + k]) * 125 + 1000)) / 100))
                 else:
                     content = "-"
             img1.text((2 * border + tx + padding + col * 6, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             if lift >= 1:
-                distanz = int(distanz + 4 * lift)
+                distance = int(distance + 4 * lift)
         k = k + 1
     box = [(2 * border + tx, border + ty / lines * k), (w - border, border + ty / lines * (k + 2))]
-    color = "lightgrey"
-    if distanz > 100:
-        color = "forestgreen"
-    if distanz > 50 and distanz <= 100:
-        color = "springgreen"
-    if distanz > 0 and distanz <= 50:
-        color = "lightgreen"
+    if strong_wind == 2:
+        extra_text = "(starker Wind)"
+    elif strong_wind == 1:
+        extra_text = "(windig)"
     if bise == 3:
         extra_text = "(zügige Bise)"
     elif bise == 2:
@@ -246,11 +266,14 @@ def create_thermal_data(index):
             extra_text = "(Bisentendenz ab " + str(int(bise_start)) + "Uhr)"
     if foehn > 3:
         extra_text = "(Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!)"
-    img1.rectangle(box, fill=color, outline=color)
+    img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
     img1.text((2 * border + tx + padding, border + padding + ty / lines * k),
-              'Pot. Distanz ' + str(distanz) + 'km ' + extra_text, (20, 20, 20), font=font)
+              'Pot. Distanz ' + str(distance) + 'km ' + extra_text, (20, 20, 20), font=font)
     img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)),
                'Nullgradgrenze auf ' + str(int(freezing_level[index + 5])) + 'm. ', (20, 20, 20), font=font)
+    # remember key figures for the overview
+    ov_potential.append(distance)
+    ov_remark.append(extra_text)
 # functions for the wind-diagram
 def wind_diagram(index):
     pad = 4 # extra-Padding
@@ -393,6 +416,7 @@ shape = [(border, border), (w - border, h - border)]
 # font
 font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
 font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+font_el = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 64)
 
 # create new image
 img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
@@ -479,7 +503,11 @@ while i < len(time) and j < 5:
                   + " CET", (20, 20, 20), font=font)
         # save the image here
         img.save("/var/www/html/thermals/forecast" + str(j) + ".png")
-
+        # remember the weekday for the overview
+        if j == 0:
+            ov_days.append("7")
+        else:
+            ov_days.append(x.strftime("%w"))
         # the second image for the wind
         # create next image
         img = Image.new("RGB", (w, h), color=(250, 250, 250, 250))
@@ -501,7 +529,22 @@ while i < len(time) and j < 5:
         img1 = ImageDraw.Draw(img)
         img1.rectangle(shape, fill="#ffffff", outline="white")
     i = i + 1
-print("Temp_list", temp)
+print("Create overview")
+# create new image
+h = 180
+img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
+# create rectangle image
+img1 = ImageDraw.Draw(img) # overview image
+i = 0
+days = 5
+while i < days:
+    box = [(i * w / days, 0), ((i + 1) * w / days, h)]
+    distance = ov_potential.pop(0)
+    img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
+    img1.text((i * w / days + 3 * padding, 3 * padding), wds[int(ov_days.pop(0))], (20, 20, 20), font=font)
+    img1.text(((i + 0.3) * w / days, 0.3 * h), str(distance), (20, 20, 20), font=font_el)
+    img1.text((i * w / days + 3 * padding, h - 36), ov_remark.pop(0), (20, 20, 20), font=font)
+    i = i + 1
+img.save("/var/www/html/thermals/thermal_overview.png")
 print("Hoi Thomas")
-
-# send it to DCZO
+# send it to DCZO-webserver
