@@ -3,7 +3,6 @@ import math
 import ftplib
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
-
 # initialize variable
 temp = []
 dew_point = []
@@ -16,7 +15,7 @@ now = datetime.now()
 # for the data grid
 col = 56
 lines = 14
-wds = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag', 'Heute']
+wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
 
 # get the data
 def get_meteo():
@@ -217,19 +216,20 @@ def create_thermal_data(index):
                 img1.rectangle(greenbox, fill=lift_color(lift), outline=lift_color(lift))
             img1.text((2 * border + tx + padding + col * 5, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
-
             # strong wind
+            if wind1500[index + k] > 65:
+                strong_wind = strong_wind + 100
             if wind1500[index + k] > 40:
-                strong_wind = 2
-            elif wind1500[index + k] > 30:
-                strong_wind = 1
+                strong_wind = strong_wind + 10
+            elif wind1500[index + k] > 25:
+                strong_wind = strong_wind + 1
             # bise
-            if (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 320) and wind1500[index + k] > 20:
-                bise = 3
-            elif (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 320) and wind1500[index + k] > 15:
-                bise = 2
-            elif (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 320) and wind1500[index + k] > 5 and bise == 0:
-                bise = 1
+            if (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 340) and wind1500[index + k] > 20:
+                bise = bise + 100
+            elif (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 340) and wind1500[index + k] > 15:
+                bise = bise + 10
+            elif (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 340) and wind1500[index + k] > 5:
+                bise = bise + 1
                 if bise_start == 0:
                     bise_start = k + 10
             # base
@@ -252,23 +252,31 @@ def create_thermal_data(index):
                 distance = int(distance + 4 * lift)
         k = k + 1
     box = [(2 * border + tx, border + ty / lines * k), (w - border, border + ty / lines * (k + 2))]
-    if strong_wind == 2:
-        extra_text = "(starker Wind)"
-    elif strong_wind == 1:
-        extra_text = "(windig)"
-    if bise == 3:
-        extra_text = "(zügige Bise)"
-    elif bise == 2:
-        extra_text = "(Bise)"
-    elif bise == 1:
-        extra_text = "(Bisentendenz)"
-        if bise_start > 12:
-            extra_text = "(Bisentendenz ab " + str(int(bise_start)) + "Uhr)"
-    if foehn > 3:
-        extra_text = "(Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!)"
+    if bise > 1:
+        extra_text = "Bisentendenz"
+    if bise_start > 12:
+        extra_text = "Bisentendenz ab " + str(int(bise_start)) + "Uhr"
+    if strong_wind > 5:
+        extra_text = "mässiger Wind"
+    if bise > 25:
+        extra_text = "Bise"
+    if foehn > 4:
+        extra_text = "Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!"
+    if bise > 250:
+        extra_text = "zügige Bise"
+    if strong_wind > 50:
+        extra_text = "starker Wind"
+    if foehn > 6:
+        extra_text = "Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!"
+    if strong_wind > 150:
+        extra_text = "stürmischer Wind"
+    if extra_text == '':
+        bindung = ''
+    else:
+        bindung = '- '
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
     img1.text((2 * border + tx + padding, border + padding + ty / lines * k),
-              'Pot. Distanz ' + str(distance) + 'km ' + extra_text, (20, 20, 20), font=font)
+              'Pot. Distanz ' + str(distance) + 'km '+ bindung + extra_text, (20, 20, 20), font=font)
     img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)),
                'Nullgradgrenze auf ' + str(int(freezing_level[index + 5])) + 'm. ', (20, 20, 20), font=font)
     # remember key figures for the overview
@@ -509,7 +517,6 @@ while i < len(time) and j < 5:
         else:
             ov_days.append(x.strftime("%w"))
         # the second image for the wind
-        # create next image
         img = Image.new("RGB", (w, h), color=(250, 250, 250, 250))
         img1 = ImageDraw.Draw(img)
         img1.rectangle(shape, fill="#ffffff", outline="white")
