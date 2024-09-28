@@ -132,6 +132,11 @@ def create_lines():
 def wind_direction(grad):
     wd = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW', 'N']
     return wd[int(0.5 + grad / 45)]
+
+def wind_string(grad):
+    wd = ['Nordwind', 'NO-Wind', 'Ostwind', 'SO-Wind', 'Südwind', 'SW-Wind', 'Westwind', 'NW-Wind', 'Nordwind']
+    return wd[int(0.5 + grad / 45)]
+
 def wind_color(strength, direction):
     if direction > 340 or direction < 120:
         color = ['yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'orange', 'salmon', 'lightcoral', 'tomato', 'red']
@@ -168,6 +173,7 @@ def create_thermal_data(index):
     bise_start = 0
     strong_wind = 0
     foehn = 0
+    major_wind_dir, wind_max = 0, 0
     extra_text = ""
     k = -1
     while k < lines - 3:
@@ -232,6 +238,9 @@ def create_thermal_data(index):
                 bise = bise + 1
                 if bise_start == 0:
                     bise_start = k + 10
+            if wind1500[index + k] > wind_max:  # determine direction of the wind-max
+                wind_max = wind1500[index + k]
+                major_wind_dir = wind_dir1500[index + k]
             # base
             if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 3:
                 lift = 0
@@ -243,13 +252,15 @@ def create_thermal_data(index):
                 content = 'Regen'
             else:
                 if lift > 0:
-                    content = str(int(round(100 * ((temp1000[index + k] - dew1000[index + k]) * 125 + 1000)) / 100))
+                    content = str(int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50)
                 else:
                     content = "-"
             img1.text((2 * border + tx + padding + col * 6, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             if lift >= 1:
                 distance = int(distance + 4 * lift)
+            elif lift > 0.5:
+                distance = distance + 1
         k = k + 1
     box = [(2 * border + tx, border + ty / lines * k), (w - border, border + ty / lines * (k + 2))]
     if bise > 1:
@@ -257,7 +268,7 @@ def create_thermal_data(index):
     if bise_start > 12:
         extra_text = "Bisentendenz ab " + str(int(bise_start)) + "Uhr"
     if strong_wind > 5:
-        extra_text = "mässiger Wind"
+        extra_text = "mässiger " + wind_string(major_wind_dir)
     if bise > 25:
         extra_text = "Bise"
     if foehn > 4:
@@ -265,11 +276,11 @@ def create_thermal_data(index):
     if bise > 250:
         extra_text = "zügige Bise"
     if strong_wind > 50:
-        extra_text = "starker Wind"
+        extra_text = "starker " + wind_string(major_wind_dir)
     if foehn > 6:
         extra_text = "Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!"
     if strong_wind > 150:
-        extra_text = "stürmischer Wind"
+        extra_text = "stürmischer " + wind_string(major_wind_dir)
     if extra_text == '':
         bindung = ''
     else:
