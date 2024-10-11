@@ -252,22 +252,23 @@ def create_thermal_data(index):
                 content = 'Regen'
             else:
                 if lift > 0:
-                    content = str(int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50)
+                    base_hight = int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50
+                    content = str(base_hight)
                 else:
                     content = "-"
             img1.text((2 * border + tx + padding + col * 6, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
-            if lift >= 1:
-                distance = int(distance + 4 * lift)
+            if lift >= 1:  # root-function gets 1 with a base of 2'000 meters
+                distance = int(distance + 4 * lift * pow(max((base_hight-1200), 0), 0.5)/28.2)
             elif lift > 0.5:
                 distance = distance + 1
         k = k + 1
     box = [(2 * border + tx, border + ty / lines * k), (w - border, border + ty / lines * (k + 2))]
     if bise > 1:
         extra_text = "Bisentendenz"
-    if bise_start > 12:
-        extra_text = "Bisentendenz ab " + str(int(bise_start)) + "Uhr"
-    if strong_wind > 5:
+        if bise_start > 12:
+            extra_text = "Bisentendenz ab " + str(int(bise_start)) + "Uhr"
+    if strong_wind > 4:
         extra_text = "mässiger " + wind_string(major_wind_dir)
     if bise > 25:
         extra_text = "Bise"
@@ -276,7 +277,7 @@ def create_thermal_data(index):
     if bise > 250:
         extra_text = "zügige Bise"
     if strong_wind > 50:
-        extra_text = "starker " + wind_string(major_wind_dir)
+        extra_text = "kräftiger " + wind_string(major_wind_dir)
     if foehn > 6:
         extra_text = "Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!"
     if strong_wind > 150:
