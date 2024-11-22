@@ -250,8 +250,10 @@ def create_thermal_data(index):
                 content = str(int(pressure_msl_locarno[index + k] - pressure_msl[index + k] + 0.5)) + "hPa"
             elif cloud_cover_mid[index + k] < 0.1 and cloud_cover_low[index + k] < 0.1:
                 content = 'blau'
-            elif precipitation[index + k] > 0.5:
+            elif precipitation[index + k] > 0.5 and temp1000[index + k] >= 1:
                 content = 'Regen'
+            elif precipitation[index + k] > 0.5 and temp1000[index + k] < 1:
+                content = 'Schnee'
             else:
                 if lift > 0:
                     base_hight = int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50
