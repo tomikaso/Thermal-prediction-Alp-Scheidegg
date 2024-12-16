@@ -267,7 +267,7 @@ def create_thermal_data(index):
             elif lift > 0.5:
                 distance = distance + 1
         k = k + 1
-    box = [(2 * border + tx, border + ty / lines * k), (w - border, border + ty / lines * (k + 2))]
+    box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 3))]
     if bise > 1:
         extra_text = "Bisentendenz"
         if bise_start > 12:
@@ -291,9 +291,9 @@ def create_thermal_data(index):
     else:
         bindung = '- '
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
-    img1.text((2 * border + tx + padding, border + padding + ty / lines * k),
-              'Pot. Distanz ' + str(distance) + 'km ' + bindung + extra_text, (20, 20, 20), font=font)
     img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)),
+              'Pot. Distanz ' + str(distance) + 'km ' + bindung + extra_text, (20, 20, 20), font=font)
+    img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 2)),
               'Nullgradgrenze auf ' + str(int(freezing_level[index + 5])) + 'm. ', (20, 20, 20), font=font)
     # remember key figures for the overview
     ov_potential.append(distance)
