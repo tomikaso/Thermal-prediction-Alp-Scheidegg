@@ -3,6 +3,7 @@ import math
 import ftplib
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
+import constants
 # initialize variable
 temp = []
 dew_point = []
@@ -569,3 +570,29 @@ while i < days:
 img.save("/var/www/html/thermals/thermal_overview.png")
 print("Hoi Thomas")
 # send it to DCZO-webserver
+session = ftplib.FTP('ftp.dczo.ch', constants.ftp_user, constants.ftp_pw)
+file = open('/var/www/html/thermals/forecast0.png','rb')                  # file to send
+file1 = open('/var/www/html/thermals/forecast1.png','rb')                  # file to send
+file2 = open('/var/www/html/thermals/forecast2.png','rb')                  # file to send
+file3 = open('/var/www/html/thermals/forecast3.png','rb')                  # file to send
+file4 = open('/var/www/html/thermals/forecast4.png','rb')                  # file to send
+wind_file0 = open('/var/www/html/thermals/meteo_wind0.png','rb')           # wind_file to send
+wind_file1 = open('/var/www/html/thermals/meteo_wind1.png','rb')           # wind_file to send
+wind_file2 = open('/var/www/html/thermals/meteo_wind2.png','rb')           # wind_file to send
+wind_file3 = open('/var/www/html/thermals/meteo_wind3.png','rb')           # wind_file to send
+wind_file4 = open('/var/www/html/thermals/meteo_wind4.png','rb')           # wind_file to send
+ovr_file = open('/var/www/html/thermals/thermal_overview.png','rb')        # overview to send
+session.storbinary('STOR forecast0.png', file)     # send the file
+session.storbinary('STOR forecast1.png', file1)     # send the file
+session.storbinary('STOR forecast2.png', file2)     # send the file
+session.storbinary('STOR forecast3.png', file3)     # send the file
+session.storbinary('STOR forecast4.png', file4)     # send the file
+session.storbinary('STOR meteo_wind0.png', wind_file0)  # send the file
+session.storbinary('STOR meteo_wind1.png', wind_file1)  # send the file
+session.storbinary('STOR meteo_wind2.png', wind_file2)  # send the file
+session.storbinary('STOR meteo_wind3.png', wind_file3)  # send the file
+session.storbinary('STOR meteo_wind4.png', wind_file4)  # send the file
+session.storbinary('STOR thermal_overview.png', ovr_file)  # send the file
+file.close()                                    # close file and FTP
+session.quit()
+print ("files sent to DCZO")
