@@ -7,7 +7,7 @@ from datetime import datetime
 temp = []
 dew_point = []
 wind = []
-# varibles for the overview
+# variables for the overview
 ov_days = []
 ov_potential = []
 ov_remark = []
@@ -454,7 +454,7 @@ img1.rectangle(shape, fill="#ffffff", outline="white")
 print(len(time))
 i = 0
 j = 0
-while i < len(time) and j < 6:
+while i < len(time) and j < 5:
     if time[i][11:] == '14:00':
         print(time[i], ' Posi:', i, ' create forecast')
         x = datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]), 0, 0, 0)
