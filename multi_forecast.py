@@ -8,7 +8,6 @@ from datetime import datetime
 # initializing the most important variables
 now = datetime.now()
 # for the data grid
-offset = 0
 col = 56
 lines = 14
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
@@ -116,7 +115,7 @@ def wind_color(strength, direction):
     return color[min(int(strength/5), 9)]
 
 
-def create_lines():
+def create_lines(offset):
     line = 0
     while line < 7:
         img1.text((10, border + ty - line * 1000 / hmax * ty), str(line * 1000), (20, 20, 20), font=font)
@@ -130,7 +129,7 @@ def create_lines():
         line = line + 1
 
 
-def draw_temp(temp, dewp):
+def draw_temp(temp, dewp, offset):
     t0 = temp.pop()
     h0 = temp.pop()
     d0 = dewp.pop()
@@ -236,6 +235,8 @@ def create_thermal_data(index):
                 img1.rectangle(greenbox, fill=lift_color(lift), outline=lift_color(lift))
             img1.text((2 * border + tx + padding + col * 5, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
+            # calculate the base
+            base_hight = int(round((125 * (temp1000[loc, index + k] - dew1000[loc, index + k]) + 1000) / 50)) * 50
             # strong wind
             if wind1500[loc, index + k] > 65:
                 strong_wind = strong_wind + 100
@@ -268,7 +269,6 @@ def create_thermal_data(index):
                 content = 'Schnee'
             else:
                 if lift > 0:
-                    base_hight = int(round((125 * (temp1000[loc, index + k] - dew1000[loc, index + k]) + 1000) / 50)) * 50
                     content = str(base_hight)
                 else:
                     content = "-"
@@ -373,9 +373,9 @@ def create_forecast(loc, i):
     wind.append(wind5600[loc, i])
     wind.append(wind_dir5600[loc, i])
     # create temperature lines
-    create_lines()
+    create_lines(offset)
     # draw the temp
-    draw_temp(temp, dew_point)
+    draw_temp(temp, dew_point, offset)
     # draw the wind
     draw_wind(wind)
     # create thermal data
