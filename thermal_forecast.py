@@ -55,6 +55,23 @@ def get_meteo_locarno():
         print("ICON API Locarno timed out.")
         status = 'offline'
 
+
+def thermal_visualisation(temp):
+    data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'fast isotherm', 'moccasin'),
+            (0.3, 'sehr stabil', 'paleturquoise'), (0.4, 'stabil', 'lightcyan'), (0.5, 'schwach stabil', 'azure'),
+            (0.6, 'etwas labil', 'aquamarine'), (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'),
+            (0.9, 'hyperlabil', 'orange')]
+    i = 0
+    cont = 'unknown'
+    color = 'white'
+    while i < 10:
+        if temp >= data[i][0]:
+            cont = data[i][1]
+            color = data[i][2]
+        i = i + 1
+    return cont, color
+
+
 # function to draw the temp
 def draw_temp(temp, dewp):
     t0 = temp.pop()
@@ -64,6 +81,11 @@ def draw_temp(temp, dewp):
     while len(temp) > 0:
         t1 = temp.pop()
         h1 = temp.pop()
+        shape_temp_box = [(border, border + ty - h0 / hmax * ty), (border + tx, border + ty - h1 / hmax * ty)]
+        tmp = -int(100 * ((t0 - t1) / (h0 - h1)*100)) / 100
+        img1.rectangle(shape_temp_box, fill=thermal_visualisation(tmp)[1], outline=thermal_visualisation(tmp)[1])
+        img1.text((2 * border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + ty - h0 / hmax * ty),
+              (thermal_visualisation(tmp)[0]), (120, 120, 120), font=font)
         shape_temp = [(border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + ty - h0 / hmax * ty),
                       (border + t_dist * t1 * 0.1 + h1 / hmax * tx + t_dist * offset, border + ty - h1 / hmax * ty)]
         img1.line(shape_temp, fill="red", width=3)
@@ -123,8 +145,8 @@ def create_lines():
         if i < 4:
             shape_temp = [(border + t_dist * i, h - border), (tx + border, border + t_dist * i)]
             shape_temp2 = [(border, h - border - t_dist * i), (tx + border - t_dist * i, border)]
-            img1.line(shape_temp, fill="black", width=0)
-            img1.line(shape_temp2, fill="black", width=0)
+            img1.line(shape_temp, fill="lightgrey", width=0)
+            img1.line(shape_temp2, fill="lightgrey", width=0)
             img1.text((border + t_dist * i, h - border), str((i - offset) * 10), (20, 20, 20), font=font_sm)
             img1.text((border + 70 + t_dist * i, border), str((i - offset - 3) * 10), (20, 20, 20), font=font_sm)
         i = i + 1
@@ -512,10 +534,10 @@ while i < len(time) and j < 5:
         wind.append(5600)
         wind.append(wind5600[i])
         wind.append(wind_dir5600[i])
-        # create temperature lines
-        create_lines()
         # draw the temp
         draw_temp(temp, dew_point)
+        # create temperature lines
+        create_lines()
         # draw the wind
         draw_wind(wind)
         # create thermal data
