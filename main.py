@@ -60,14 +60,13 @@ def get_meteo_locarno():
 
 
 def thermal_visualisation(temp):
-    data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'fast isotherm', 'moccasin'),
-            (0.3, 'sehr stabil', 'paleturquoise'), (0.4, 'stabil', 'lightcyan'), (0.5, 'schwach stabil', 'azure'),
-            (0.6, 'etwas labil', 'aquamarine'), (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'),
-            (0.9, 'hyperlabil', 'orange')]
+    data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'sehr stabil', 'paleturquoise'),
+            (0.3, 'stabil', 'lightcyan'), (0.5, 'bginnend labil', 'azure'), (0.6, 'etwas labil', 'aquamarine'),
+            (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'), (1, 'hyperlabil', 'yellowgreen')]
     i = 0
     cont = 'unknown'
     color = 'white'
-    while i < 10:
+    while i < 9:
         if temp >= data[i][0]:
             cont = data[i][1]
             color = data[i][2]
@@ -81,23 +80,24 @@ def draw_temp(temp, dewp):
     h0 = temp.pop()
     d0 = dewp.pop()
     dh0 = dewp.pop()
+    hd = hmax - hmin
     while len(temp) > 0:
         t1 = temp.pop()
         h1 = temp.pop()
-        shape_temp_box = [(border, border + ty - h0 / hmax * ty), (border + tx, border + ty - h1 / hmax * ty)]
+        shape_temp_box = [(border, border + (hmax - h0) / hd * ty), (border + tx, border + (hmax - h1) / hd * ty)]
         tmp = -int(100 * ((t0 - t1) / (h0 - h1)*100)) / 100
         img1.rectangle(shape_temp_box, fill=thermal_visualisation(tmp)[1], outline=thermal_visualisation(tmp)[1])
-        img1.text((2 * border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + ty - h0 / hmax * ty),
+        img1.text((2 * border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + (hmax - h0) / hd * ty),
                   (thermal_visualisation(tmp)[0]), (120, 120, 120), font=font)
-        shape_temp = [(border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + ty - h0 / hmax * ty),
-                      (border + t_dist * t1 * 0.1 + h1 / hmax * tx + t_dist * offset, border + ty - h1 / hmax * ty)]
+        shape_temp = [(border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + (hmax - h0) / hd * ty),
+                      (border + t_dist * t1 * 0.1 + h1 / hmax * tx + t_dist * offset, border + (hmax - h1) / hd * ty)]
         img1.line(shape_temp, fill="red", width=3)
         d1 = dewp.pop()
         dh1 = dewp.pop()
         shape_temp = [(max((border + t_dist * d0 * 0.1 + dh0 / hmax * tx + t_dist * offset), border),
-                       border + ty - dh0 / hmax * ty), (
+                       border + (hmax - dh0) / hd * ty), (
                           max((border + t_dist * d1 * 0.1 + dh1 / hmax * tx + t_dist * offset), border),
-                          border + ty - dh1 / hmax * ty)]
+                          border + (hmax - dh1) / hd * ty)]
         img1.line(shape_temp, fill="blue", width=3)
         t0 = t1
         h0 = h1
@@ -120,6 +120,7 @@ def calc_arrow(x, y, direction):
 
 # draw wind
 def draw_wind(wind):
+    hd = hmax - hmin
     while len(wind) > 0:
         direction = wind.pop()
         strength = int(wind.pop())
@@ -132,23 +133,23 @@ def draw_wind(wind):
             dot_color = "tomato"
         # wind-arrow
         dx = wind_dot * 2.3 * math.sin(math.radians(direction + 180)) + tx + border
-        dy = - wind_dot * 2.3 * math.cos(math.radians(direction + 180)) + ty - hight / hmax * ty + border
+        dy = - wind_dot * 2.3 * math.cos(math.radians(direction + 180)) + border + (hmax - hight) / hd * ty
         dx1 = wind_dot * 2 * math.sin(math.radians(direction + 320)) + tx + border
-        dy1 = - wind_dot * 2 * math.cos(math.radians(direction + 320)) + ty - hight / hmax * ty + border
+        dy1 = - wind_dot * 2 * math.cos(math.radians(direction + 320))+ border + (hmax - hight) / hd * ty
         dx2 = wind_dot * 1 * math.sin(math.radians(direction)) + tx + border
-        dy2 = - wind_dot * 1 * math.cos(math.radians(direction)) + ty - hight / hmax * ty + border
+        dy2 = - wind_dot * 1 * math.cos(math.radians(direction)) + border + (hmax - hight) / hd * ty
         dx3 = wind_dot * 2 * math.sin(math.radians(direction + 40)) + tx + border
-        dy3 = - wind_dot * 2 * math.cos(math.radians(direction + 40)) + ty - hight / hmax * ty + border
+        dy3 = - wind_dot * 2 * math.cos(math.radians(direction + 40)) + border + (hmax - hight) / hd * ty
         img1.polygon([dx, dy, dx1, dy1, dx2, dy2, dx3, dy3], fill=dot_color)
-        img1.text((tx + border + wind_dot * 2, ty - hight / hmax * ty + border - wind_dot * 1.5), str(strength),
+        img1.text((tx + border + wind_dot * 2, + border + (hmax - hight) / hd * ty - wind_dot * 1.5), str(strength),
                   (20, 20, 20), font=font)
 
 
 # creating new Image object
 def create_lines():
     i = 0
-    while i < 7:
-        img1.text((10, border + ty - i * 1000 / hmax * ty), str(i * 1000), (20, 20, 20), font=font)
+    while i < 6:
+        img1.text((10, border + (hmax - i * 1000) / (hmax - hmin) * ty), str(i * 1000), (20, 20, 20), font=font)
         if i < 4:
             shape_temp = [(border + t_dist * i, h - border), (tx + border, border + t_dist * i + (ty-tx))]  # bottom
             img1.line(shape_temp, fill="lightgrey", width=0)
@@ -156,7 +157,9 @@ def create_lines():
                 shape_temp2 = [(border, h - border - t_dist * i), (h - border - t_dist * i, border)]  # lines from left
                 img1.line(shape_temp2, fill="lightgrey", width=0)
             img1.text((border + t_dist * i, h - border), str((i - offset) * 10), (20, 20, 20), font=font_sm)
-            img1.text((border + 70 + t_dist * i, border), str((i - offset - 3) * 10), (20, 20, 20), font=font_sm)
+            if i < 3:
+                img1.text((border + 90 + t_dist * i, border - 13), str((i - offset - 3) * 10),
+                          (20, 20, 20), font=font_sm)
         i = i + 1
 
 
@@ -499,7 +502,7 @@ pressure_msl_locarno = hourly_locarno["pressure_msl"]
 # prepare diagram
 ###################
 w, h = 1140, 680
-hmax = 6000
+hmax, hmin = 5600, 700
 border = 60
 tx, ty = 500, 560 # position of data-box
 t_dist = 150

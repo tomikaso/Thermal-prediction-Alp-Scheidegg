@@ -57,14 +57,13 @@ def get_meteo_locarno():
 
 
 def thermal_visualisation(temp):
-    data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'fast isotherm', 'moccasin'),
-            (0.3, 'sehr stabil', 'paleturquoise'), (0.4, 'stabil', 'lightcyan'), (0.5, 'schwach stabil', 'azure'),
-            (0.6, 'etwas labil', 'aquamarine'), (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'),
-            (0.9, 'hyperlabil', 'orange')]
+    data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'sehr stabil', 'paleturquoise'),
+            (0.3, 'stabil', 'lightcyan'), (0.5, 'bginnend labil', 'azure'), (0.6, 'etwas labil', 'aquamarine'),
+            (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'), (1, 'hyperlabil', 'yellowgreen')]
     i = 0
     cont = 'unknown'
     color = 'white'
-    while i < 10:
+    while i < 9:
         if temp >= data[i][0]:
             cont = data[i][1]
             color = data[i][2]
