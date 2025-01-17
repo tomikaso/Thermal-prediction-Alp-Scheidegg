@@ -61,7 +61,7 @@ def get_meteo_locarno():
 
 def thermal_visualisation(temp):
     data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'sehr stabil', 'paleturquoise'),
-            (0.3, 'stabil', 'lightcyan'), (0.5, 'bginnend labil', 'azure'), (0.6, 'etwas labil', 'aquamarine'),
+            (0.3, 'stabil', 'lightcyan'), (0.5, 'beginnend labil', 'azure'), (0.6, 'etwas labil', 'aquamarine'),
             (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'), (1, 'hyperlabil', 'yellowgreen')]
     i = 0
     cont = 'unknown'
@@ -227,14 +227,16 @@ def create_thermal_data(index):
             img1.rectangle(box, fill="lightgrey", outline="lightgrey")
             # headline
         if k == -1:
-            img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)),
-                      'Zeit   Wind   Sonne Wolken  Temp  Lift  Basis', (20, 20, 20), font=font)
+            img1.text((2 * border + tx + padding, border + ty / lines * (k + 1)),
+                      'Zeit   Wind   Sonne Wolken  Temp  Lift  Basis  Soaring', (20, 20, 20), font=font)
+            img1.text((2 * border + tx + padding, border + 2.5 * padding + ty / lines * (k + 1)),
+                      ' LT    km/h               l-m-h   K/100m  m/s    m', (20, 20, 20), font=font)
         else:
             content = time[index + k][11:]
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
                       font=font)
             # wind
-            content = str(int(wind1000[index + k])) + wind_direction(wind_dir1000[index + k])
+            content = str(int(wind1000[index + k])) + ' ' + wind_direction(wind_dir1000[index + k])
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
@@ -309,6 +311,19 @@ def create_thermal_data(index):
                 distance = int(distance + 4 * lift * pow(max((base_hight - 1200), 0), 0.5) / 28.2)
             elif lift > 0.5:
                 distance = distance + 1
+            # soaring
+            content = "-"
+            font_color = (20, 20, 20)
+            if (220 < wind_dir1500[index + k] <= 290) and precipitation[index + k] < 0.5 and foehn < 5 and  \
+                    (15 < wind1500[index + k] <= 35) and wind1900[index + k] < 50:
+                content = "Handl."
+                if wind1500[index + k] > 25:
+                    content = "Soar"
+                    font_color = (20, 164, 20)  # green
+                if wind1500[index + k] > 30:
+                    font_color = (255, 164, 20)  # orange
+            img1.text((2 * border + tx + padding + col * 7, border + padding + ty / lines * (k + 1)), content,
+                      font_color, font=font)
         k = k + 1
     box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 3))]
     if bise > 1:
@@ -335,8 +350,8 @@ def create_thermal_data(index):
         bindung = '- '
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
     img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)),
-              'Pot. Distanz ' + str(distance) + 'km ' + bindung + extra_text, (20, 20, 20), font=font)
-    img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 2)),
+              'Pot. Distanz: ' + str(distance) + 'km ' + bindung + extra_text, (20, 20, 20), font=font)
+    img1.text((2 * border + tx + padding, border + ty / lines * (k + 2)),
               'Nullgradgrenze auf ' + str(int(freezing_level[index + 5])) + 'm. ', (20, 20, 20), font=font)
     # remember key figures for the overview
     ov_potential.append(distance)
@@ -437,7 +452,7 @@ def wind_diagram(index):
         c = c + 1
     z = 0
     categories = ["Wind (km/h)", "4200", "3000", "1900", "1500", "1000", "Wolken (Achtel)", "hoch", "mittel", "tief"
-        , "Temp (°C/100m)", "3000", "1900", "S/N", ""]
+        , "Temp (°C/100m)", "3000", "1900", "Föhn", ""]
     while z < 14:
         img1.text((border, border + (z + 1) * ty / lines), categories.pop(0), (20, 20, 20), font=font)
         z = z + 1
@@ -507,7 +522,7 @@ border = 60
 tx, ty = 500, 560 # position of data-box
 t_dist = 150
 wind_dot = 6
-padding = 5
+padding = 8
 shape = [(border, border), (w - border, h - border)]
 
 # font
@@ -597,7 +612,7 @@ while i < len(time) and j < 5:
         # create thermal data
         create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
         # title
-        img1.text((10, 25), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+        img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
                   + ", data-source: open-meteo / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
                   + " CET", (20, 20, 20), font=font)
         # save the image here
