@@ -12,6 +12,8 @@ wind = []
 ov_days = []
 ov_potential = []
 ov_remark = []
+soar_potential = []
+soar_color = []
 now = datetime.now()
 # for the data grid
 col = 56
@@ -58,7 +60,7 @@ def get_meteo_locarno():
 
 def thermal_visualisation(temp):
     data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'sehr stabil', 'paleturquoise'),
-            (0.3, 'stabil', 'lightcyan'), (0.5, 'beginnend labil', 'azure'), (0.6, 'etwas labil', 'aquamarine'),
+            (0.3, 'stabil', 'lightcyan'), (0.5, 'beginnend labil', 'azure'), (0.6, 'etwas labil', 'palegreen'),
             (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'), (1, 'hyperlabil', 'yellowgreen')]
     i = 0
     cont = 'unknown'
@@ -215,6 +217,8 @@ def create_thermal_data(index):
     foehn = 0
     major_wind_dir, wind_max = 0, 0
     extra_text = ""
+    soar_text = "-"
+    s_color = 'grey'
     k = -1
     while k < lines - 3:
         box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2))]
@@ -312,11 +316,16 @@ def create_thermal_data(index):
             if (220 < wind_dir1500[index + k] <= 290) and precipitation[index + k] < 0.5 and foehn < 5 and \
                     (15 < wind1500[index + k] <= 35) and wind1900[index + k] < 50:
                 content = "Handl."
+                soar_text = "GH"
+                s_color = 'grey'
                 if wind1500[index + k] > 25:
                     content = "Soar"
+                    soar_text = " S"
+                    s_color = 'green'
                     font_color = (20, 164, 20)  # green
                 if wind1500[index + k] > 30:
                     font_color = (255, 164, 20)  # orange
+                    s_color = 'orange'
             img1.text((2 * border + tx + padding + col * 7, border + padding + ty / lines * (k + 1)), content,
                       font_color, font=font)
         k = k + 1
@@ -619,10 +628,16 @@ days = 5
 while i < days:
     box = [(i * w / days, 0), ((i + 1) * w / days, h)]
     distance = ov_potential.pop(0)
+    soar = soar_potential.pop(0)
+    color = soar_color.pop(0)
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
     img1.text((i * w / days + 3 * padding, 3 * padding), wds[int(ov_days.pop(0))], (20, 20, 20), font=font)
     img1.text(((i + 0.3) * w / days, 0.3 * h), str(distance), (20, 20, 20), font=font_el)
     img1.text((i * w / days + 3 * padding, h - 36), ov_remark.pop(0), (20, 20, 20), font=font)
+    # soaring
+    if soar != '-':
+        img1.ellipse((i * w / days + 140, 15, i * w / days + 170, 45), fill=color)
+        img1.text((i * w / days + 141, 20), soar, (240, 240, 240), font=font)
     i = i + 1
 img.save("/var/www/html/thermals/thermal_overview.png")
 print("Hoi Thomas")
