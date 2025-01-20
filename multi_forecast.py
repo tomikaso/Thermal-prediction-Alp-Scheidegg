@@ -222,7 +222,8 @@ def create_thermal_data(index):
                       (20, 20, 20), font=font)
             # lift
             if wind1500[loc, index + k] <= 20 and wind1900[loc, index + k] <= 25:
-                begin_factor = pow(max(0, (temp700[loc, index + k] - temp1000[loc, index + k] - 3)), 0.3)
+              #  begin_factor = pow(max(0, (temp700[loc, index + k] - temp1000[loc, index + k] - 3)), 0.3)
+                begin_factor = 1
                 lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor, 0.7) * 10) / 10
                 content = str(lift)
             else:
