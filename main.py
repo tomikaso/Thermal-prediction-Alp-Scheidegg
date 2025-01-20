@@ -12,6 +12,7 @@ wind = []
 ov_days = []
 ov_potential = []
 ov_remark = []
+soar_potential = []
 now = datetime.now()
 # for the data grid
 col = 56
@@ -59,24 +60,45 @@ def get_meteo_locarno():
         status = 'offline'
 
 
+def thermal_visualisation(temp):
+    data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'sehr stabil', 'paleturquoise'),
+            (0.3, 'stabil', 'lightcyan'), (0.5, 'beginnend labil', 'azure'), (0.6, 'etwas labil', 'palegreen'),
+            (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'), (1, 'hyperlabil', 'yellowgreen')]
+    i = 0
+    cont = 'unknown'
+    color = 'white'
+    while i < 9:
+        if temp >= data[i][0]:
+            cont = data[i][1]
+            color = data[i][2]
+        i = i + 1
+    return cont, color
+
+
 # function to draw the temp
 def draw_temp(temp, dewp):
     t0 = temp.pop()
     h0 = temp.pop()
     d0 = dewp.pop()
     dh0 = dewp.pop()
+    hd = hmax - hmin
     while len(temp) > 0:
         t1 = temp.pop()
         h1 = temp.pop()
-        shape_temp = [(border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + ty - h0 / hmax * ty),
-                      (border + t_dist * t1 * 0.1 + h1 / hmax * tx + t_dist * offset, border + ty - h1 / hmax * ty)]
+        shape_temp_box = [(border, border + (hmax - h0) / hd * ty), (border + tx, border + (hmax - h1) / hd * ty)]
+        tmp = -int(100 * ((t0 - t1) / (h0 - h1)*100)) / 100
+        img1.rectangle(shape_temp_box, fill=thermal_visualisation(tmp)[1], outline=thermal_visualisation(tmp)[1])
+        img1.text((2 * border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + (hmax - h0) / hd * ty),
+                  (thermal_visualisation(tmp)[0]), (120, 120, 120), font=font)
+        shape_temp = [(border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + (hmax - h0) / hd * ty),
+                      (border + t_dist * t1 * 0.1 + h1 / hmax * tx + t_dist * offset, border + (hmax - h1) / hd * ty)]
         img1.line(shape_temp, fill="red", width=3)
         d1 = dewp.pop()
         dh1 = dewp.pop()
         shape_temp = [(max((border + t_dist * d0 * 0.1 + dh0 / hmax * tx + t_dist * offset), border),
-                       border + ty - dh0 / hmax * ty), (
+                       border + (hmax - dh0) / hd * ty), (
                           max((border + t_dist * d1 * 0.1 + dh1 / hmax * tx + t_dist * offset), border),
-                          border + ty - dh1 / hmax * ty)]
+                          border + (hmax - dh1) / hd * ty)]
         img1.line(shape_temp, fill="blue", width=3)
         t0 = t1
         h0 = h1
@@ -99,6 +121,7 @@ def calc_arrow(x, y, direction):
 
 # draw wind
 def draw_wind(wind):
+    hd = hmax - hmin
     while len(wind) > 0:
         direction = wind.pop()
         strength = int(wind.pop())
@@ -111,30 +134,33 @@ def draw_wind(wind):
             dot_color = "tomato"
         # wind-arrow
         dx = wind_dot * 2.3 * math.sin(math.radians(direction + 180)) + tx + border
-        dy = - wind_dot * 2.3 * math.cos(math.radians(direction + 180)) + ty - hight / hmax * ty + border
+        dy = - wind_dot * 2.3 * math.cos(math.radians(direction + 180)) + border + (hmax - hight) / hd * ty
         dx1 = wind_dot * 2 * math.sin(math.radians(direction + 320)) + tx + border
-        dy1 = - wind_dot * 2 * math.cos(math.radians(direction + 320)) + ty - hight / hmax * ty + border
+        dy1 = - wind_dot * 2 * math.cos(math.radians(direction + 320))+ border + (hmax - hight) / hd * ty
         dx2 = wind_dot * 1 * math.sin(math.radians(direction)) + tx + border
-        dy2 = - wind_dot * 1 * math.cos(math.radians(direction)) + ty - hight / hmax * ty + border
+        dy2 = - wind_dot * 1 * math.cos(math.radians(direction)) + border + (hmax - hight) / hd * ty
         dx3 = wind_dot * 2 * math.sin(math.radians(direction + 40)) + tx + border
-        dy3 = - wind_dot * 2 * math.cos(math.radians(direction + 40)) + ty - hight / hmax * ty + border
+        dy3 = - wind_dot * 2 * math.cos(math.radians(direction + 40)) + border + (hmax - hight) / hd * ty
         img1.polygon([dx, dy, dx1, dy1, dx2, dy2, dx3, dy3], fill=dot_color)
-        img1.text((tx + border + wind_dot * 2, ty - hight / hmax * ty + border - wind_dot * 1.5), str(strength),
+        img1.text((tx + border + wind_dot * 2, + border + (hmax - hight) / hd * ty - wind_dot * 1.5), str(strength),
                   (20, 20, 20), font=font)
 
 
 # creating new Image object
 def create_lines():
     i = 0
-    while i < 7:
-        img1.text((10, border + ty - i * 1000 / hmax * ty), str(i * 1000), (20, 20, 20), font=font)
+    while i < 6:
+        img1.text((10, border + (hmax - i * 1000) / (hmax - hmin) * ty), str(i * 1000), (20, 20, 20), font=font)
         if i < 4:
-            shape_temp = [(border + t_dist * i, h - border), (tx + border, border + t_dist * i)]
-            shape_temp2 = [(border, h - border - t_dist * i), ((w-tx) + border - t_dist * i, border)]
-            img1.line(shape_temp, fill="black", width=0)
-            img1.line(shape_temp2, fill="black", width=0)
+            shape_temp = [(border + t_dist * i, h - border), (tx + border, border + t_dist * i + (ty-tx))]  # bottom
+            img1.line(shape_temp, fill="lightgrey", width=0)
+            if i > 0:
+                shape_temp2 = [(border, h - border - t_dist * i), (h - border - t_dist * i, border)]  # lines from left
+                img1.line(shape_temp2, fill="lightgrey", width=0)
             img1.text((border + t_dist * i, h - border), str((i - offset) * 10), (20, 20, 20), font=font_sm)
-            img1.text((border + 70 + t_dist * i, border), str((i - offset - 3) * 10), (20, 20, 20), font=font_sm)
+            if i < 3:
+                img1.text((border + 90 + t_dist * i, border - 13), str((i - offset - 3) * 10),
+                          (20, 20, 20), font=font_sm)
         i = i + 1
 
 
@@ -195,6 +221,7 @@ def create_thermal_data(index):
     foehn = 0
     major_wind_dir, wind_max = 0, 0
     extra_text = ""
+    soar_pot = 0
     k = -1
     while k < lines - 3:
         box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2))]
@@ -202,14 +229,16 @@ def create_thermal_data(index):
             img1.rectangle(box, fill="lightgrey", outline="lightgrey")
             # headline
         if k == -1:
-            img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)),
-                      'Zeit   Wind   Sonne Wolken  Temp  Lift  Basis', (20, 20, 20), font=font)
+            img1.text((2 * border + tx + padding, border + ty / lines * (k + 1)),
+                      'Zeit   Wind   Sonne Wolken  Temp  Lift  Basis  Soaring', (20, 20, 20), font=font)
+            img1.text((2 * border + tx + padding, border + 2.5 * padding + ty / lines * (k + 1)),
+                      ' LT    km/h               l-m-h   K/100m  m/s    m', (20, 20, 20), font=font)
         else:
             content = time[index + k][11:]
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
                       font=font)
             # wind
-            content = str(int(wind1000[index + k])) + wind_direction(wind_dir1000[index + k])
+            content = str(int(wind1000[index + k])) + ' ' + wind_direction(wind_dir1000[index + k])
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
@@ -284,6 +313,24 @@ def create_thermal_data(index):
                 distance = int(distance + 4 * lift * pow(max((base_hight - 1200), 0), 0.5) / 28.2)
             elif lift > 0.5:
                 distance = distance + 1
+            # soaring
+            content = "-"
+            font_color = (20, 20, 20)
+            if (220 < wind_dir1500[index + k] <= 290) and foehn < 4.5 and (15 < wind1500[index + k] <= 35) and \
+                    wind1900[index + k] < 50 and (precipitation[index + k] + precipitation[index + k + 1] < 0.5):
+                content = "Handl."
+                if soar_pot == 0:
+                    soar_pot = 1
+                if wind1500[index + k] > 20:
+                    content = "Soar"
+                    font_color = (20, 164, 20)  # green
+                    if soar_pot < 2:
+                        soar_pot = 2
+                if wind1500[index + k] > 25:
+                    font_color = (255, 164, 20)  # orange
+                    soar_pot = 3
+            img1.text((2 * border + tx + padding + col * 7, border + padding + ty / lines * (k + 1)), content,
+                      font_color, font=font)
         k = k + 1
     box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 3))]
     if bise > 1:
@@ -310,12 +357,13 @@ def create_thermal_data(index):
         bindung = '- '
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
     img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)),
-              'Pot. Distanz ' + str(distance) + 'km ' + bindung + extra_text, (20, 20, 20), font=font)
-    img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 2)),
+              'Pot. Distanz: ' + str(distance) + 'km ' + bindung + extra_text, (20, 20, 20), font=font)
+    img1.text((2 * border + tx + padding, border + ty / lines * (k + 2)),
               'Nullgradgrenze auf ' + str(int(freezing_level[index + 5])) + 'm. ', (20, 20, 20), font=font)
     # remember key figures for the overview
     ov_potential.append(distance)
     ov_remark.append(extra_text)
+    soar_potential.append(soar_pot)
 
 
 # functions for the wind-diagram
@@ -412,7 +460,7 @@ def wind_diagram(index):
         c = c + 1
     z = 0
     categories = ["Wind (km/h)", "4200", "3000", "1900", "1500", "1000", "Wolken (Achtel)", "hoch", "mittel", "tief"
-        , "Temp (°C/100m)", "3000", "1900", "S/N", ""]
+        , "Temp (°C/100m)", "3000", "1900", "Föhn", ""]
     while z < 14:
         img1.text((border, border + (z + 1) * ty / lines), categories.pop(0), (20, 20, 20), font=font)
         z = z + 1
@@ -477,12 +525,12 @@ pressure_msl_locarno = hourly_locarno["pressure_msl"]
 # prepare diagram
 ###################
 w, h = 1140, 680
-hmax = 6000
+hmax, hmin = 5600, 700
 border = 60
 tx, ty = 500, 560 # position of data-box
 t_dist = 150
 wind_dot = 6
-padding = 5
+padding = 8
 shape = [(border, border), (w - border, h - border)]
 
 # font
@@ -563,16 +611,16 @@ while i < len(time) and j < 5:
         wind.append(5600)
         wind.append(wind5600[i])
         wind.append(wind_dir5600[i])
-        # create temperature lines
-        create_lines()
         # draw the temp
         draw_temp(temp, dew_point)
+        # create temperature lines
+        create_lines()
         # draw the wind
         draw_wind(wind)
         # create thermal data
         create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
         # title
-        img1.text((10, 25), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+        img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
                   + ", data-source: open-meteo / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
                   + " CET", (20, 20, 20), font=font)
         # save the image here
@@ -613,10 +661,23 @@ days = 5
 while i < days:
     box = [(i * w / days, 0), ((i + 1) * w / days, h)]
     distance = ov_potential.pop(0)
+    soar = soar_potential.pop(0)
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
     img1.text((i * w / days + 3 * padding, 3 * padding), wds[int(ov_days.pop(0))], (20, 20, 20), font=font)
     img1.text(((i + 0.3) * w / days, 0.3 * h), str(distance), (20, 20, 20), font=font_el)
     img1.text((i * w / days + 3 * padding, h - 36), ov_remark.pop(0), (20, 20, 20), font=font)
+    # soaring
+    if soar > 0:
+        soar_text = ' S'
+        if soar == 1:
+            color = 'grey'
+            soar_text = 'GH'
+        if soar == 2:
+            color = 'green'
+        if soar == 3:
+            color = 'orange'
+        img1.ellipse((i * w / days + 140, 15, i * w / days + 170, 45), fill=color)
+        img1.text((i * w / days + 141, 20), soar_text, (240, 240, 240), font=font)
     i = i + 1
 img.save("thermal_overview.png")
 print("Hoi Thomas")
