@@ -238,7 +238,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
                       font=font)
             # wind
-            content = str(int(wind1000[index + k])) + ' ' + wind_direction(wind_dir1000[index + k])
+            content = str(int(wind1000[index + k])) + wind_direction(wind_dir1000[index + k])
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
@@ -257,7 +257,7 @@ def create_thermal_data(index):
                       (20, 20, 20), font=font)
             # lift
             if wind1500[index + k] <= 20 and wind1900[index + k] <= 25:
-                begin_factor = pow(max(0, (temp700[index + k] - temp1000[index + k] - 3)), 0.3)
+                begin_factor = pow(max(0, (temp700[index + k] - temp1000[index + k] - 2.5)), 0.5)
                 lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
                                0.7) * 10) / 10
                 content = str(lift)
@@ -291,6 +291,7 @@ def create_thermal_data(index):
                 wind_max = wind1500[index + k]
                 major_wind_dir = wind_dir1500[index + k]
             # base
+            base_hight = int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50
             if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 3:
                 lift = 0
                 foehn = max(foehn, pressure_msl_locarno[index + k] - pressure_msl[index + k])
@@ -303,7 +304,6 @@ def create_thermal_data(index):
                 content = 'Schnee'
             else:
                 if lift > 0:
-                    base_hight = int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50
                     content = str(base_hight)
                 else:
                     content = "-"
