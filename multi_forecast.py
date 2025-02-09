@@ -23,6 +23,8 @@ coordinates = np.array([[47.289, 8.915], [46.175384, 8.793927], [47.181896, 9.05
                         [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389]])
 start_hight = [1200, 1600, 1000, 1650, 1440, 2150, 2200]
 valley_hight = [700, 340, 430, 810, 600, 1250, 1050]
+north_wind_tolerance = [-100, -3.5, -100, -100, -100, -3.5, -4]
+south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3]
 max_locations = 7
 temp2m = np.array([])
 temp500 = np.array([])
@@ -258,8 +260,24 @@ def create_thermal_data(index):
             content = time[index + k][11:]
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
                       font=font)
+            # select temp, base and wind
+            if start_hight[loc] <= 1000:
+                tmp = -int(100 * ((temp1500[loc, index + k] - temp500[loc, index + k]) / 10)) / 100
+                temp_below = (temp1000[loc, index + k] - temp2m[loc, index + k]) / (1000 - valley_hight[loc]) * -100
+                base_hight = int(round((125 * (temp1000[loc, index + k] - dew1000[loc, index + k]) + 1000) / 50)) * 50
+                wind_start = wind1000[loc, index + k]
+            if 1000 < start_hight[loc] <= 1500:
+                tmp = -int(100 * ((temp1900[loc, index + k] - temp1000[loc, index + k]) / 9)) / 100
+                temp_below = (temp1500[loc, index + k] - temp2m[loc, index + k]) / (1500 - valley_hight[loc]) * -100
+                base_hight = int(round((125 * (temp1500[loc, index + k] - dew1500[loc, index + k]) + 1500) / 50)) * 50
+                wind_start = wind1500[loc, index + k]
+            if 1500 < start_hight[loc] <= 2500:
+                tmp = -int(100 * ((temp3000[loc, index + k] - temp1500[loc, index + k]) / 15)) / 100
+                temp_below = (temp1900[loc, index + k] - temp1500[loc, index + k]) / (1900 - 1500) * -100
+                base_hight = int(round((125 * (temp1900[loc, index + k] - dew1900[loc, index + k]) + 1900) / 50)) * 50
+                wind_start = wind1900[loc, index + k]
             # wind
-            content = str(int(wind1000[loc, index + k])) + wind_direction(wind_dir1000[loc, index + k])
+            content = str(int(wind_start)) + wind_direction(wind_dir1500[loc, index + k])
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
@@ -272,26 +290,23 @@ def create_thermal_data(index):
             clouds_h = int(abs(cloud_cover_high[loc, index + k] / 12.5))
             img1.text((2 * border + tx + padding + col * 3, border + padding + ty / lines * (k + 1)),
                       str(clouds_l) + "-" + str(clouds_m) + "-" + str(clouds_h), (20, 20, 20), font=font)
-            # select temp
-            if start_hight[loc] <= 1000:
-                tmp = -int(100 * ((temp1500[loc, index + k] - temp500[loc, index + k]) / 10)) / 100
-            if 1000 < start_hight[loc] <= 1500:
-                tmp = -int(100 * ((temp1900[loc, index + k] - temp1000[loc, index + k]) / 9)) / 100
-            if 1500 < start_hight[loc] <= 2500:
-                tmp = -int(100 * ((temp3000[loc, index + k] - temp1500[loc, index + k]) / 15)) / 100
-
-            img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp),
-                      (20, 20, 20), font=font)
+           # temp
+            img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp)
+                      , (20, 20, 20), font=font)
             # lift
-            if wind1500[loc, index + k] <= 20 and wind1900[loc, index + k] <= 25:
-                # begin_factor = pow(max(0, (temp700[loc, index + k] - temp1000[loc, index + k] - 2.5)), 0.5)
-                begin_factor = 1
+            if wind_start <= 20:
+                begin_factor = pow(max(0, temp_below - 0.5), 0.1)
+                print('temp_below: ' + str(temp_below) + ' begin-Factor: ' + str(begin_factor))
                 lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
                                0.7) * 10) / 10
                 content = str(lift)
             else:
                 lift = 0
                 content = "Wind"
+            if south_foehn_tolerance[loc] < north_south_diff[index + k] or \
+                    north_south_diff[index + k] > north_wind_tolerance[loc]:
+                lift = 0
+                content = str(lift)
             if lift >= 1:  # real thermals with green background
                 distance = int(distance + 4 * lift)
                 greenbox = [(2 * border + tx + col * 5, border + ty / lines * (k + 1)),
@@ -322,11 +337,14 @@ def create_thermal_data(index):
                 wind_max = wind1500[loc, index + k]
                 major_wind_dir = wind_dir1500[loc, index + k]
             # base
-            base_hight = int(round((125 * (temp1000[loc, index + k] - dew1000[loc, index + k]) + 1000) / 50)) * 50
-            if north_south_diff[index + k] > 3:
-                lift = 0
-                foehn = max(foehn, north_south_diff[index + k])
+            if north_south_diff[index + k] > south_foehn_tolerance[loc] or \
+                    north_south_diff[index + k] < north_wind_tolerance[loc]:
+                if north_south_diff[index + k] > 0:
+                    foehn = max(foehn, north_south_diff[index + k])
+                else:
+                    foehn = min(foehn, north_south_diff[index + k])
                 content = str(int(north_south_diff[index + k] + 0.5)) + "hPa"
+                lift = 0
             elif cloud_cover_mid[loc, index + k] < 0.1 and cloud_cover_low[loc, index + k] < 0.1:
                 content = 'blau'
             elif precipitation[loc, index + k] > 0.5 and temp1000[loc, index + k] >= 1:
@@ -341,7 +359,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 6, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             if lift >= 1:  # root-function gets 1 with a base of 2'000 meters
-                distance = int(distance + 4 * lift * pow(max((base_hight - 1200), 0), 0.5) / 28.2)
+                distance = int(distance + 4 * lift * pow(max((base_hight - start_hight[loc]), 0), 0.5) / 28.2)
             elif lift > 0.5:
                 distance = distance + 1
         k = k + 1
@@ -354,13 +372,13 @@ def create_thermal_data(index):
         extra_text = "mässiger " + wind_string(major_wind_dir)
     if bise > 25:
         extra_text = "Bise"
-    if foehn > 4:
+    if abs(foehn) > 4:
         extra_text = "Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!"
     if bise > 250:
         extra_text = "zügige Bise"
     if strong_wind > 50:
         extra_text = "kräftiger " + wind_string(major_wind_dir)
-    if foehn > 6:
+    if abs(foehn) > 6:
         extra_text = "Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!"
     if strong_wind > 150:
         extra_text = "stürmischer " + wind_string(major_wind_dir)
@@ -517,6 +535,7 @@ while i < max_locations:
 
     i = i + 1
 # convert Lists to arrays with two dimensions
+temp2m = temp2m.reshape(i, -1)
 temp500 = temp500.reshape(i, -1)
 temp1000 = temp1000.reshape(i, -1)
 temp1500 = temp1500.reshape(i, -1)
@@ -524,6 +543,7 @@ temp1900 = temp1900.reshape(i, -1)
 temp3000 = temp3000.reshape(i, -1)
 temp4200 = temp4200.reshape(i, -1)
 temp5600 = temp5600.reshape(i, -1)
+dew2m = dew2m.reshape(i, -1)
 dew500 = dew500.reshape(i, -1)
 dew1000 = dew1000.reshape(i, -1)
 dew1500 = dew1500.reshape(i, -1)
@@ -531,6 +551,7 @@ dew1900 = dew1900.reshape(i, -1)
 dew3000 = dew3000.reshape(i, -1)
 dew4200 = dew4200.reshape(i, -1)
 dew5600 = dew5600.reshape(i, -1)
+wind10m = wind10m.reshape(i, -1)
 wind500 = wind500.reshape(i, -1)
 wind1000 = wind1000.reshape(i, -1)
 wind1500 = wind1500.reshape(i, -1)
@@ -598,7 +619,7 @@ loc = 0
 while loc < max_locations:  # loops over all locations
     while i < len(time) and day < 5:
         if time[i][11:] == '14:00':
-            print(time[i], ' Posi:', i, ' create forecast')
+            print(time[i], ' Posi:', i, ' create forecast: ' + locations[loc])
             x = datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]), 0, 0, 0)
             create_forecast(loc, i)
             img1.rectangle([(0, 0), (w, h)], fill="#ffffff", outline="white")  # clear picture after saving

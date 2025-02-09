@@ -233,7 +233,9 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
                       font=font)
             # wind
-            content = str(int(wind1000[index + k])) + wind_direction(wind_dir1000[index + k])
+            wind_calc = (wind1000[index + k] + wind1500[index + k])/2
+            wind_calc_dir = wind_dir1500[index + k]
+            content = str(int(wind_calc)) + wind_direction(wind_calc_dir)
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
@@ -267,25 +269,24 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 5, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # strong wind
-            if wind1500[index + k] > 65:
+            if wind_calc > 65:
                 strong_wind = strong_wind + 100
-            if wind1500[index + k] > 40:
+            if wind_calc > 40:
                 strong_wind = strong_wind + 10
-            elif wind1500[index + k] > 25:
+            elif wind_calc > 25:
                 strong_wind = strong_wind + 1
             # bise
-            if (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 340) and wind1500[index + k] > 20:
+            if (wind_calc_dir < 120 or wind_calc_dir > 340) and wind_calc > 20:
                 bise = bise + 100
-            elif (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 340) and wind1500[index + k] > 15:
+            elif (wind_calc_dir < 120 or wind_calc_dir > 340) and wind_calc > 15:
                 bise = bise + 10
-            elif (wind_dir1500[index + k] < 120 or wind_dir1500[index + k] > 340) and wind1500[index + k] > 5:
+            elif (wind_calc_dir < 120 or wind_calc_dir > 340) and wind_calc > 5:
                 bise = bise + 1
                 if bise_start == 0:
                     bise_start = k + 10
-            if wind1500[index + k] > wind_max:  # determine direction of the wind-max
-                wind_max = wind1500[index + k]
-                major_wind_dir = wind_dir1500[index + k]
-            # base
+            if wind_calc > wind_max:  # determine direction of the wind-max
+                wind_max = wind_calc
+                major_wind_dir = wind_calc_dir            # base
             base_hight = int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50
             if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 3:
                 lift = 0
@@ -311,19 +312,20 @@ def create_thermal_data(index):
             # soaring
             content = "-"
             font_color = (20, 20, 20)
-            if (220 < wind_dir1500[index + k] <= 290) and foehn < 4.5 and (15 < wind1500[index + k] <= 35) and \
+            if (220 < wind_calc_dir <= 290) and foehn < 4.5 and (15 < wind_calc <= 35) and \
                     wind1900[index + k] < 50 and (precipitation[index + k] + precipitation[index + k + 1] < 0.5):
                 content = "Handl."
                 if soar_pot == 0:
                     soar_pot = 1
-                if wind1500[index + k] > 20:
+                if wind_calc > 20:
                     content = "Soar"
                     font_color = (20, 164, 20)  # green
                     if soar_pot < 2:
                         soar_pot = 2
-                if wind1500[index + k] > 25:
+                if wind_calc > 25:
                     font_color = (255, 164, 20)  # orange
                     soar_pot = 3
+
             img1.text((2 * border + tx + padding + col * 7, border + padding + ty / lines * (k + 1)), content,
                       font_color, font=font)
         k = k + 1
