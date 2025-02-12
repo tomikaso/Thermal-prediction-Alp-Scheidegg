@@ -15,7 +15,7 @@ ov_remark = []
 soar_potential = []
 now = datetime.now()
 # for the data grid
-col = 56
+col = 60
 lines = 14
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
 
@@ -225,9 +225,9 @@ def create_thermal_data(index):
             # headline
         if k == -1:
             img1.text((2 * border + tx + padding, border + ty / lines * (k + 1)),
-                      'Zeit  Wind  Sonne Wolken Temp Lift Basis Soaring', (20, 20, 20), font=font)
+                      'Zeit  Wind  Sonne  Wolken  Temp  Lift  Basis Soar', (20, 20, 20), font=font)
             img1.text((2 * border + tx + padding, border + 2.5 * padding + ty / lines * (k + 1)),
-                      ' LT    km/h          l-m-h °/100m  m/s  m', (20, 20, 20), font=font)
+                      ' LT    km/h            l-m-h  °/100m   m/s   m', (20, 20, 20), font=font)
         else:
             content = time[index + k][11:]
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
@@ -253,7 +253,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp),
                       (20, 20, 20), font=font)
             # lift
-            if wind1500[index + k] <= 20 and wind1900[index + k] <= 25:
+            if wind1500[index + k] <= 20 and wind1900[index + k] <= 25:  # not too much wind for thermals
                 begin_factor = pow(max(0, (temp700[index + k] - temp1000[index + k] - 2.5)), 0.5)
                 lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
                                0.7) * 10) / 10
@@ -261,8 +261,9 @@ def create_thermal_data(index):
             else:
                 lift = 0
                 content = "Wind"
+            if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 3.5:  # no lift with foehn
+                lift = 0
             if lift >= 1:  # real thermals with green background
-                distance = int(distance + 4 * lift)
                 greenbox = [(2 * border + tx + col * 5, border + ty / lines * (k + 1)),
                             (2 * border + tx + col * 6, border + ty / lines * (k + 2))]
                 img1.rectangle(greenbox, fill=lift_color(lift), outline=lift_color(lift))
@@ -288,8 +289,7 @@ def create_thermal_data(index):
                 wind_max = wind_calc
                 major_wind_dir = wind_calc_dir            # base
             base_hight = int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50
-            if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 3:
-                lift = 0
+            if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 3.5:
                 foehn = max(foehn, pressure_msl_locarno[index + k] - pressure_msl[index + k])
                 content = str(int(pressure_msl_locarno[index + k] - pressure_msl[index + k] + 0.5)) + "hPa"
             elif cloud_cover_mid[index + k] < 0.1 and cloud_cover_low[index + k] < 0.1:
@@ -314,11 +314,11 @@ def create_thermal_data(index):
             font_color = (20, 20, 20)
             if (220 < wind_calc_dir <= 290) and foehn < 4.5 and (15 < wind_calc <= 35) and \
                     wind1900[index + k] < 50 and (precipitation[index + k] + precipitation[index + k + 1] < 0.5):
-                content = "Handl."
+                content = "GH"
                 if soar_pot == 0:
                     soar_pot = 1
                 if wind_calc > 20:
-                    content = "Soar"
+                    content = "S"
                     font_color = (20, 164, 20)  # green
                     if soar_pot < 2:
                         soar_pot = 2

@@ -243,8 +243,9 @@ def create_thermal_data(index):
     bise_start = 0
     strong_wind = 0
     foehn = 0
-    major_wind_dir, wind_max = 0, 0
+    major_wind_dir, wind_max, temp_below = 0, 0, 0
     extra_text = ""
+    wind_start, tmp = 0, 0
     k = -1
     while k < lines - 3:
         box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2))]
@@ -294,7 +295,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp)
                       , (20, 20, 20), font=font)
             # lift
-            if wind_start <= 20:
+            if wind_start <= 25:
                 begin_factor = pow(max(0, temp_below - 0.5), 0.1)
                 print('temp_below: ' + str(temp_below) + ' begin-Factor: ' + str(begin_factor))
                 lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
@@ -304,32 +305,31 @@ def create_thermal_data(index):
                 lift = 0
                 content = "Wind"
             if south_foehn_tolerance[loc] < north_south_diff[index + k] or \
-                    north_south_diff[index + k] > north_wind_tolerance[loc]:
+                    north_south_diff[index + k] < north_wind_tolerance[loc]:
                 lift = 0
                 content = str(lift)
-            if lift >= 1:  # real thermals with green background
-                distance = int(distance + 4 * lift)
+            if lift >= 1:  # real thermals get a green background
                 greenbox = [(2 * border + tx + col * 5, border + ty / lines * (k + 1)),
                             (2 * border + tx + col * 6, border + ty / lines * (k + 2))]
                 img1.rectangle(greenbox, fill=lift_color(lift), outline=lift_color(lift))
             img1.text((2 * border + tx + padding + col * 5, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # strong wind
-            if wind1500[loc, index + k] > 65:
+            if wind_start > 65:
                 strong_wind = strong_wind + 100
-            if wind1500[loc, index + k] > 40:
+            if wind_start > 40:
                 strong_wind = strong_wind + 10
-            elif wind1500[loc, index + k] > 25:
+            elif wind_start > 25:
                 strong_wind = strong_wind + 1
             # bise
             if (wind_dir1500[loc, index + k] < 120 or wind_dir1500[loc, index + k] > 340) and \
-                    wind1500[loc, index + k] > 20:
+                    wind_start > 20:
                 bise = bise + 100
             elif (wind_dir1500[loc, index + k] < 120 or wind_dir1500[loc, index + k] > 340) \
-                    and wind1500[loc, index + k] > 15:
+                    and wind_start > 15:
                 bise = bise + 10
             elif (wind_dir1500[loc, index + k] < 120 or wind_dir1500[loc, index + k] > 340) \
-                    and wind1500[loc, index + k] > 5:
+                    and wind_start > 5:
                 bise = bise + 1
                 if bise_start == 0:
                     bise_start = k + 10
@@ -347,9 +347,9 @@ def create_thermal_data(index):
                 lift = 0
             elif cloud_cover_mid[loc, index + k] < 0.1 and cloud_cover_low[loc, index + k] < 0.1:
                 content = 'blau'
-            elif precipitation[loc, index + k] > 0.5 and temp1000[loc, index + k] >= 1:
+            elif precipitation[loc, index + k] > 0.5 and temp1500[loc, index + k] >= 1:
                 content = 'Regen'
-            elif precipitation[loc, index + k] > 0.5 and temp1000[loc, index + k] < 1:
+            elif precipitation[loc, index + k] > 0.5 and temp1500[loc, index + k] < 1:
                 content = 'Schnee'
             else:
                 if lift > 0:
@@ -471,7 +471,7 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
               + ", data-source: open-meteo.com / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
               + " CET", (20, 20, 20), font=font)
     # save the image here
-    img.save("forecast" + locations[loc] + str(day) + ".png")
+    img.save(image_path + "forecast" + locations[loc] + str(day) + ".png")
     # remember the weekday for the overview
 
 
@@ -605,9 +605,16 @@ img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
 img1 = ImageDraw.Draw(img) # Emagramm Image
 img1.rectangle(shape, fill="#ffffff", outline="white")
 # font
-font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
-font_sm = ImageFont.truetype("arial.ttf", 14, encoding="unic")
-font_el = ImageFont.truetype("arial.ttf", 64, encoding="unic")
+# font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
+# font_sm = ImageFont.truetype("arial.ttf", 14, encoding="unic")
+# font_el = ImageFont.truetype("arial.ttf", 64, encoding="unic")
+# image_path = ""
+
+# font raspberry pi
+font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
+font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+font_el = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 64)
+image_path = "/var/www/html/thermals/"
 
 #################################
 # main loop over all locations  #
