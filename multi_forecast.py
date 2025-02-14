@@ -11,9 +11,6 @@ now = datetime.now()
 col = 64
 lines = 14
 offset = 0
-ov_days = []
-ov_potential = []
-ov_remark = []
 soar_potential = []
 north_south_diff = []
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
@@ -26,6 +23,8 @@ valley_hight = [700, 340, 430, 810, 600, 1250, 1050]
 north_wind_tolerance = [-100, -3.5, -100, -100, -100, -3.5, -4]
 south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3]
 max_locations = 7
+flight_distance = np.zeros([max_locations, 5])
+time = []
 temp2m = np.array([])
 temp500 = np.array([])
 temp1000 = np.array([])
@@ -66,6 +65,7 @@ cloud_cover_high = np.array([])
 pressure_msl = np.array([])
 freezing_level = np.array([])
 
+
 def get_meteo(lat: float, lng: float):
     status = 'online'
     url = 'https://api.open-meteo.com/v1/forecast?latitude=' + str(lat) + '&longitude=' + str(lng) + '&'
@@ -97,7 +97,7 @@ def get_meteo(lat: float, lng: float):
 
 def temp_color(tmp):
     color = ['lightgrey', 'palegreen', 'lawngreen', 'limegreen', 'orange']
-    return color[min(int(max(0,(tmp-0.55)*10)), 4)]
+    return color[min(int(max(0, (tmp - 0.55) * 10)), 4)]
 
 
 def lift_color(lft):
@@ -107,7 +107,7 @@ def lift_color(lft):
 
 def dist_color(dist):
     color = ['whitesmoke', 'palegreen', 'lawngreen', 'limegreen', 'forestgreen']
-    return color[min(int(max(0, dist/40 + 0.99)), 4)]
+    return color[min(int(max(0, dist / 40 + 0.99)), 4)]
 
 
 # wind-direction
@@ -125,8 +125,9 @@ def wind_color(strength, direction):
     if direction > 340 or direction < 120:
         color = ['yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'orange', 'salmon', 'lightcoral', 'tomato', 'red']
     else:
-        color = ['palegreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'yellow', 'salmon', 'lightcoral', 'tomato', 'red']
-    return color[min(int(strength/5), 9)]
+        color = ['palegreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'yellow', 'salmon', 'lightcoral',
+                 'tomato', 'red']
+    return color[min(int(strength / 5), 9)]
 
 
 def thermal_visualisation(temp):
@@ -145,7 +146,7 @@ def thermal_visualisation(temp):
 
 
 # function to draw the temp
-def draw_temp(temp, dewp):
+def draw_temp(temp, dewp, offset):
     t0 = temp.pop()
     h0 = temp.pop()
     d0 = dewp.pop()
@@ -154,8 +155,8 @@ def draw_temp(temp, dewp):
     while len(temp) > 0:
         t1 = temp.pop()
         h1 = temp.pop()
-        shape_temp_box = [(border, border + (hmax - h0) / hd * ty), (border + tx, border + (hmax - h1) / hd * ty)]
-        tmp = -int(100 * ((t0 - t1) / (h0 - h1)*100)) / 100
+        shape_temp_box = ((border, border + (hmax - h0) / hd * ty), (border + tx, border + (hmax - h1) / hd * ty))
+        tmp = -int(100 * ((t0 - t1) / (h0 - h1) * 100)) / 100
         img1.rectangle(shape_temp_box, fill=thermal_visualisation(tmp)[1], outline=thermal_visualisation(tmp)[1])
         img1.text((2 * border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + (hmax - h0) / hd * ty),
                   (thermal_visualisation(tmp)[0]), (120, 120, 120), font=font)
@@ -205,7 +206,7 @@ def draw_wind(wind):
         dx = wind_dot * 2.3 * math.sin(math.radians(direction + 180)) + tx + border
         dy = - wind_dot * 2.3 * math.cos(math.radians(direction + 180)) + border + (hmax - hight) / hd * ty
         dx1 = wind_dot * 2 * math.sin(math.radians(direction + 320)) + tx + border
-        dy1 = - wind_dot * 2 * math.cos(math.radians(direction + 320))+ border + (hmax - hight) / hd * ty
+        dy1 = - wind_dot * 2 * math.cos(math.radians(direction + 320)) + border + (hmax - hight) / hd * ty
         dx2 = wind_dot * 1 * math.sin(math.radians(direction)) + tx + border
         dy2 = - wind_dot * 1 * math.cos(math.radians(direction)) + border + (hmax - hight) / hd * ty
         dx3 = wind_dot * 2 * math.sin(math.radians(direction + 40)) + tx + border
@@ -216,12 +217,12 @@ def draw_wind(wind):
 
 
 # creating new Image object
-def create_lines():
+def create_lines(offset):
     i = 0
     while i < 6:
         img1.text((10, border + (hmax - i * 1000) / (hmax - hmin) * ty), str(i * 1000), (20, 20, 20), font=font)
         if i < 4:
-            shape_temp = [(border + t_dist * i, h - border), (tx + border, border + t_dist * i + (ty-tx))]  # bottom
+            shape_temp = [(border + t_dist * i, h - border), (tx + border, border + t_dist * i + (ty - tx))]  # bottom
             img1.line(shape_temp, fill="lightgrey", width=0)
             if i > 0:
                 shape_temp2 = [(border, h - border - t_dist * i), (h - border - t_dist * i, border)]  # lines from left
@@ -238,17 +239,19 @@ def create_thermal_data(index):
     t1 = 0.6  # at this point thermals begin to be usable
     tm = 1.2  # maximum possible temp
     tf = 5  # temp factor
+    tmp: float = 0
     distance = 0
     bise = 0
     bise_start = 0
     strong_wind = 0
     foehn = 0
     major_wind_dir, wind_max, temp_below = 0, 0, 0
+    base_hight = 0
     extra_text = ""
-    wind_start, tmp = 0, 0
+    wind_start = 0
     k = -1
     while k < lines - 3:
-        box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2))]
+        box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2)))
         if 2 * int(k / 2) == k:
             img1.rectangle(box, fill="lightgrey", outline="lightgrey")
             # headline
@@ -291,14 +294,14 @@ def create_thermal_data(index):
             clouds_h = int(abs(cloud_cover_high[loc, index + k] / 12.5))
             img1.text((2 * border + tx + padding + col * 3, border + padding + ty / lines * (k + 1)),
                       str(clouds_l) + "-" + str(clouds_m) + "-" + str(clouds_h), (20, 20, 20), font=font)
-           # temp
+            # temp
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp)
                       , (20, 20, 20), font=font)
             # lift
             if wind_start <= 25:
                 begin_factor = pow(max(0, temp_below - 0.5), 0.1)
                 print('temp_below: ' + str(temp_below) + ' begin-Factor: ' + str(begin_factor))
-                lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
+                lift = int(pow((max(0.1, ((max(0.1, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
                                0.7) * 10) / 10
                 content = str(lift)
             else:
@@ -309,8 +312,8 @@ def create_thermal_data(index):
                 lift = 0
                 content = str(lift)
             if lift >= 1:  # real thermals get a green background
-                greenbox = [(2 * border + tx + col * 5, border + ty / lines * (k + 1)),
-                            (2 * border + tx + col * 6, border + ty / lines * (k + 2))]
+                greenbox = ((2 * border + tx + col * 5, border + ty / lines * (k + 1)),
+                            (2 * border + tx + col * 6, border + ty / lines * (k + 2)))
                 img1.rectangle(greenbox, fill=lift_color(lift), outline=lift_color(lift))
             img1.text((2 * border + tx + padding + col * 5, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
@@ -363,7 +366,7 @@ def create_thermal_data(index):
             elif lift > 0.5:
                 distance = distance + 1
         k = k + 1
-    box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 3))]
+    box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 3)))
     if bise > 1:
         extra_text = "Bisentendenz"
         if bise_start > 12:
@@ -392,8 +395,7 @@ def create_thermal_data(index):
     img1.text((2 * border + tx + padding, border + ty / lines * (k + 2)),
               'Nullgradgrenze auf ' + str(int(freezing_level[loc, index + 5])) + 'm. ', (20, 20, 20), font=font)
     # remember key figures for the overview
-    ov_potential.append(distance)
-    ov_remark.append(extra_text)
+    flight_distance[loc, day] = distance
 
 
 def create_forecast(loc, i):  # loc-location, i position in the data-array
@@ -401,11 +403,6 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     temp = []
     dew_point = []
     wind = []
-    # fix scale
-    if temp1900[loc, i] > 0:
-        offset = 0
-    else:
-        offset = 1
     # create lists for the emagramm
     temp.append(500)
     temp.append(temp500[loc, i])
@@ -459,11 +456,16 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     wind.append(wind5600[loc, i])
     wind.append(wind_dir5600[loc, i])
     # draw the temp
-    draw_temp(temp, dew_point)
+    # fix scale
+    if temp1900[loc, i] > 0:
+        offset = 0
+    else:
+        offset = 1
+    draw_temp(temp, dew_point, offset)
     # draw the wind
     draw_wind(wind)
     # create temperature lines
-    create_lines()
+    create_lines(offset)
     # create thermal data
     create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
     # title
@@ -524,14 +526,14 @@ while i < max_locations:
     wind_dir3000 = np.append(wind_dir3000, hourly["wind_direction_700hPa"])
     wind_dir4200 = np.append(wind_dir4200, hourly["wind_direction_600hPa"])
     wind_dir5600 = np.append(wind_dir5600, hourly["wind_direction_500hPa"])
-# other values
+    # other values
     radiation = np.append(radiation, hourly["direct_radiation"])
     precipitation = np.append(precipitation, hourly["precipitation"])
-    cloud_cover_low = np.append( cloud_cover_low, hourly["cloud_cover_low"])
-    cloud_cover_mid = np.append( cloud_cover_mid, hourly["cloud_cover_mid"])
-    cloud_cover_high = np.append( cloud_cover_high, hourly["cloud_cover_high"])
-    pressure_msl = np.append( pressure_msl, hourly["pressure_msl"])
-    freezing_level = np.append( freezing_level, hourly["freezing_level_height"])
+    cloud_cover_low = np.append(cloud_cover_low, hourly["cloud_cover_low"])
+    cloud_cover_mid = np.append(cloud_cover_mid, hourly["cloud_cover_mid"])
+    cloud_cover_high = np.append(cloud_cover_high, hourly["cloud_cover_high"])
+    pressure_msl = np.append(pressure_msl, hourly["pressure_msl"])
+    freezing_level = np.append(freezing_level, hourly["freezing_level_height"])
 
     i = i + 1
 # convert Lists to arrays with two dimensions
@@ -577,7 +579,7 @@ freezing_level = freezing_level.reshape(i, -1)
 # generate the pressure-difference Locarno (position 1) to Scheidegg (position 0)
 pos = 0
 while pos < len(pressure_msl[0]):
-    print ('pos: ', pos)
+    print('pos: ', pos)
     north_south_diff.append(pressure_msl[1, pos] - pressure_msl[0, pos])
     pos = pos + 1
 
@@ -592,29 +594,28 @@ print('dewpoint 1000 - reshaped: ', dew1000)
 w, h = 1140, 680
 hmax, hmin = 5600, 700
 border = 60
-tx, ty = 500, 560 # position of data-box
+tx, ty = 500, 560  # position of data-box
 t_dist = 150
 wind_dot = 6
 padding = 8
-shape = [(border, border), (w - border, h - border)]
-
+shape = ((border, border), (w - border, h - border))
 
 # create new image
 img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
 # create rectangle image
-img1 = ImageDraw.Draw(img) # Emagramm Image
+img1 = ImageDraw.Draw(img)  # Emagramm Image
 img1.rectangle(shape, fill="#ffffff", outline="white")
 # font
-# font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
-# font_sm = ImageFont.truetype("arial.ttf", 14, encoding="unic")
-# font_el = ImageFont.truetype("arial.ttf", 64, encoding="unic")
-# image_path = ""
+font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
+font_sm = ImageFont.truetype("arial.ttf", 14, encoding="unic")
+font_el = ImageFont.truetype("arial.ttf", 64, encoding="unic")
+image_path = ""
 
 # font raspberry pi
-font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
-font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
-font_el = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 64)
-image_path = "/var/www/html/thermals/"
+#font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
+#font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+#font_el = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 64)
+#image_path = "/var/www/html/thermals/"
 
 #################################
 # main loop over all locations  #
@@ -629,9 +630,39 @@ while loc < max_locations:  # loops over all locations
             print(time[i], ' Posi:', i, ' create forecast: ' + locations[loc])
             x = datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]), 0, 0, 0)
             create_forecast(loc, i)
-            img1.rectangle([(0, 0), (w, h)], fill="#ffffff", outline="white")  # clear picture after saving
+            img1.rectangle(((0, 0), (w, h)), fill="#ffffff", outline="white")  # clear picture after saving
             day = day + 1
         i = i + 1
     i = 0
     day = 0
     loc = loc + 1
+# writing out html-code
+html = ''
+weekday = 7
+while day < 5:
+    loc = 0
+    html_d = ''
+    while loc < max_locations:
+        html_d = html_d + str(flight_distance[loc, day])
+        loc = loc + 1
+        if loc < max_locations:
+            html_d = html_d + ', '
+    day = day + 1
+    html = html + '<button class="button1" id="my-div' + str(day) + '" onclick="changeColor(' + str(day) + ', '\
+        + html_d + ')">' + wds[weekday] + '</button>'
+    weekday = weekday + 1
+    if day == 1:
+        weekday = int(now.strftime("%w")) + 1
+    if weekday > 6:
+        weekday = 0
+print(html)
+# add thermal data to html
+f = open(image_path + "multitherm25.html", "r")  # first, read body-part of the html.
+str1 = f.read()
+f.close()  # append the new html
+html_output = str1 + html + '<div id="display_temp"><img src="forecastScheidegg0.png" ></div></body></html>'
+print(html_output)
+result_file = open(image_path + 'multi.html', 'w')
+result_file.write(html_output)
+result_file.close()
+print ("everything done :-)")

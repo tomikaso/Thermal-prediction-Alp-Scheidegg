@@ -85,7 +85,7 @@ def draw_temp(temp, dewp):
     while len(temp) > 0:
         t1 = temp.pop()
         h1 = temp.pop()
-        shape_temp_box = [(border, border + (hmax - h0) / hd * ty), (border + tx, border + (hmax - h1) / hd * ty)]
+        shape_temp_box = ((border, border + (hmax - h0) / hd * ty), (border + tx, border + (hmax - h1) / hd * ty))
         tmp = -int(100 * ((t0 - t1) / (h0 - h1)*100)) / 100
         img1.rectangle(shape_temp_box, fill=thermal_visualisation(tmp)[1], outline=thermal_visualisation(tmp)[1])
         img1.text((2 * border + t_dist * t0 * 0.1 + h0 / hmax * tx + t_dist * offset, border + (hmax - h0) / hd * ty),
@@ -224,7 +224,7 @@ def create_thermal_data(index):
     soar_pot = 0
     k = -1
     while k < lines - 3:
-        box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2))]
+        box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2)))
         if 2 * int(k / 2) == k:
             img1.rectangle(box, fill="lightgrey", outline="lightgrey")
             # headline
@@ -260,7 +260,7 @@ def create_thermal_data(index):
             # lift
             if wind1500[index + k] <= 20 and wind1900[index + k] <= 25:  # condition for thermals
                 begin_factor = pow(max(0, (temp700[index + k] - temp1000[index + k] - 2.5)), 0.5)
-                lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
+                lift = int(pow((max(0.0, ((max(0.0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
                                0.7) * 10) / 10
                 content = str(lift)
             else:
@@ -269,8 +269,8 @@ def create_thermal_data(index):
             if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 4:  # no lift with foehn
                 lift = 0
             if lift >= 1:  # real thermals with green background
-                greenbox = [(2 * border + tx + col * 5, border + ty / lines * (k + 1)),
-                            (2 * border + tx + col * 6, border + ty / lines * (k + 2))]
+                greenbox = ((2 * border + tx + col * 5, border + ty / lines * (k + 1)),
+                            (2 * border + tx + col * 6, border + ty / lines * (k + 2)))
                 img1.rectangle(greenbox, fill=lift_color(lift), outline=lift_color(lift))
             img1.text((2 * border + tx + padding + col * 5, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
@@ -334,7 +334,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 7, border + padding + ty / lines * (k + 1)), content,
                       font_color, font=font)
         k = k + 1
-    box = [(2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 3))]
+    box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 3)))
     if bise > 1:
         extra_text = "Bisentendenz"
         if bise_start > 12:
@@ -376,8 +376,8 @@ def wind_diagram(index):
         # headline
         img1.text((2 * border + c * col, border + pad), str(c + 6) + ":00", (20, 20, 20), font=font)
         # wind
-        box = [(2 * border + c * col - pad, border - pad + 2 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 2.8 * ty / lines)]
+        box = ((2 * border + c * col - pad, border - pad + 2 * ty / lines),
+               (2 * border + (c + 1) * col - pad, border - pad + 2.8 * ty / lines))
         img1.rectangle(box, fill=wind_color(wind4200[index + c], wind_dir4200[index + c]), outline='white')
         img1.text((2 * border + c * col + 6 * pad, border + 2 * ty / lines), str(int(wind4200[index + c])),
                   (20, 20, 20), font=font)
@@ -385,36 +385,36 @@ def wind_diagram(index):
             calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 2 * ty / lines, wind_dir4200[index + c]),
             fill='dimgrey')
 
-        box = [(2 * border + c * col - pad, border - pad + 3 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 3.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind3000[index + c], wind_dir3000[index + c]), outline='white')
+        box1 = ((2 * border + c * col - pad, border - pad + 3 * ty / lines),
+                (2 * border + (c + 1) * col - pad, border - pad + 3.8 * ty / lines))
+        img1.rectangle(box1, fill=wind_color(wind3000[index + c], wind_dir3000[index + c]), outline='white')
         img1.text((2 * border + c * col + 6 * pad, border + 3 * ty / lines), str(int(wind3000[index + c])),
                   (20, 20, 20), font=font)
         img1.polygon(
             calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 3 * ty / lines, wind_dir3000[index + c]),
             fill='dimgrey')
 
-        box = [(2 * border + c * col - pad, border - pad + 4 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 4.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind1900[index + c], wind_dir1900[index + c]), outline='white')
+        box1 = ((2 * border + c * col - pad, border - pad + 4 * ty / lines),
+               (2 * border + (c + 1) * col - pad, border - pad + 4.8 * ty / lines))
+        img1.rectangle(box1, fill=wind_color(wind1900[index + c], wind_dir1900[index + c]), outline='white')
         img1.text((2 * border + c * col + 6 * pad, border + 4 * ty / lines), str(int(wind1900[index + c])),
                   (20, 20, 20), font=font)
         img1.polygon(
             calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 4 * ty / lines, wind_dir1900[index + c]),
             fill='dimgrey')
 
-        box = [(2 * border + c * col - pad, border - pad + 5 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 5.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind1500[index + c], wind_dir1500[index + c]), outline='white')
+        box1 = ((2 * border + c * col - pad, border - pad + 5 * ty / lines),
+               (2 * border + (c + 1) * col - pad, border - pad + 5.8 * ty / lines))
+        img1.rectangle(box1, fill=wind_color(wind1500[index + c], wind_dir1500[index + c]), outline='white')
         img1.text((2 * border + c * col + 6 * pad, border + 5 * ty / lines), str(int(wind1500[index + c])),
                   (20, 20, 20), font=font)
         img1.polygon(
             calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 5 * ty / lines, wind_dir1500[index + c]),
             fill='dimgrey')
 
-        box = [(2 * border + c * col - pad, border - pad + 6 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 6.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(wind1000[index + c], wind_dir1000[index + c]), outline='white')
+        box1 = ((2 * border + c * col - pad, border - pad + 6 * ty / lines),
+                (2 * border + (c + 1) * col - pad, border - pad + 6.8 * ty / lines))
+        img1.rectangle(box1, fill=wind_color(wind1000[index + c], wind_dir1000[index + c]), outline='white')
         img1.text((2 * border + c * col + 6 * pad, border + 6 * ty / lines), str(int(wind1000[index + c])),
                   (20, 20, 20), font=font)
         img1.polygon(
@@ -426,37 +426,37 @@ def wind_diagram(index):
         clouds_h = int(abs(cloud_cover_high[index + c] / 12.5))
         rain = precipitation[index + c]
         # clouds_high
-        box = [(2 * border + c * col - pad, border - pad + 8 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 8.8 * ty / lines)]
-        img1.rectangle(box, fill=cloud_color(clouds_h / 2, rain), outline='white')  # less color for high clouds
+        box1 = ((2 * border + c * col - pad, border - pad + 8 * ty / lines),
+               (2 * border + (c + 1) * col - pad, border - pad + 8.8 * ty / lines))
+        img1.rectangle(box1, fill=cloud_color(clouds_h / 2, rain), outline='white')  # less color for high clouds
         img1.text((2 * border + c * col, border + 8 * ty / lines), "  " + str(clouds_h), (20, 20, 20), font=font)
         # clouds_mid
-        box = [(2 * border + c * col - pad, border - pad + 9 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 9.8 * ty / lines)]
-        img1.rectangle(box, fill=cloud_color(clouds_m, rain), outline='white')
+        box1 = ((2 * border + c * col - pad, border - pad + 9 * ty / lines),
+               (2 * border + (c + 1) * col - pad, border - pad + 9.8 * ty / lines))
+        img1.rectangle(box1, fill=cloud_color(clouds_m, rain), outline='white')
         img1.text((2 * border + c * col, border + 9 * ty / lines), "  " + str(clouds_m), (20, 20, 20), font=font)
         # clouds_low
-        box = [(2 * border + c * col - pad, border - pad + 10 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 10.8 * ty / lines)]
-        img1.rectangle(box, fill=cloud_color(clouds_l, rain), outline='white')
+        box1 = ((2 * border + c * col - pad, border - pad + 10 * ty / lines),
+               (2 * border + (c + 1) * col - pad, border - pad + 10.8 * ty / lines))
+        img1.rectangle(box1, fill=cloud_color(clouds_l, rain), outline='white')
         img1.text((2 * border + c * col, border + 10 * ty / lines), "  " + str(clouds_l), (20, 20, 20), font=font)
         # Temp until 3'000 meter
         grad3000 = -int(100 * ((temp3000[index + c] - temp1900[index + c]) / 11)) / 100
-        box = [(2 * border + c * col - pad, border - pad + 12 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 12.8 * ty / lines)]
-        img1.rectangle(box, fill=temp_color(grad3000), outline='white')
+        box1 = ((2 * border + c * col - pad, border - pad + 12 * ty / lines),
+               (2 * border + (c + 1) * col - pad, border - pad + 12.8 * ty / lines))
+        img1.rectangle(box1, fill=temp_color(grad3000), outline='white')
         img1.text((2 * border + c * col, border + 12 * ty / lines), str(grad3000), (20, 20, 20), font=font)
         # Temp until 1'900 meter
         grad1900 = -int(100 * ((temp1900[index + c] - temp1000[index + c]) / 9)) / 100
-        box = [(2 * border + c * col - pad, border - pad + 13 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 13.8 * ty / lines)]
-        img1.rectangle(box, fill=temp_color(grad1900), outline='white')
+        box1 = ((2 * border + c * col - pad, border - pad + 13 * ty / lines),
+               (2 * border + (c + 1) * col - pad, border - pad + 13.8 * ty / lines))
+        img1.rectangle(box1, fill=temp_color(grad1900), outline='white')
         img1.text((2 * border + c * col, border + 13 * ty / lines), str(grad1900), (20, 20, 20), font=font)
         # Süd-Nord-Überdruck
         sn_diff = pressure_msl_locarno[index + c] - pressure_msl[index + c]
-        box = [(2 * border + c * col - pad, border - pad + 14 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 14.8 * ty / lines)]
-        img1.rectangle(box, fill=wind_color(max(0, (8 * sn_diff)), 270), outline='white')
+        box1 = ((2 * border + c * col - pad, border - pad + 14 * ty / lines), (2 * border + (c + 1) * col - pad,
+                                                                               border - pad + 14.8 * ty / lines))
+        img1.rectangle(box1, fill=wind_color(max(0, (8 * sn_diff)), 270), outline='white')
         img1.text((2 * border + c * col, border + 14 * ty / lines), str(int(sn_diff + 0.5)) + "hPa", (20, 20, 20),
                   font=font)
         c = c + 1
@@ -533,7 +533,7 @@ tx, ty = 500, 560 # position of data-box
 t_dist = 150
 wind_dot = 6
 padding = 8
-shape = [(border, border), (w - border, h - border)]
+shape = ((border, border), (w - border, h - border))
 
 # font
 font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
@@ -661,7 +661,7 @@ img1 = ImageDraw.Draw(img)  # overview image
 i = 0
 days = 5
 while i < days:
-    box = [(i * w / days, 0), ((i + 1) * w / days, h)]
+    box = ((i * w / days, 0), ((i + 1) * w / days, h))
     distance = ov_potential.pop(0)
     soar = soar_potential.pop(0)
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
@@ -670,9 +670,9 @@ while i < days:
     img1.text((i * w / days + 3 * padding, h - 36), ov_remark.pop(0), (20, 20, 20), font=font)
     # soaring
     if soar > 0:
+        color = 'grey'
         soar_text = ' S'
         if soar == 1:
-            color = 'grey'
             soar_text = 'GH'
         if soar == 2:
             color = 'green'

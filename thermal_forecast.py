@@ -255,7 +255,7 @@ def create_thermal_data(index):
             # lift
             if wind1500[index + k] <= 20 and wind1900[index + k] <= 25:  # not too much wind for thermals
                 begin_factor = pow(max(0, (temp700[index + k] - temp1000[index + k] - 2.5)), 0.5)
-                lift = int(pow((max(0, ((max(0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
+                lift = int(pow((max(0.0, ((max(0.0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
                                0.7) * 10) / 10
                 content = str(lift)
             else:
