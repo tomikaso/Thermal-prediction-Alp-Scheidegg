@@ -606,16 +606,16 @@ img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
 img1 = ImageDraw.Draw(img)  # Emagramm Image
 img1.rectangle(shape, fill="#ffffff", outline="white")
 # font
-font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
-font_sm = ImageFont.truetype("arial.ttf", 14, encoding="unic")
-font_el = ImageFont.truetype("arial.ttf", 64, encoding="unic")
-image_path = ""
+#font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
+#font_sm = ImageFont.truetype("arial.ttf", 14, encoding="unic")
+#font_el = ImageFont.truetype("arial.ttf", 64, encoding="unic")
+#image_path = ""
 
 # font raspberry pi
-#font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
-#font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
-#font_el = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 64)
-#image_path = "/var/www/html/thermals/"
+font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
+font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+font_el = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 64)
+image_path = "/var/www/html/thermals/"
 
 #################################
 # main loop over all locations  #
@@ -647,9 +647,9 @@ while day < 5:
         loc = loc + 1
         if loc < max_locations:
             html_d = html_d + ', '
-    day = day + 1
     html = html + '<button class="button1" id="my-div' + str(day) + '" onclick="changeColor(' + str(day) + ', '\
         + html_d + ')">' + wds[weekday] + '</button>'
+    day = day + 1
     weekday = weekday + 1
     if day == 1:
         weekday = int(now.strftime("%w")) + 1
@@ -662,7 +662,7 @@ str1 = f.read()
 f.close()  # append the new html
 html_output = str1 + html + '<div id="display_temp"><img src="forecastScheidegg0.png" ></div></body></html>'
 print(html_output)
-result_file = open(image_path + 'multi.html', 'w')
+result_file = open(image_path + "multi.html", "w")
 result_file.write(html_output)
 result_file.close()
 print ("everything done :-)")

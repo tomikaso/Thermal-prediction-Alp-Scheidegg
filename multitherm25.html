@@ -5,19 +5,27 @@
 	<title>Multitherm</title>
 </head>
 <style>
+body
+{
+  font-family: Arial, Helvetica, sans-serif;
+}
+.km {
+  font-size: 24px;
+  color: #444;
+}
 .overview {
   position: relative;
-  width: 1252px;
-  height: 820px;
+  width: 1140px;
+  height: 764px;
   background-color: green;
-  background-image: url('swiss_outline_ter.png');
+  background-image: url('swiss_outline.png');
   margin: 5px;
   border-radius: 5px;
 }
 .thermal0 {
   position: absolute;
-  left: 60%;
-  top:  21%;
+  left: 58%;
+  top:  23%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -27,7 +35,7 @@
 .thermal0:hover {color: orange;}
 .thermal1 {
   position: absolute;
-  left: 60%;
+  left: 56%;
   top:  70%;
   width: 50px;
   height: 50px;
@@ -38,8 +46,8 @@
  .thermal1:hover {color: orange;}
 .thermal2 {
   position: absolute;
-  left: 63%;
-  top:  27%;
+  left: 62%;
+  top:  28%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -49,7 +57,7 @@
 .thermal2:hover {color: orange;}
 .thermal3 {
   position: absolute;
-  left: 74%;
+  left: 72%;
   top:  36%;
   width: 50px;
   height: 50px;
@@ -60,7 +68,7 @@
 .thermal3:hover {color: orange;}
 .thermal4 {
   position: absolute;
-  left: 28%;
+  left: 24%;
   top:  25%;
   width: 50px;
   height: 50px;
@@ -71,7 +79,7 @@
 .thermal4:hover {color: orange;}
 .thermal5 {
   position: absolute;
-  left: 88%;
+  left: 83%;
   top:  46%;
   width: 50px;
   height: 50px;
@@ -82,7 +90,7 @@
 .thermal5:hover {color: orange;}
 .thermal6 {
   position: absolute;
-  left: 44%;
+  left: 40%;
   top:  61%;
   width: 50px;
   height: 50px;
@@ -91,15 +99,8 @@
   border-radius: 25px;
 }
 .thermal6:hover {color: orange;}
-.button1 {
-  width: 120px;
-  height: 60px;
-  background-color: grey;
-  margin: 5px;
-  border-radius: 5px;
-}
-.button1:hover {background-color: blue;}
-
+.button1 {  width: 110px;   height: 60px;   background-color: blue-grey;  margin: 5px;   border-radius: 5px;   font-size: 18px;   color: #444; }
+.button1:hover {  background-color: #9FE2BF;}
 </style>
 <body onload="setday()" >
 <h1>Thermal forecast</h1>
@@ -108,22 +109,22 @@
 	  function setday(){day = 0;}
       function changeColor(i, dist0, dist1, dist2, dist3, dist4, dist5, dist6) {
          document.getElementById("thermal0").style.backgroundColor = col(dist0);
-		 document.getElementById("thermal0").innerHTML = "<h3>" + dist0 + "</h3>";
+		 document.getElementById("thermal0").innerHTML = "<a class='km'>" + dist0 + "</a>";
          document.getElementById("thermal1").style.backgroundColor = col(dist1);
-		 document.getElementById("thermal1").innerHTML = "<h3>" + dist1 + "</h3>";
+		 document.getElementById("thermal1").innerHTML = "<a class='km'>" + dist1 + "</a>";
 		 document.getElementById("thermal2").style.backgroundColor = col(dist2);
-		 document.getElementById("thermal2").innerHTML = "<h3>" + dist2 + "</h3>";
+		 document.getElementById("thermal2").innerHTML = "<a class='km'>" + dist2 + "</a>";
 		 document.getElementById("thermal3").style.backgroundColor = col(dist3);
-		 document.getElementById("thermal3").innerHTML = "<h3>" + dist3 + "</h3>";
+		 document.getElementById("thermal3").innerHTML = "<a class='km'>" + dist3 + "</a>";
          document.getElementById("thermal4").style.backgroundColor = col(dist4);
-		 document.getElementById("thermal4").innerHTML = "<h3>" + dist4 + "</h3>";
+		 document.getElementById("thermal4").innerHTML = "<a class='km'>" + dist4 + "</a>";
 		 document.getElementById("thermal5").style.backgroundColor = col(dist5);
-		 document.getElementById("thermal5").innerHTML = "<h3>" + dist5 + "</h3>";
+		 document.getElementById("thermal5").innerHTML = "<a class='km'>" + dist5 + "</a>";
 		 document.getElementById("thermal6").style.backgroundColor = col(dist6);
-		 document.getElementById("thermal6").innerHTML = "<h3>" + dist6 + "</h3>";
+		 document.getElementById("thermal6").innerHTML = "<a class='km'>" + dist6 + "</a>";
 		 day = i;
-		 document.getElementById("day_indicator").innerHTML = "<h2>Day +" + day + "</h2>";
-}
+		 document.getElementById("day_indicator").innerHTML = "<a class='km'>Day +" + day + "</a>";
+	}
 	function col(g, a=1){  return `rgba(10, ${250-g}, 10, 1)`}
 	function show_as() {document.getElementById("display_temp").innerHTML = "<img src='forecastScheidegg" + day + ".png'>";}
 	function show_lo() {document.getElementById("display_temp").innerHTML = "<img src='forecastLocarno" + day + ".png'>";}
@@ -134,11 +135,11 @@
 	function show_fi() {document.getElementById("display_temp").innerHTML = "<img src='forecastFiesch" + day + ".png'>";}
 </script>
 <div class="overview" id="overview"><button class="button1" id="day_indicator"><h2>Today</h2></button>
-	<button class="thermal0" id="thermal0" onclick="show_as()"><h3>AS</h3></button>
-	<button class="thermal1" id="thermal1" onclick="show_lo()"><h3>LO</h3></button>
-	<button class="thermal2" id="thermal2" onclick="show_hu()"><h3>HÜ</h3></button>
-	<button class="thermal3" id="thermal3" onclick="show_py()"><h3>PY</h3></button>
-	<button class="thermal4" id="thermal4" onclick="show_so()"><h3>SO</h3></button>
-	<button class="thermal5" id="thermal5" onclick="show_sc()"><h3>SC</h3></button>
-	<button class="thermal6" id="thermal6" onclick="show_fi()"><h3>FI</h3></button>
+	<button class="thermal0" id="thermal0" onclick="show_as()"><a class="km">AS</a></button>
+	<button class="thermal1" id="thermal1" onclick="show_lo()"><a class="km">LO</a></button>
+	<button class="thermal2" id="thermal2" onclick="show_hu()"><a class="km">HÜ</a></button>
+	<button class="thermal3" id="thermal3" onclick="show_py()"><a class="km">PY</a></button>
+	<button class="thermal4" id="thermal4" onclick="show_so()"><a class="km">SO</a></button>
+	<button class="thermal5" id="thermal5" onclick="show_sc()"><a class="km">SC</a></button>
+	<button class="thermal6" id="thermal6" onclick="show_fi()"><a class="km">FI</a></button>
 </div>
