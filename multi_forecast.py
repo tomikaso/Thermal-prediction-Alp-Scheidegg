@@ -15,14 +15,14 @@ soar_potential = []
 north_south_diff = []
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
 
-locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol', 'Fiesch']
+locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol', 'Fiesch', 'Niesen']
 coordinates = np.array([[47.289, 8.915], [46.175384, 8.793927], [47.181896, 9.051195], [46.927030, 9.771950],
-                        [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389]])
-start_hight = [1200, 1600, 1000, 1650, 1440, 2150, 2200]
-valley_hight = [700, 340, 430, 810, 600, 1250, 1050]
-north_wind_tolerance = [-100, -3.5, -100, -100, -100, -3.5, -4]
-south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3]
-max_locations = 7
+                        [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389], [46.617260, 7.671066]])
+start_hight = [1200, 1600, 1000, 1650, 1440, 2150, 2200, 2200]
+valley_hight = [700, 340, 430, 810, 600, 1250, 1050, 1200]
+north_wind_tolerance = [-100, -3.5, -100, -100, -100, -3.5, -4, -100]
+south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3]
+max_locations = 8
 flight_distance = np.zeros([max_locations, 5])
 time = []
 temp2m = np.array([])
