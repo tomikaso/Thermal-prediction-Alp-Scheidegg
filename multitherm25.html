@@ -157,12 +157,13 @@ body
          document.getElementById("my-div" + day).className  = "active_button";
          show_forecast();
       }
+
       function col(dist){
-             if (dist > 124 ){dist = 124;}
-             let rb = 125 - dist
-             if (dist == 0){rb = 250;}
-             return `rgba(${rb}, ${250 - 2 * dist}, ${rb}, 1)`
-           				}
+                if (dist > 250 ){dist = 250;}
+                let r = 255 - dist
+              let fac = (15625 - (dist - 125)**2) / 260
+                return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
+                }
         function show_grid(n) {startgrid = grids[n]; show_forecast();}
         function show_forecast() {document.getElementById("display_temp").innerHTML = "<h2>" + startgrid +
          " Day-" + day + "</h2><img src='forecast" + startgrid + day + ".png'>";}
