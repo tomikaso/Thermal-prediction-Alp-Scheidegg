@@ -247,6 +247,7 @@ def create_thermal_data(index):
             # wind
             wind_calc = (wind1000[index + k] + wind1500[index + k]) / 2
             wind_calc_dir = wind_dir1500[index + k]
+            press_diff = pressure_msl_locarno[index + k] - pressure_msl[index + k]
             content = str(int(wind_calc)) + wind_direction(wind_calc_dir)
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
@@ -273,8 +274,9 @@ def create_thermal_data(index):
             else:
                 lift = 0
                 content = "Wind"
-            if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 4:  # no lift with foehn
+            if press_diff >= 4:  # no lift with foehn
                 lift = 0
+                content = str(lift)
             if lift >= 1:  # real thermals with green background
                 greenbox = ((2 * border + tx + col * 5, border + ty / lines * (k + 1)),
                             (2 * border + tx + col * 6, border + ty / lines * (k + 2)))
@@ -302,9 +304,9 @@ def create_thermal_data(index):
                 major_wind_dir = wind_calc_dir
             # base
             base_hight = int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50
-            if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 3.5:
-                foehn = max(foehn, pressure_msl_locarno[index + k] - pressure_msl[index + k])
-                content = str(int(pressure_msl_locarno[index + k] - pressure_msl[index + k] + 0.5)) + "hPa"
+            if press_diff >= 4:
+                foehn = max(foehn, press_diff)
+                content = str(int(press_diff + 0.5)) + "hPa"
             elif cloud_cover_mid[index + k] < 0.1 and cloud_cover_low[index + k] < 0.1:
                 content = 'blau'
             elif precipitation[index + k] > 0.5 and temp1000[index + k] >= 1:
