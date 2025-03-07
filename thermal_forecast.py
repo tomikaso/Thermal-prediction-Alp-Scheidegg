@@ -203,6 +203,13 @@ def dist_color(dist):
     return color[min(int(max(0, dist/40 + 0.99)), 4)]
 
 
+# calculates the effective sun, depending on the angle of the start grid. hrs is the number of hours.
+def effective_sun(sun, start_angle, hrs):
+    alpha = min(hrs * 15 - 8 - (start_angle - 180), 180)
+    s = int(sun * max(math.sin(math.radians(alpha - 90)), 0))
+    return s
+
+
 # create thermal data lines
 def create_thermal_data(index):
     # model-variables
@@ -239,7 +246,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
-            sun = int(abs(radiation[index + k] / 8))
+            sun = effective_sun(abs(radiation[index + k] / 8), 200, k+10)  # 200° - south start. k+10 is the time
             img1.text((2 * border + tx + padding + col * 2, border + padding + ty / lines * (k + 1)), str(sun) + "%",
                       (20, 20, 20), font=font)
             # clouds
@@ -261,7 +268,7 @@ def create_thermal_data(index):
             else:
                 lift = 0
                 content = "Wind"
-            if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 3.5:  # no lift with foehn
+            if pressure_msl_locarno[index + k] - pressure_msl[index + k] > 4:  # no lift with foehn
                 lift = 0
             if lift >= 1:  # real thermals with green background
                 greenbox = [(2 * border + tx + col * 5, border + ty / lines * (k + 1)),
