@@ -19,6 +19,7 @@ locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol',
 coordinates = np.array([[47.289, 8.915], [46.175384, 8.793927], [47.181896, 9.051195], [46.927030, 9.771950],
                         [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389], [46.617260, 7.671066]])
 start_hight = [1200, 1500, 1000, 1650, 1440, 2150, 2200, 2200]
+start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180]
 valley_hight = [700, 340, 430, 810, 600, 1250, 1050, 1200]
 north_wind_tolerance = [-100, -3.5, -100, -100, -100, -3.5, -4, -100]
 south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3]
@@ -143,6 +144,13 @@ def thermal_visualisation(temp):
             color = data[i][2]
         i = i + 1
     return cont, color
+
+
+# calculates the effective sun, depending on the angle of the start grid. hrs is the number of hours.
+def effective_sun(sun, start_angle, hrs):
+    alpha = min(hrs * 15 - 8 - (start_angle - 180), 180)
+    s = int(sun * max(math.sin(math.radians(alpha - 90)), 0))
+    return s
 
 
 # function to draw the temp
@@ -285,7 +293,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
-            sun = int(abs(radiation[loc, index + k] / 8))
+            sun = effective_sun(abs(radiation[index + k] / 8), start_angle[loc], k+10)  # k+10 is the time
             img1.text((2 * border + tx + padding + col * 2, border + padding + ty / lines * (k + 1)), str(sun) + "%",
                       (20, 20, 20), font=font)
             # clouds
