@@ -348,7 +348,7 @@ def create_thermal_data(index):
         extra_text = "Bisentendenz"
         if bise_start > 12:
             extra_text = "Bisentendenz ab " + str(int(bise_start)) + "Uhr"
-    if strong_wind > 4:
+    if strong_wind > 2:
         extra_text = "mässiger " + wind_string(major_wind_dir)
     if bise > 25:
         extra_text = "Bise"
@@ -662,21 +662,23 @@ while i < len(time) and j < 5:
         img1.rectangle(shape, fill="#ffffff", outline="white")
     i = i + 1
 print("Create overview")
-# create new image
 h = 180
-img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
-# create rectangle image
-img1 = ImageDraw.Draw(img)  # overview image
-i = 0
 days = 5
+wov = int(w / days)
+# create rectangle image
+i = 0
 while i < days:
-    box = ((i * w / days, 0), ((i + 1) * w / days, h))
+    img = Image.new("RGB", (wov, h), color=(240, 240, 250, 250))
+    # create rectangle image
+    img1 = ImageDraw.Draw(img)  # overview image
+
+    box = ((0, 0), (wov, h))
     distance = ov_potential.pop(0)
     soar = soar_potential.pop(0)
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
-    img1.text((i * w / days + 3 * padding, 3 * padding), wds[int(ov_days.pop(0))], (20, 20, 20), font=font)
-    img1.text(((i + 0.3) * w / days, 0.3 * h), str(distance), (20, 20, 20), font=font_el)
-    img1.text((i * w / days + 3 * padding, h - 36), ov_remark.pop(0), (20, 20, 20), font=font)
+    img1.text((3 * padding, 3 * padding), wds[int(ov_days.pop(0))], (20, 20, 20), font=font)
+    img1.text((0.3 * wov, 0.3 * h), str(distance), (20, 20, 20), font=font_el)
+    img1.text((3 * padding, h - 36), ov_remark.pop(0), (20, 20, 20), font=font)
     # soaring
     if soar > 0:
         color = 'grey'
@@ -687,8 +689,8 @@ while i < days:
             color = 'green'
         if soar == 3:
             color = 'orange'
-        img1.ellipse((i * w / days + 140, 15, i * w / days + 170, 45), fill=color)
-        img1.text((i * w / days + 141, 20), soar_text, (240, 240, 240), font=font)
+        img1.ellipse((140, 15, 170, 45), fill=color)
+        img1.text((141, 20), soar_text, (240, 240, 240), font=font)
+    img.save("thermal_button" + str(i) + ".png")
     i = i + 1
-img.save("thermal_overview.png")
-print("Hoi Thomas")
+print("Hoi Thomas - everything done")

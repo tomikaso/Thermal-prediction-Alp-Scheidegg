@@ -343,7 +343,7 @@ def create_thermal_data(index):
         extra_text = "Bisentendenz"
         if bise_start > 12:
             extra_text = "Bisentendenz ab " + str(int(bise_start)) + "Uhr"
-    if strong_wind > 4:
+    if strong_wind > 2:
         extra_text = "mässiger " + wind_string(major_wind_dir)
     if bise > 25:
         extra_text = "Bise"
@@ -628,35 +628,38 @@ while i < len(time) and j < 5:
         img1.rectangle(shape, fill="#ffffff", outline="white")
     i = i + 1
 print("Create overview")
-# create new image
+
 h = 180
-img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
-# create rectangle image
-img1 = ImageDraw.Draw(img) # overview image
-i = 0
 days = 5
+wov = int(w / days)
+# create rectangle image
+i = 0
 while i < days:
-    box = [(i * w / days, 0), ((i + 1) * w / days, h)]
+    img = Image.new("RGB", (wov, h), color=(240, 240, 250, 250))
+    # create rectangle image
+    img1 = ImageDraw.Draw(img)  # overview image
+
+    box = ((0, 0), (wov, h))
     distance = ov_potential.pop(0)
     soar = soar_potential.pop(0)
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
-    img1.text((i * w / days + 3 * padding, 3 * padding), wds[int(ov_days.pop(0))], (20, 20, 20), font=font)
-    img1.text(((i + 0.3) * w / days, 0.3 * h), str(distance), (20, 20, 20), font=font_el)
-    img1.text((i * w / days + 3 * padding, h - 36), ov_remark.pop(0), (20, 20, 20), font=font)
+    img1.text((3 * padding, 3 * padding), wds[int(ov_days.pop(0))], (20, 20, 20), font=font)
+    img1.text((0.3 * wov, 0.3 * h), str(distance), (20, 20, 20), font=font_el)
+    img1.text((3 * padding, h - 36), ov_remark.pop(0), (20, 20, 20), font=font)
     # soaring
     if soar > 0:
+        color = 'grey'
         soar_text = ' S'
         if soar == 1:
-            color = 'grey'
             soar_text = 'GH'
         if soar == 2:
             color = 'green'
         if soar == 3:
             color = 'orange'
-        img1.ellipse((i * w / days + 140, 15, i * w / days + 170, 45), fill=color)
-        img1.text((i * w / days + 141, 20), soar_text, (240, 240, 240), font=font)
+        img1.ellipse((140, 15, 170, 45), fill=color)
+        img1.text((141, 20), soar_text, (240, 240, 240), font=font)
+    img.save("/var/www/html/thermals/thermal_button" + str(i) + ".png")
     i = i + 1
-img.save("/var/www/html/thermals/thermal_overview.png")
 print("Hoi Thomas")
 # send it to DCZO-webserver
 session = ftplib.FTP('ftp.dczo.ch', constants.ftp_user, constants.ftp_pw)
@@ -670,7 +673,11 @@ wind_file1 = open('/var/www/html/thermals/meteo_wind1.png','rb')           # win
 wind_file2 = open('/var/www/html/thermals/meteo_wind2.png','rb')           # wind_file to send
 wind_file3 = open('/var/www/html/thermals/meteo_wind3.png','rb')           # wind_file to send
 wind_file4 = open('/var/www/html/thermals/meteo_wind4.png','rb')           # wind_file to send
-ovr_file = open('/var/www/html/thermals/thermal_overview.png','rb')        # overview to send
+ovr_file0 = open('/var/www/html/thermals/thermal_button0.png','rb')        # overview0 to send
+ovr_file1 = open('/var/www/html/thermals/thermal_button1.png','rb')        # overview1 to send
+ovr_file2 = open('/var/www/html/thermals/thermal_button2.png','rb')        # overview2 to send
+ovr_file3 = open('/var/www/html/thermals/thermal_button3.png','rb')        # overview3 to send
+ovr_file4 = open('/var/www/html/thermals/thermal_button4.png','rb')        # overview4 to send
 session.storbinary('STOR forecast0.png', file)     # send the file
 session.storbinary('STOR forecast1.png', file1)     # send the file
 session.storbinary('STOR forecast2.png', file2)     # send the file
@@ -681,7 +688,11 @@ session.storbinary('STOR meteo_wind1.png', wind_file1)  # send the file
 session.storbinary('STOR meteo_wind2.png', wind_file2)  # send the file
 session.storbinary('STOR meteo_wind3.png', wind_file3)  # send the file
 session.storbinary('STOR meteo_wind4.png', wind_file4)  # send the file
-session.storbinary('STOR thermal_overview.png', ovr_file)  # send the file
+session.storbinary('STOR thermal_button0.png', ovr_file0)  # send the file
+session.storbinary('STOR thermal_button1.png', ovr_file1)  # send the file
+session.storbinary('STOR thermal_button2.png', ovr_file2)  # send the file
+session.storbinary('STOR thermal_button3.png', ovr_file3)  # send the file
+session.storbinary('STOR thermal_button4.png', ovr_file4)  # send the file
 file.close()                                    # close file and FTP
 session.quit()
 print ("files sent to DCZO")
