@@ -1,0 +1,50 @@
+<style>
+.overview {
+  position: relative;
+  width: 100%;
+  margin: 0%;
+  border-radius: 5px;
+}
+
+    .button1 {
+        width: 18%;
+        background-color: transparent;
+        border-radius: 5px;
+        color: #444;
+        cursor: pointer;
+        transition-duration: 0.4s;
+    }
+        .button1:hover {
+            box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+        }
+    .active_button {
+       width: 18%;
+        background-color: transparent;
+        border-radius: 5px;
+        cursor: pointer;
+        border-color: #b00;
+    }
+</style>
+<h1>Thermikprognose Alp Scheidegg</h1>
+<script>
+	function show_forecast(d) {
+		document.getElementById("display_temp").innerHTML = "<img src='/images/thomaskamps/forecast" + d + ".png?" + Math.random() + "'>";
+        document.getElementById("display_wind").innerHTML = "<img src='/images/thomaskamps/meteo_wind" + d + ".png?" + Math.random() + "'>";
+					for (let j = 0; j <= 4; j++) {
+						document.getElementById("my-div" + j).className = "button1";
+                        document.getElementById("my-div" + j).innerHTML = "<img src='/images/thomaskamps/thermal_button" + j + ".png?" + Math.random() + "'>";
+                        }
+		document.getElementById("my-div" + d).className  = "active_button";
+		}
+</script>
+<div class="overview" id="overview">
+    <button class="button1" id="my-div0" onclick="show_forecast(0)"><img src="/images/thomaskamps/thermal_button0.png"></button>
+    <button class="button1" id="my-div1" onclick="show_forecast(1)"><img src="/images/thomaskamps/thermal_button1.png"></button>
+    <button class="button1" id="my-div2" onclick="show_forecast(2)"><img src="/images/thomaskamps/thermal_button2.png"></button>
+    <button class="button1" id="my-div3" onclick="show_forecast(3)"><img src="/images/thomaskamps/thermal_button3.png"></button>
+    <button class="button1" id="my-div4" onclick="show_forecast(4)"><img src="/images/thomaskamps/thermal_button4.png"></button>
+</div>
+<h3>Thermik und Temp</h3>
+<div id="display_temp"><img src="/images/thomaskamps/forecast0.png"></div>
+<h3>Wind</h3>
+<div id="display_wind"><img src="/images/thomaskamps/meteo_wind0.png"></div>
