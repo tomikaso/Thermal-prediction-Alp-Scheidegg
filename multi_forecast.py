@@ -4,6 +4,8 @@ import requests
 import math
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
+import ftplib
+import constants
 
 # initializing the most important variables
 now = datetime.now()
@@ -265,9 +267,9 @@ def create_thermal_data(index):
             # headline
         if k == -1:
             img1.text((2 * border + tx + padding, border + ty / lines * (k + 1)),
-                      'Zeit     Wind     Sonne   Wolken   Temp    Lift    Basis', (20, 20, 20), font=font)
+                      'Zeit     Wind   Sonne  Wolken  Temp   Lift   Basis', (20, 20, 20), font=font)
             img1.text((2 * border + tx + padding, border + 2.5 * padding + ty / lines * (k + 1)),
-                      ' LT      km/h                 l-m-h     K/100m    m/s    m', (20, 20, 20), font=font)
+                      ' LT      km/h              l-m-h   K/100m  m/s   m', (20, 20, 20), font=font)
         else:
             content = time[index + k][11:]
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
@@ -644,33 +646,44 @@ while loc < max_locations:  # loops over all locations
     i = 0
     day = 0
     loc = loc + 1
-# writing out html-code
-html = ''
+# create csv with the potential distances
 weekday = 7
+distances = ''
 while day < 5:
     loc = 0
-    html_d = ''
     while loc < max_locations:
-        html_d = html_d + str(flight_distance[loc, day])
+        distances = distances + str(int(flight_distance[loc, day])) + ', '
         loc = loc + 1
-        if loc < max_locations:
-            html_d = html_d + ', '
-    html = html + '<button class="button1" id="my-div' + str(day) + '" onclick="changeColor(' + str(day) + ', '\
-        + html_d + ')">' + wds[weekday] + '</button>'
     day = day + 1
-    weekday = weekday + 1
-    if day == 1:
-        weekday = int(now.strftime("%w")) + 1
-    if weekday > 6:
-        weekday = 0
-print(html)
-# add thermal data to html
-f = open(image_path + "multitherm25.html", "r")  # first, read body-part of the html.
-str1 = f.read()
-f.close()  # append the new html
-html_output = str1 + html + '<div id="display_temp"><img src="forecastScheidegg0.png" ></div></body></html>'
-print(html_output)
-result_file = open(image_path + "multi.html", "w")
-result_file.write(html_output)
+print(distances)
+result_file = open(image_path + "potential.txt", "w")
+result_file.write(distances)
 result_file.close()
 print ("everything done :-)")
+
+# send it to DCZO-webserver
+session = ftplib.FTP('ftp.dczo.ch', constants.ftp_user, constants.ftp_pw)
+
+loc = 0
+while loc < max_locations:
+    print ("sending: ", locations[loc])
+    file0 = open('/var/www/html/thermals/forecast' + locations[loc] + '0.png', 'rb')      # file to send
+    file1 = open('/var/www/html/thermals/forecast' + locations[loc] + '1.png', 'rb')      # file to send
+    file2 = open('/var/www/html/thermals/forecast' + locations[loc] + '2.png', 'rb')      # file to send
+    file3 = open('/var/www/html/thermals/forecast' + locations[loc] + '3.png', 'rb')      # file to send
+    file4 = open('/var/www/html/thermals/forecast' + locations[loc] + '4.png', 'rb')      # file to send
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '0.png', file0)     # send the file
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '1.png', file1)     # send the file
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '2.png', file2)     # send the file
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '3.png', file3)     # send the file
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '4.png', file4)     # send the file
+    loc = loc + 1
+file0 = open('/var/www/html/thermals/potential.txt', 'rb')      # file to send
+session.storbinary('STOR multitherm/potential.txt', file0)     # send the file
+file0.close()
+file1.close()
+file2.close()
+file3.close()
+file4.close()  # close files and FTP
+session.quit()
+print ("files sent to DCZO")
