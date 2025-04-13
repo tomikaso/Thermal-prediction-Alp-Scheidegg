@@ -12,7 +12,6 @@ now = datetime.now()
 # for the data grid
 col = 64
 lines = 14
-offset = 0
 soar_potential = []
 north_south_diff = []
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
@@ -467,10 +466,7 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     wind.append(wind_dir5600[loc, i])
     # draw the temp
     # fix scale
-    if temp1900[loc, i] > 0:
-        offset = 0
-    else:
-        offset = 1
+    offset = - int(temp1900[loc, i] / 10)  # for negative temperatures 1, then 0 for low positive and +1 if hot.
     draw_temp(temp, dew_point, offset)
     # draw the wind
     draw_wind(wind)

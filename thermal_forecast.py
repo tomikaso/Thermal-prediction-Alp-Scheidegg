@@ -532,10 +532,7 @@ while i < len(time) and j < 5:
         print(time[i], ' Posi:', i, ' create forecast')
         x = datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]), 0, 0, 0)
         # fix scale
-        if temp1900[i] > 0:
-            offset = 0
-        else:
-            offset = 1
+        offset = - int(temp1900[i] / 10)  # for negative temperatures 1, then 0 for low positive and +1 if hot.
         # create lists for the emagramm
         temp.append(700)
         temp.append(temp700[i])
