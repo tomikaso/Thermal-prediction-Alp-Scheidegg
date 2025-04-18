@@ -476,12 +476,10 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
     # title
     img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for " + x.strftime("%A, %d/%m/%Y")
-              + ", data-source: open-meteo.com / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
+              + ", data-source: open-meteo.com / ICON. Updated: " + now.strftime("%d/%m/%Y %H:%M")
               + " CET", (20, 20, 20), font=font)
     # save the image here
     img.save(image_path + "forecast" + locations[loc] + str(day) + ".png")
-    # remember the weekday for the overview
-
 
 # here we start. The loop queries open Meteo with all specified locations. The result is stored in arrays
 i = 0
@@ -642,8 +640,38 @@ while loc < max_locations:  # loops over all locations
     i = 0
     day = 0
     loc = loc + 1
+################################
+# create pressure_diff-diagram
+################################
+img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
+img1 = ImageDraw.Draw(img)  # pressure_diff image
+d = 0
+weekday = int(now.strftime("%w"))
+wday = 7
+while d < 5:  # create days and lines
+    box = [(border + d * 204, border), (border + (d+1) * 204, h - border)]
+    img1.rectangle(box, fill=(215, 244 - 20 * (d % 2), 255 - 20 * (d % 2)), outline='darkred')
+    # x = datetime(int(time[d * 24 + 12][:4]), int(time[d * 24 + 12][5:-9]), int(time[d * 24 + 12][8:-6]), 0, 0, 0)
+    img1.text((border + d * 204 + padding, h - border),  wds[wday], (20, 20, 20), font=font)
+    d = d + 1
+    wday = (weekday + d) % 7
+s = - 12
+while s <= 12:  # y-lines
+    img1.line((border, (h / 2) - 20 * s, w - border, (h / 2) - 20 * s), fill="darkred", width=1 + 3 * (s == 0))
+    img1.text((border - 30, (h / 2) - 20 * s - 10), str(s), (20, 20, 20), font=font)
+    s = s + 2
+i = 0
+while i < 5 * 24:  # create pressure difference
+    shape_pd = [(border + i * 8.5, h/2 - 20 * north_south_diff[i]),
+                 (border + i * 8.5 + 8.5, h/2 - 20 * north_south_diff[i + 1])]
+    img1.line(shape_pd, fill="blue", width=3)
+    i = i + 1
+img1.text((10, 15), "Druckdifferenz Locarno - Wald ZH. ICON. Updated: " + now.strftime("%d/%m/%Y %H:%M")
+          + " CET", (20, 20, 20), font=font)
+img.save(image_path + "pressure_diff.png")
+
+
 # create csv with the potential distances
-weekday = 7
 distances = ''
 while day < 5:
     loc = 0
@@ -676,6 +704,8 @@ while loc < max_locations:
     loc = loc + 1
 file0 = open('/var/www/html/thermals/potential.txt', 'rb')      # file to send
 session.storbinary('STOR multitherm/potential.txt', file0)     # send the file
+file0 = open('/var/www/html/thermals/pressure_diff.png', 'rb')      # file to send
+session.storbinary('STOR multitherm/pressure_diff.png', file0)     # send the file
 file0.close()
 file1.close()
 file2.close()
