@@ -377,8 +377,8 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 6, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             if lift >= 1:  # root-function gets 1 with a base of 2'000 meters
-                distance = int(distance + 4 * lift * pow(max((base_hight - start_hight[loc]), 0), 0.5) / 28.2) \
-                           * xc_potential[loc]
+                distance = int(distance + 4 * lift * xc_potential[loc]
+                               * pow(max((base_hight - start_hight[loc]), 0), 0.5) / 28.2)
             elif lift > 0.5:
                 distance = distance + 1
         k = k + 1
