@@ -25,7 +25,7 @@
   border-radius: 25px;
   cursor: pointer;
   }
-.thermal0:hover {background-color: orange;}
+.thermal0:hover {border-color: red;}
 .thermal1 {
   position: absolute;
   left: 55%;
@@ -37,7 +37,7 @@
   border-radius: 25px;
   cursor: pointer;
  }
- .thermal1:hover {background-color: orange;}
+ .thermal1:hover {border-color: red;}
 .thermal2 {
   position: absolute;
   left: 63%;
@@ -49,7 +49,7 @@
   border-radius: 25px;
   cursor: pointer;
 }
-.thermal2:hover {background-color: orange;}
+.thermal2:hover {border-color: red;}
 .thermal3 {
   position: absolute;
   left: 73%;
@@ -61,7 +61,7 @@
   border-radius: 25px;
   cursor: pointer;
  }
-.thermal3:hover {background-color: orange;}
+.thermal3:hover {border-color: red;}
 .thermal4 {
   position: absolute;
   left: 25%;
@@ -73,7 +73,7 @@
   border-radius: 25px;
   cursor: pointer;
  }
-.thermal4:hover {background-color: orange;}
+.thermal4:hover {border-color: red;}
 .thermal5 {
   position: absolute;
   left: 83%;
@@ -85,7 +85,7 @@
   border-radius: 25px;
   cursor: pointer;
 }
-.thermal5:hover {background-color: orange;}
+.thermal5:hover {border-color: red;}
 .thermal6 {
   position: absolute;
   left: 39%;
@@ -97,7 +97,7 @@
   border-radius: 25px;
   cursor: pointer;
 }
-.thermal6:hover {background-color: orange;}
+.thermal6:hover {border-color: red;}
 .thermal7 {
   position: absolute;
   left: 32%;
@@ -109,13 +109,14 @@
   border-radius: 25px;
   cursor: pointer;
 }
-.thermal7:hover {background-color: orange;}
+.thermal7:hover {border-color: red;}
 .button1 {  width: 100px;   height: 50px;   background-color: blue-grey;  margin: 5px;
    			border-radius: 5px;   font-size: 16px;   color: #444; cursor: pointer;
    			}
 .button1:hover {background-color: #9FE2BF;}
-.active_button {width: 100px;  height: 50px;  background-color: peachpuff;   margin: 5px;
+.active_button {width: 100px;  height: 50px;  border-color: red;   margin: 5px;
  			border-radius: 5px; font-size: 16px; color: #444;}
+.thermal_active {border-color: red;}
 </style>
 <body onload="load_potential()">
 
@@ -125,6 +126,7 @@
    var potarray = new Array();
    const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag", 						"Montag","Dienstag","Mittwoch","Donnerstag"];
    const grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen"];
+   const models = ["ICON-D2", "ICON-D2", "ICON-EU", "ICON-EU", "ICON-EU" , "ICON-EU"];
    const d = new Date();
    function datehour() {return d.getHours() + 100 * d.getDate() + 10000 * d.getMonth();}
    async function load_potential(){document.getElementById("display_temp").innerHTML = "<h3>loading...</h3>";
@@ -157,23 +159,25 @@
          document.getElementById("thermal7").style.backgroundColor = col(potarray[7 + 8 * i]);
          document.getElementById("thermal7").innerHTML = "<a class='km'>" + potarray[7 + 8 * i] + "</a>";
          day = i;
-         document.getElementById("day_indicator").innerHTML = "Day +" + day ;
+         document.getElementById("day_indicator").innerHTML = models[day];
          for (let j = 0; j <= 4; j++) {
                       document.getElementById("my-div" + j).className = "button1";
              						  }
          document.getElementById("my-div" + day).className  = "active_button";
          show_forecast();
       }
-
-      function col(distst){
-          		var dist = parseInt(distst);
-                if (dist > 250 ){dist = 250;}
-                let r = 255 - dist
-              let fac = (15625 - (dist - 125)**2) / 260
-                return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
-                }
-        function show_grid(n) {startgrid = grids[n]; show_forecast();}
-        function show_forecast() {document.getElementById("display_temp").innerHTML = "<h2>" + startgrid +
+   function col(distst){
+          var dist = parseInt(distst);
+          if (dist > 250 ){dist = 250;}
+          let r = 255 - dist
+          let fac = (15625 - (dist - 125)**2) / 260
+          return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
+          }
+   function show_grid(n) {startgrid = grids[n]; show_forecast(); set_active_location(n);}
+   function set_active_location(loc){
+             for (let l = 0; l <= 7; l++) {document.getElementById("thermal" + l).className = "thermal" + l;}
+             document.getElementById("thermal" + loc).className   += " thermal_active";}
+   function show_forecast() {document.getElementById("display_temp").innerHTML = "<h2>" + startgrid +
          " Day-" + day + "</h2><img src='/images/thomaskamps/multitherm/forecast" + startgrid + day + ".png?" + datehour() + "'>" ;}
     </script>
 <div class="overview" id="overview">
@@ -191,5 +195,5 @@
 <button class="button1" id="my-div2" onclick="changeColor(2)">Tag 2</button>
 <button class="button1" id="my-div3" onclick="changeColor(3)">Tag 3</button>
 <button class="button1" id="my-div4" onclick="changeColor(4)">Tag 4</button>
-<button class="button1" id="day_indicator" onclick="load_potential()">Today</button>
+<button class="button1" id="day_indicator">Today</button>
 <div id="display_temp"><img src="/images/thomaskamps/multitherm/forecastScheidegg0.png" ></div>
