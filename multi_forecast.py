@@ -9,7 +9,6 @@ import constants
 
 # initializing the most important variables
 now = datetime.now()
-icon_update = ''
 # for the data grid
 col = 64
 lines = 14
@@ -100,11 +99,11 @@ def get_meteo(lat: float, lng: float):
         status = 'offline'
 
 
-def get_meta_data():
+def get_meta_data(url):
     try:
-        y = requests.get('https://api.open-meteo.com/data/dwd_icon_d2/static/meta.json')
+        y = requests.get(url)
         response = json.loads(y.text)
-        ts = int(response['data_end_time'])
+        ts = int(response['last_run_availability_time'])
         return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M') + ' CET'
     except requests.exceptions.ConnectTimeout:
         print("ICON API timed out.")
@@ -499,18 +498,19 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     # title
     if day > 1:
         img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for "
-            + x.strftime("%A, %d/%m/%Y") + ", open-meteo.com / ICON-EU (7km). updated: "
-            + now.strftime("%d/%m/%Y %H:%M") + " CET", (20, 20, 20), font=font)
+            + x.strftime("%A, %d/%m/%Y") + ", ICON-EU (7km), run: " + icon_eu + ", updated: "
+            + now.strftime("%H:%M") + " CET", (20, 20, 20), font=font)
     else:
         img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for "
-                  + x.strftime("%A, %d/%m/%Y") + ", ICON-D2, run: " + icon_update + ", updated: "
-                  + now.strftime("%d/%m/%Y %H:%M") + " CET", (20, 20, 20), font=font)
+                  + x.strftime("%A, %d/%m/%Y") + ", ICON-D2, run: " + icon_d2 + ", updated: "
+                  + now.strftime("%H:%M") + " CET", (20, 20, 20), font=font)
     # save the image here
     img.save(image_path + "forecast" + locations[loc] + str(day) + ".png")
 
 
 # here we start. The loop queries open Meteo with all specified locations. The result is stored in arrays
-icon_update = get_meta_data()
+icon_eu = get_meta_data('https://api.open-meteo.com/data/dwd_icon_eu/static/meta.json')
+icon_d2 = get_meta_data('https://api.open-meteo.com/data/dwd_icon_d2/static/meta.json')
 i = 0
 while i < max_locations:
     latitude = coordinates[i, 0]

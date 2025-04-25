@@ -44,6 +44,8 @@ def get_meteo():
     except requests.exceptions.RequestException as err:
         print("ICON weather request exception.")
         status = 'offline'
+
+
 def get_meteo_locarno():
     status = 'online'
     try:
@@ -55,6 +57,16 @@ def get_meteo_locarno():
     except requests.exceptions.ConnectTimeout:
         print("ICON API Locarno timed out.")
         status = 'offline'
+
+
+def get_meta_data(url):
+    try:
+        y = requests.get(url)
+        response = json.loads(y.text)
+        ts = int(response['last_run_availability_time'])
+        return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M') + ' CET'
+    except requests.exceptions.ConnectTimeout:
+        print("ICON API timed out.")
 
 
 def thermal_visualisation(temp):
@@ -446,10 +458,8 @@ def wind_diagram(index):
 
 
 # here we start
-meteo_forcast = get_meteo()
+forcast_payload = get_meteo()
 # print(meteo_forcast)
-forcast_dump = json.dumps(meteo_forcast)
-forcast_payload = json.loads(forcast_dump)
 hourly = forcast_payload["hourly"]
 time = hourly["time"]
 # temperatures
@@ -499,6 +509,10 @@ forcast_dump_locarno = json.dumps(meteo_forcast_locarno)
 forcast_payload_locarno = json.loads(forcast_dump_locarno)
 hourly_locarno = forcast_payload_locarno["hourly"]
 pressure_msl_locarno = hourly_locarno["pressure_msl"]
+# get meta-data
+icon_eu = get_meta_data('https://api.open-meteo.com/data/dwd_icon_eu/static/meta.json')
+icon_d2 = get_meta_data('https://api.open-meteo.com/data/dwd_icon_d2/static/meta.json')
+
 
 ###################
 # prepare diagram
@@ -594,9 +608,14 @@ while i < len(time) and j < 5:
         # create thermal data
         create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
         # title
-        img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-                  + ", data-source: open-meteo / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
+        if j < 2:
+            img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+                  + ", ICON-D2, run: " + icon_d2 + ". updated: " + now.strftime("%d/%m/%Y %H:%M")
                   + " CET", (20, 20, 20), font=font)
+        else:
+            img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+                + ", ICON-EU (7km), run: " + icon_eu + ". updated: " + now.strftime("%d/%m/%Y %H:%M")
+                + " CET", (20, 20, 20), font=font)
         # save the image here
         img.save("/var/www/html/thermals/forecast" + str(j) + ".png")
         # remember the weekday for the overview
@@ -609,9 +628,14 @@ while i < len(time) and j < 5:
         img1 = ImageDraw.Draw(img)
         img1.rectangle(shape, fill="#ffffff", outline="white")
         wind_diagram(i - 8) # 14:00 - 8 = 06:00Uhr
-        img1.text((10, 25), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-                  + ", data-source: open-meteo / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
-                  + " CET", (20, 20, 20), font=font)
+        if j < 2:
+            img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+                      + ", ICON-D2, run: " + icon_d2 + ". updated: " + now.strftime("%d/%m/%Y %H:%M")
+                      + " CET", (20, 20, 20), font=font)
+        else:
+            img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+                      + ", ICON-EU (7km), run: " + icon_eu + ". updated: " + now.strftime("%d/%m/%Y %H:%M")
+                      + " CET", (20, 20, 20), font=font)
         img.save("/var/www/html/thermals/meteo_wind" + str(j) + ".png")
 
         # reset variables
