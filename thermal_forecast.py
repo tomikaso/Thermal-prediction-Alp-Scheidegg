@@ -509,7 +509,7 @@ forcast_dump_locarno = json.dumps(meteo_forcast_locarno)
 forcast_payload_locarno = json.loads(forcast_dump_locarno)
 hourly_locarno = forcast_payload_locarno["hourly"]
 pressure_msl_locarno = hourly_locarno["pressure_msl"]
-# get meta-data
+# get meta-data of the weather model
 icon_eu = get_meta_data('https://api.open-meteo.com/data/dwd_icon_eu/static/meta.json')
 icon_d2 = get_meta_data('https://api.open-meteo.com/data/dwd_icon_d2/static/meta.json')
 
@@ -610,11 +610,11 @@ while i < len(time) and j < 5:
         # title
         if j < 2:
             img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-                  + ", ICON-D2, run: " + icon_d2 + ". updated: " + now.strftime("%d/%m/%Y %H:%M")
+                  + ", ICON-D2, run: " + icon_d2 + ", updated: " + now.strftime("%d/%m/%Y %H:%M")
                   + " CET", (20, 20, 20), font=font)
         else:
             img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-                + ", ICON-EU (7km), run: " + icon_eu + ". updated: " + now.strftime("%d/%m/%Y %H:%M")
+                + ", ICON-EU (7km), run: " + icon_eu + ", updated: " + now.strftime("%d/%m/%Y %H:%M")
                 + " CET", (20, 20, 20), font=font)
         # save the image here
         img.save("/var/www/html/thermals/forecast" + str(j) + ".png")
