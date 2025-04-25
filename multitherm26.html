@@ -5,13 +5,14 @@
 }
 .km:hover {
   text-decoration: none;
+  color: #444;
 }
 .overview {
   position: relative;
     width: 100%;
-  padding-top: 67%;
+  padding-top: 59%;
   background-color: lightgreen;
-  background-image: url('/images/thomaskamps/multitherm/swiss_outline.png');
+  background-image: url('/images/thomaskamps/multitherm/swiss_outline_gr.png');
   background-size: 100%;
   background-repeat: no-repeat;
   margin: 0px;
@@ -20,7 +21,7 @@
 .thermal0 {
   position: absolute;
   left: 58%;
-  top:  28%;
+  top:  23%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -32,7 +33,7 @@
 .thermal1 {
   position: absolute;
   left: 55%;
-  top:  75%;
+  top:  74%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -44,7 +45,7 @@
 .thermal2 {
   position: absolute;
   left: 63%;
-  top:  34%;
+  top:  31%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -56,7 +57,7 @@
 .thermal3 {
   position: absolute;
   left: 73%;
-  top:  45%;
+  top:  40%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -67,8 +68,8 @@
 .thermal3:hover {border-color: red;}
 .thermal4 {
   position: absolute;
-  left: 25%;
-  top:  33%;
+  left: 31%;
+  top:  24%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -80,7 +81,7 @@
 .thermal5 {
   position: absolute;
   left: 83%;
-  top:  52%;
+  top:  50%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -92,7 +93,7 @@
 .thermal6 {
   position: absolute;
   left: 39%;
-  top:  67%;
+  top:  65%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -104,7 +105,7 @@
 .thermal7 {
   position: absolute;
   left: 32%;
-  top:  51%;
+  top:  50%;
   width: 50px;
   height: 50px;
   background-color: lightgreen;
@@ -113,12 +114,12 @@
   cursor: pointer;
 }
 .thermal7:hover {border-color: red;}
-.button1 {  width: 100px;   height: 50px;   background-color: blue-grey;  margin: 5px;
-   			border-radius: 5px;   font-size: 16px;   color: #444; cursor: pointer;
+.button1 {  width: 88px;   height: 40px;   background-color: blue-grey;  margin: 5px;
+   			border-radius: 5px;   font-size: 14px;   color: #444; cursor: pointer;
    			}
 .button1:hover {background-color: #9FE2BF;}
-.active_button {width: 100px;  height: 50px;  border-color: red;   margin: 5px;
- 			border-radius: 5px; font-size: 16px; color: #444;}
+.active_button {width: 88px;  height: 40px;  border-color: red;   margin: 5px;
+ 			border-radius: 5px; font-size: 14px; color: #444;}
 .thermal_active {border-color: red;}
 </style>
 <body onload="load_potential()">
@@ -138,6 +139,7 @@
                       potarray = y.split(',');
                       document.getElementById("display_temp").innerHTML = y;
                       setday();
+                      set_active_location(0);
                       show_forecast();}
    function setday(){day = 0; startgrid = "Scheidegg";
                      document.getElementById("my-div0").innerHTML = "Heute";
