@@ -3,10 +3,13 @@
   font-size: 24px;
   color: #444;
 }
+.km:hover {
+  text-decoration: none;
+}
 .overview {
   position: relative;
     width: 100%;
-  padding-top: 60%;
+  padding-top: 67%;
   background-color: lightgreen;
   background-image: url('/images/thomaskamps/multitherm/swiss_outline.png');
   background-size: 100%;
@@ -166,18 +169,19 @@
          document.getElementById("my-div" + day).className  = "active_button";
          show_forecast();
       }
-   function col(distst){
-          var dist = parseInt(distst);
-          if (dist > 250 ){dist = 250;}
-          let r = 255 - dist
-          let fac = (15625 - (dist - 125)**2) / 260
-          return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
-          }
-   function show_grid(n) {startgrid = grids[n]; show_forecast(); set_active_location(n);}
-   function set_active_location(loc){
+
+      function col(distst){
+          		var dist = parseInt(distst);
+                if (dist > 250 ){dist = 250;}
+                let r = 255 - dist
+              let fac = (15625 - (dist - 125)**2) / 260
+                return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
+                }
+    function show_grid(n) {startgrid = grids[n]; show_forecast(); set_active_location(n);}
+    function set_active_location(loc){
              for (let l = 0; l <= 7; l++) {document.getElementById("thermal" + l).className = "thermal" + l;}
              document.getElementById("thermal" + loc).className   += " thermal_active";}
-   function show_forecast() {document.getElementById("display_temp").innerHTML = "<h2>" + startgrid +
+        function show_forecast() {document.getElementById("display_temp").innerHTML = "<h2>" + startgrid +
          " Day-" + day + "</h2><img src='/images/thomaskamps/multitherm/forecast" + startgrid + day + ".png?" + datehour() + "'>" ;}
     </script>
 <div class="overview" id="overview">

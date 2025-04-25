@@ -9,6 +9,7 @@ import constants
 
 # initializing the most important variables
 now = datetime.now()
+icon_update = ''
 # for the data grid
 col = 64
 lines = 14
@@ -23,7 +24,7 @@ start_hight = [1200, 1500, 1000, 1650, 1440, 2150, 2200, 2200]
 start_angle = [200, 200, 235, 190, 200, 180, 180, 180]
 valley_hight = [700, 340, 430, 810, 600, 1250, 1050, 1200]
 valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2]
-xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.3, 1.2]
+xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2]
 north_wind_tolerance = [-100, -3.5, -100, -100, -100, -3.5, -4, -100]
 south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3]
 max_locations = 8
@@ -97,6 +98,20 @@ def get_meteo(lat: float, lng: float):
     except requests.exceptions.RequestException as err:
         print("ICON weather request exception.")
         status = 'offline'
+
+
+def get_meta_data():
+    try:
+        y = requests.get('https://api.open-meteo.com/data/dwd_icon_d2/static/meta.json')
+        response = json.loads(y.text)
+        ts = int(response['data_end_time'])
+        return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M') + ' CET'
+    except requests.exceptions.ConnectTimeout:
+        print("ICON API timed out.")
+    except requests.exceptions.ConnectionError as conerr:
+        print("error in connection to ICON.")
+    except requests.exceptions.RequestException as err:
+        print("ICON weather request exception.")
 
 
 def temp_color(tmp):
@@ -482,22 +497,27 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     # create thermal data
     create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
     # title
-    img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for " + x.strftime("%A, %d/%m/%Y")
-              + ", data-source: open-meteo.com / ICON. Updated: " + now.strftime("%d/%m/%Y %H:%M")
-              + " CET", (20, 20, 20), font=font)
+    if day > 1:
+        img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for "
+            + x.strftime("%A, %d/%m/%Y") + ", open-meteo.com / ICON-EU (7km). updated: "
+            + now.strftime("%d/%m/%Y %H:%M") + " CET", (20, 20, 20), font=font)
+    else:
+        img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for "
+                  + x.strftime("%A, %d/%m/%Y") + ", ICON-D2, run: " + icon_update + ", updated: "
+                  + now.strftime("%d/%m/%Y %H:%M") + " CET", (20, 20, 20), font=font)
     # save the image here
     img.save(image_path + "forecast" + locations[loc] + str(day) + ".png")
 
+
 # here we start. The loop queries open Meteo with all specified locations. The result is stored in arrays
+icon_update = get_meta_data()
 i = 0
 while i < max_locations:
     latitude = coordinates[i, 0]
     longitude = coordinates[i, 1]
     print(locations[i], 'Coordinates: ', coordinates[i], ' latitude: ', latitude, ' long: ', longitude)
-    meteo_forcast = get_meteo(latitude, longitude)
-    print(meteo_forcast)
-    forcast_dump = json.dumps(meteo_forcast)
-    forcast_payload = json.loads(forcast_dump)
+    forcast_payload = get_meteo(latitude, longitude)
+    print(forcast_payload)
     hourly = forcast_payload["hourly"]
     time = hourly["time"]
     # temperatures
