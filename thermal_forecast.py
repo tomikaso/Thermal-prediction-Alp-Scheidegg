@@ -272,10 +272,12 @@ def create_thermal_data(index):
             tmp = -int(100 * ((temp1900[index + k] - temp1000[index + k]) / 9)) / 100
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp),
                       (20, 20, 20), font=font)
+            # temp beneath of Alp Scheidegg
+            temp_below = (temp1500[index + k] - temp700[index + k]) / (1500 - 694) * -100
             # lift
-            if wind1500[index + k] <= 20 and wind1900[index + k] <= 25:  # not too much wind for thermals
-                begin_factor = pow(max(0, (temp700[index + k] - temp1000[index + k] - 2.5)), 0.5)
-                lift = int(pow((max(0.0, ((max(0.0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
+            if wind1500[index + k] <= 25 and wind1900[index + k] <= 35:  # not too much wind for thermals
+                begin_factor = pow(max(0, temp_below - 0.5), 0.1)
+                lift = int(pow((max(0.1, ((max(0.1, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
                                0.7) * 10) / 10
                 content = str(lift)
             else:

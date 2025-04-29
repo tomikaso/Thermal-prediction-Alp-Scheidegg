@@ -146,32 +146,19 @@
                      for (let j = 1; j <= 4; j++) {
                           document.getElementById("my-div" + j).innerHTML = weekday[d.getDay() + j];}
 }
-   function changeColor(i) {
-         document.getElementById("thermal0").style.backgroundColor = col(potarray[0 + 8 * i]);
-         document.getElementById("thermal0").innerHTML = "<a class='km'>" + potarray[0 + 8 * i] + "</a>";
-         document.getElementById("thermal1").style.backgroundColor = col(potarray[1 + 8 * i]);
-         document.getElementById("thermal1").innerHTML = "<a class='km'>" + potarray[1 + 8 * i] + "</a>";
-         document.getElementById("thermal2").style.backgroundColor = col(potarray[2 + 8 * i]);
-         document.getElementById("thermal2").innerHTML = "<a class='km'>" + potarray[2 + 8 * i] + "</a>";
-         document.getElementById("thermal3").style.backgroundColor = col(potarray[3 + 8 * i]);
-         document.getElementById("thermal3").innerHTML = "<a class='km'>" + potarray[3 + 8 * i] + "</a>";
-         document.getElementById("thermal4").style.backgroundColor = col(potarray[4 + 8 * i]);
-         document.getElementById("thermal4").innerHTML = "<a class='km'>" + potarray[4 + 8 * i] + "</a>";
-         document.getElementById("thermal5").style.backgroundColor = col(potarray[5 + 8 * i]);
-         document.getElementById("thermal5").innerHTML = "<a class='km'>" + potarray[5 + 8 * i] + "</a>";
-         document.getElementById("thermal6").style.backgroundColor = col(potarray[6 + 8 * i]);
-         document.getElementById("thermal6").innerHTML = "<a class='km'>" + potarray[6 + 8 * i] + "</a>";
-         document.getElementById("thermal7").style.backgroundColor = col(potarray[7 + 8 * i]);
-         document.getElementById("thermal7").innerHTML = "<a class='km'>" + potarray[7 + 8 * i] + "</a>";
-         day = i;
-         document.getElementById("day_indicator").innerHTML = models[day];
-         for (let j = 0; j <= 4; j++) {
-                      document.getElementById("my-div" + j).className = "button1";
-             						  }
-         document.getElementById("my-div" + day).className  = "active_button";
-         show_forecast();
-      }
-
+function changeColor(i) {
+    for (let l = 0; l <= 7; l++) {
+        document.getElementById("thermal" + l).style.backgroundColor = col(potarray[l + 8 * i]);
+        document.getElementById("thermal" + l).innerHTML = "<a class='km'>" + potarray[l + 8 * i] + "</a>";
+    }
+    day = i;
+    document.getElementById("day_indicator").innerHTML = models[day];
+    for (let j = 0; j <= 4; j++) {
+        document.getElementById("my-div" + j).className = "button1";
+    }
+    document.getElementById("my-div" + day).className = "active_button";
+    show_forecast();
+}
       function col(distst){
           		var dist = parseInt(distst);
                 if (dist > 250 ){dist = 250;}
