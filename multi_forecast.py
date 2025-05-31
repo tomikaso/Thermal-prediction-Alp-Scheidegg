@@ -689,12 +689,12 @@ while s <= 12:  # y-lines
     s = s + 2
 i = 0
 while i < 5 * 24:  # create pressure difference
-    shape_pd = [(border + i * 8.5, h/2 - 20 * north_south_diff[i]),
-                 (border + i * 8.5 + 8.5, h/2 - 20 * north_south_diff[i + 1])]
+    shape_pd = [(border + i * 8.5, h/2 - 20 * min(max(north_south_diff[i], -14), 14)),
+                 (border + i * 8.5 + 8.5, h/2 - 20 * min(max(north_south_diff[i + 1], -14), 14))]
     img1.line(shape_pd, fill="blue", width=3)
     i = i + 1
 img1.text((10, 15), "Druckdifferenz Locarno - Wald ZH. ICON. Updated: " + now.strftime("%d/%m/%Y %H:%M")
-          + " CET", (20, 20, 20), font=font)
+          + " CET. Positiv: Südföhn. Negativ: Nordwind", (20, 20, 20), font=font)
 img.save(image_path + "pressure_diff.png")
 
 

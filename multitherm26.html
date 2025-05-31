@@ -1,11 +1,11 @@
 <style>
 .km {
-  font-size: 24px;
+  font-size: 22px;
   color: #444;
 }
 .km:hover {
   text-decoration: none;
-  color: #444;
+  color: #888;
 }
 .overview {
   position: relative;
@@ -114,11 +114,11 @@
   cursor: pointer;
 }
 .thermal7:hover {border-color: red;}
-.button1 {  width: 88px;   height: 40px;   background-color: blue-grey;  margin: 5px;
+.button1 {  width: 90px;   height: 40px;   background-color: blue-grey;  margin: 5px;
    			border-radius: 5px;   font-size: 14px;   color: #444; cursor: pointer;
    			}
 .button1:hover {background-color: #9FE2BF;}
-.active_button {width: 88px;  height: 40px;  border-color: red;   margin: 5px;
+.active_button {width: 90px;  height: 40px;  border-color: red;   margin: 5px;
  			border-radius: 5px; font-size: 14px; color: #444;}
 .thermal_active {border-color: red;}
 </style>
@@ -159,10 +159,12 @@ function changeColor(i) {
     document.getElementById("my-div" + day).className = "active_button";
     show_forecast();
 }
+
       function col(distst){
           		var dist = parseInt(distst);
                 if (dist > 250 ){dist = 250;}
-                let r = 255 - dist
+          		dist = dist * 0.8;
+                let r = 255 - dist;
               let fac = (15625 - (dist - 125)**2) / 260
                 return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
                 }
