@@ -6,6 +6,7 @@ from datetime import datetime
 from thermal_model import thermal_model
 
 # initialize variable
+model_html_string = []
 temp = []
 dew_point = []
 wind = []
@@ -14,7 +15,7 @@ ov_days = []
 ov_potential = []
 ov_remark = []
 soar_potential = []
-model_html_string = []
+
 now = datetime.now()
 # for the data grid
 col = 60
@@ -231,7 +232,6 @@ def create_thermal_data(index):
     foehn = 0
     major_wind_dir, wind_max = 0, 0
     extra_text = ""
-    html_string = ""
     soar_pot = 0
     k = -1
     while k < lines - 3:
@@ -246,14 +246,17 @@ def create_thermal_data(index):
                       ' LT     km/h                l-m-h    K/100m   m/s    m', (20, 20, 20), font=font)
         else:
             # call thermal model
-            html_string = 'DAY' + str(j) + 'LT' + str(k+10)
             model = thermal_model(temp700[index + k], dew700[index + k], temp1000[index + k], dew1000[index + k],
                                   temp1500[index + k], dew1500[index + k], temp1900[index + k], dew1900[index + k],
                                   temp3000[index + k], dew3000[index + k], temp4200[index + k], dew4200[index + k],
                                   temp5600[index + k], dew5600[index + k], radiation[index + k]/800)
-            html_string += model.html_string
-            # Testcode:
-            model.show_results()
+            # append model-data
+            m_h = 600
+            for model_data in model.html_string:
+                model_html_string.append('DAY' + str(j) + 'LT' + str(k+10) + 'H' + str(m_h) + ',' + model_data + ',')
+                m_h += 200
+            # Testcode: model.show_results()
+            print(model.html_string)
 
             # standard calculations
             content = time[index + k][11:]
@@ -357,7 +360,6 @@ def create_thermal_data(index):
                     soar_pot = 3
             img1.text((2 * border + tx + padding + col * 7, border + padding + ty / lines * (k + 1)), content,
                       font_color, font=font)
-        model_html_string.append(html_string)  # append model-data
         k = k + 1
     box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 3)))
     if bise > 1:
@@ -709,14 +711,13 @@ while i < days:
     img.save("thermal_button" + str(i) + ".png")
     i = i + 1
 # create csv with thermal updrafts
-updrafts = ''
 image_path = ''
+final_string = ''
 for data in model_html_string:
-    if data != '':
-        updrafts += data + ','
-print(updrafts)
+    final_string += data
+print(final_string)  # append model-data)
 result_file = open(image_path + "thermal_data.txt", "w")
-result_file.write(updrafts)
+result_file.write(final_string)
 result_file.close()
 print("Hoi Thomas - everything done")
 

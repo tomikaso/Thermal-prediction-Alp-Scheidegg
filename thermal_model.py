@@ -32,7 +32,7 @@ def rh_from_tdew(temp_air, temp_dew):
 class thermal_model:
     # simple thermal model
     start_level = 700
-    html_string = ''
+    html_string = []
 
     def __init__(self, temp_2m, dew_2m, temp_1000, dew_1000, temp_1500, dew_1500, temp_1900, dew_1900, temp_3000,
                  dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, temp_advance):
@@ -48,6 +48,7 @@ class thermal_model:
         self.__updraft = []
         updraft = 1
         condensed = 0
+        self.html_string.clear()
         i = self.__start_level
         while i <= 5600 and updraft > 0:
             if i <= 1000:
@@ -100,10 +101,10 @@ class thermal_model:
             self.__updraft.append(updraft)
             if i <= 4600 and i % 200 == 0:  # one data point each 200 meters
                 if self.__condensation[-1] == 'yes':
-                    self.html_string += ',' + 'Cloud'
+                    self.html_string.append('Cloud')
                     condensed = 1
                 elif condensed == 0:
-                    self.html_string += ',' + str(round(updraft, 1))
+                    self.html_string.append(str(round(updraft, 1)))
             i = i + 100
 
     # print out results

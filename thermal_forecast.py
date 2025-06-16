@@ -1,10 +1,15 @@
-import requests, json
-import math
 import ftplib
-from PIL import Image, ImageDraw, ImageFont
+import math
 from datetime import datetime
+
+import json
+import requests
+from PIL import Image, ImageDraw, ImageFont
+from thermal_model import thermal_model
 import constants
+
 # initialize variable
+model_html_string = []
 temp = []
 dew_point = []
 wind = []
@@ -248,6 +253,18 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding, border + 2.5 * padding + ty / lines * (k + 1)),
                       ' LT    km/h            l-m-h  °/100m   m/s   m', (20, 20, 20), font=font)
         else:
+            # call thermal model
+            model = thermal_model(temp700[index + k], dew700[index + k], temp1000[index + k], dew1000[index + k],
+                                  temp1500[index + k], dew1500[index + k], temp1900[index + k], dew1900[index + k],
+                                  temp3000[index + k], dew3000[index + k], temp4200[index + k], dew4200[index + k],
+                                  temp5600[index + k], dew5600[index + k], radiation[index + k]/800)
+            # append model-data
+            m_h = 600
+            for model_data in model.html_string:
+                model_html_string.append('DAY' + str(j) + 'LT' + str(k+10) + 'H' + str(m_h) + ',' + model_data + ',')
+                m_h += 200
+
+            # standard calculations
             content = time[index + k][11:]
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
                       font=font)
@@ -683,6 +700,17 @@ while i < days:
         img1.text((141, 20), soar_text, (240, 240, 240), font=font)
     img.save("/var/www/html/thermals/thermal_button" + str(i) + ".png")
     i = i + 1
+
+# create csv with thermal updrafts
+image_path = "/var/www/html/thermals/"
+final_string = ''
+for data in model_html_string:
+    final_string += data
+print(final_string)  # append model-data)
+result_file = open(image_path + "thermal_data.txt", "w")
+result_file.write(final_string)
+result_file.close()
+
 print("Hoi Thomas")
 # send it to DCZO-webserver
 session = ftplib.FTP('ftp.dczo.ch', constants.ftp_user, constants.ftp_pw)
@@ -701,6 +729,7 @@ ovr_file1 = open('/var/www/html/thermals/thermal_button1.png','rb')        # ove
 ovr_file2 = open('/var/www/html/thermals/thermal_button2.png','rb')        # overview2 to send
 ovr_file3 = open('/var/www/html/thermals/thermal_button3.png','rb')        # overview3 to send
 ovr_file4 = open('/var/www/html/thermals/thermal_button4.png','rb')        # overview4 to send
+therm_model = open('/var/www/html/thermals/thermal_data.txt','rb')        # thermal_model to send
 session.storbinary('STOR forecast0.png', file)     # send the file
 session.storbinary('STOR forecast1.png', file1)     # send the file
 session.storbinary('STOR forecast2.png', file2)     # send the file
@@ -716,6 +745,7 @@ session.storbinary('STOR thermal_button1.png', ovr_file1)  # send the file
 session.storbinary('STOR thermal_button2.png', ovr_file2)  # send the file
 session.storbinary('STOR thermal_button3.png', ovr_file3)  # send the file
 session.storbinary('STOR thermal_button4.png', ovr_file4)  # send the file
+session.storbinary('STOR thermal_data.txt', therm_model)  # send the file
 file.close()                                    # close file and FTP
 session.quit()
 print ("files sent to DCZO")
