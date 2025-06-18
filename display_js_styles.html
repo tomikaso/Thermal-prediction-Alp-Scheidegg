@@ -15,7 +15,7 @@
         transition-duration: 0.4s;
     }
         .button1:hover {
-            box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+            box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 10px 25px 0 rgba(0,0,0,0.19);
         }
     .active_button {
        width: 18%;
@@ -27,15 +27,61 @@
 </style>
 <h1>Thermikprognose Alp Scheidegg</h1>
 <script>
+    const h = new Date();
+    let day = 0;
+    function datehour() {return h.getHours() + 100 * h.getDate() + 10000 * h.getMonth();}
 	function show_forecast(d) {
-		document.getElementById("display_temp").innerHTML = "<img src='/images/thomaskamps/forecast" + d + ".png?" + Math.random() + "'>";
-        document.getElementById("display_wind").innerHTML = "<img src='/images/thomaskamps/meteo_wind" + d + ".png?" + Math.random() + "'>";
+					document.getElementById("display_temp").innerHTML = "<img src='/images/thomaskamps/forecast" + d + ".png?" + datehour() + "'>";
+        document.getElementById("display_wind").innerHTML = "<img src='/images/thomaskamps/meteo_wind" + d + ".png?" + datehour() + "'>";
 					for (let j = 0; j <= 4; j++) {
-						document.getElementById("my-div" + j).className = "button1";
-                        document.getElementById("my-div" + j).innerHTML = "<img src='/images/thomaskamps/thermal_button" + j + ".png?" + Math.random() + "'>";
-                        }
-		document.getElementById("my-div" + d).className  = "active_button";
+				document.getElementById("my-div" + j).className = "button1";
+document.getElementById("my-div" + j).innerHTML = "<img src='/images/thomaskamps/thermal_button" + j + ".png?" + datehour() + "'>";}
+
+					document.getElementById("my-div" + d).className  = "active_button";
+        day = d;
+    load_thermal_model();}
+var thermlist = new Array();
+function col(lift){
+          		var l = parseFloat(lift);
+                if (l > 5 ){l = 5;}
+          		l = l * 30;
+                let r = 255 - l;
+                let fac = (15625 - (l - 125)**2) / 260;
+                return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
+                }
+function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model();}
+function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 600; h<=3000; h=h+200){
+      document.getElementById(h + "-" + t).innerHTML = ""; document.getElementById(h + "-" + t).style.backgroundColor = "white"}}}
+async function load_thermal_model()
+  {
+  let x = await fetch("/images/thomaskamps/thermal_data.txt?"+ datehour());
+  let y = await x.text();
+  thermlist = y.split(',');
+  let adr = "invalid";
+  let adr_flag = 0;
+  document.getElementById("b2").innerHTML = "Tag " + day;
+  for (let t in thermlist)
+    {
+	if(thermlist[t].substring(0,3) == "DAY" && thermlist[t].substring(3,4) == day)
+		{lt = thermlist[t].substring(6,8); height = thermlist[t].substring(9,13); adr = height + "-" + lt; adr_flag = 1;}
+	else
+		{
+		if (adr_flag == 1)
+			{
+			adr_flag = 0;
+			if(thermlist[t] == "Cloud")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud.png' />";
+				}
+			else
+				{
+				document.getElementById(adr).innerHTML = thermlist[t];
+				document.getElementById(adr).style.backgroundColor = col(thermlist[t]);
+				}
+			}
 		}
+	 }
+  }
 </script>
 <div class="overview" id="overview">
     <button class="button1" id="my-div0" onclick="show_forecast(0)"><img src="/images/thomaskamps/thermal_button0.png"></button>
@@ -48,3 +94,204 @@
 <div id="display_temp"><img src="/images/thomaskamps/forecast0.png"></div>
 <h3>Wind</h3>
 <div id="display_wind"><img src="/images/thomaskamps/meteo_wind0.png"></div>
+<img src onerror='show_forecast(0)'>
+<h3>Thermik-Modell (noch experimentell)
+    <button id="b2" onclick="load_thermal_model()" >load</button></h3>
+<table>
+    <tr>
+        <th>3'000</th>
+        <td id="3000-10"></td>
+        <td id="3000-11"></td>
+        <td id="3000-12"></td>
+        <td id="3000-13"></td>
+        <td id="3000-14"></td>
+        <td id="3000-15"></td>
+        <td id="3000-16"></td>
+        <td id="3000-17"></td>
+        <td id="3000-18"></td>
+        <td id="3000-19"></td>
+        <td id="3000-20"></td>
+    </tr>
+    <tr>
+        <th>2'800</th>
+        <td id="2800-10"></td>
+        <td id="2800-11"></td>
+        <td id="2800-12"></td>
+        <td id="2800-13"></td>
+        <td id="2800-14"></td>
+        <td id="2800-15"></td>
+        <td id="2800-16"></td>
+        <td id="2800-17"></td>
+        <td id="2800-18"></td>
+        <td id="2800-19"></td>
+        <td id="2800-20"></td>
+    </tr>
+    <tr>
+        <th>2'600</th>
+        <td id="2600-10"></td>
+        <td id="2600-11"></td>
+        <td id="2600-12"></td>
+        <td id="2600-13"></td>
+        <td id="2600-14"></td>
+        <td id="2600-15"></td>
+        <td id="2600-16"></td>
+        <td id="2600-17"></td>
+        <td id="2600-18"></td>
+        <td id="2600-19"></td>
+        <td id="2600-20"></td>
+    </tr>
+    <tr>
+        <th>2'400</th>
+        <td id="2400-10"></td>
+        <td id="2400-11"></td>
+        <td id="2400-12"></td>
+        <td id="2400-13"></td>
+        <td id="2400-14"></td>
+        <td id="2400-15"></td>
+        <td id="2400-16"></td>
+        <td id="2400-17"></td>
+        <td id="2400-18"></td>
+        <td id="2400-19"></td>
+        <td id="2400-20"></td>
+    </tr>
+    <tr>
+        <th>2'200</th>
+        <td id="2200-10"></td>
+        <td id="2200-11"></td>
+        <td id="2200-12"></td>
+        <td id="2200-13"></td>
+        <td id="2200-14"></td>
+        <td id="2200-15"></td>
+        <td id="2200-16"></td>
+        <td id="2200-17"></td>
+        <td id="2200-18"></td>
+        <td id="2200-19"></td>
+        <td id="2200-20"></td>
+    </tr>
+    <tr>
+        <th>2'000</th>
+        <td id="2000-10"></td>
+        <td id="2000-11"></td>
+        <td id="2000-12"></td>
+        <td id="2000-13"></td>
+        <td id="2000-14"></td>
+        <td id="2000-15"></td>
+        <td id="2000-16"></td>
+        <td id="2000-17"></td>
+        <td id="2000-18"></td>
+        <td id="2000-19"></td>
+        <td id="2000-20"></td>
+    </tr>
+    <tr>
+        <th>1'800</th>
+        <td id="1800-10"></td>
+        <td id="1800-11"></td>
+        <td id="1800-12"></td>
+        <td id="1800-13"></td>
+        <td id="1800-14"></td>
+        <td id="1800-15"></td>
+        <td id="1800-16"></td>
+        <td id="1800-17"></td>
+        <td id="1800-18"></td>
+        <td id="1800-19"></td>
+        <td id="1800-20"></td>
+    </tr>
+    <tr>
+        <th>1'600</th>
+        <td id="1600-10"></td>
+        <td id="1600-11"></td>
+        <td id="1600-12"></td>
+        <td id="1600-13"></td>
+        <td id="1600-14"></td>
+        <td id="1600-15"></td>
+        <td id="1600-16"></td>
+        <td id="1600-17"></td>
+        <td id="1600-18"></td>
+        <td id="1600-19"></td>
+        <td id="1600-20"></td>
+    </tr>
+    <tr>
+        <th>1'400</th>
+        <td id="1400-10"></td>
+        <td id="1400-11"></td>
+        <td id="1400-12"></td>
+        <td id="1400-13"></td>
+        <td id="1400-14"></td>
+        <td id="1400-15"></td>
+        <td id="1400-16"></td>
+        <td id="1400-17"></td>
+        <td id="1400-18"></td>
+        <td id="1400-19"></td>
+        <td id="1400-20"></td>
+    </tr>
+    <tr>
+        <th>1'200</th>
+        <td id="1200-10"></td>
+        <td id="1200-11"></td>
+        <td id="1200-12"></td>
+        <td id="1200-13"></td>
+        <td id="1200-14"></td>
+        <td id="1200-15"></td>
+        <td id="1200-16"></td>
+        <td id="1200-17"></td>
+        <td id="1200-18"></td>
+        <td id="1200-19"></td>
+        <td id="1200-20"></td>
+    </tr>
+    <tr>
+        <th>1'000</th>
+        <td id="1000-10"></td>
+        <td id="1000-11"></td>
+        <td id="1000-12"></td>
+        <td id="1000-13"></td>
+        <td id="1000-14"></td>
+        <td id="1000-15"></td>
+        <td id="1000-16"></td>
+        <td id="1000-17"></td>
+        <td id="1000-18"></td>
+        <td id="1000-19"></td>
+        <td id="1000-20"></td>
+    </tr>
+    <tr>
+        <th>800</th>
+        <td id="800-10"></td>
+        <td id="800-11"></td>
+        <td id="800-12"></td>
+        <td id="800-13"></td>
+        <td id="800-14"></td>
+        <td id="800-15"></td>
+        <td id="800-16"></td>
+        <td id="800-17"></td>
+        <td id="800-18"></td>
+        <td id="800-19"></td>
+        <td id="800-20"></td>
+    </tr>
+    <tr>
+        <th>600</th>
+        <td id="600-10"></td>
+        <td id="600-11"></td>
+        <td id="600-12"></td>
+        <td id="600-13"></td>
+        <td id="600-14"></td>
+        <td id="600-15"></td>
+        <td id="600-16"></td>
+        <td id="600-17"></td>
+        <td id="600-18"></td>
+        <td id="600-19"></td>
+        <td id="600-20"></td>
+    </tr>
+    <tr>
+        <th>Höhe/Zeit</th>
+        <th>10:00</th>
+        <th>11:00</th>
+        <th>12:00</th>
+        <th>13:00</th>
+        <th>14:00</th>
+        <th>15:00</th>
+        <th>16:00</th>
+        <th>17:00</th>
+        <th>18:00</th>
+        <th>19:00</th>
+        <th>20:00</th>
+    </tr>
+</table>

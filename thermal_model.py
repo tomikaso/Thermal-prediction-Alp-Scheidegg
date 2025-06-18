@@ -3,7 +3,7 @@ import math
 updraft_factor = 30
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
-mixing_100 = 0.1
+mixing_100 = 0.15
 
 
 # calculate density
@@ -97,9 +97,9 @@ class thermal_model:
             self.__air_density.append(density(alt2pres(i), self.__temps[-1],
                                                  rh_from_tdew(self.__temps[-1], self.__dews[-1])))
             #  updraft
-            updraft = updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.5
+            updraft = (updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.5) * 0.7
             self.__updraft.append(updraft)
-            if i <= 4600 and i % 200 == 0:  # one data point each 200 meters
+            if i <= 3000 and i % 200 == 0:  # one data point each 200 meters
                 if self.__condensation[-1] == 'yes':
                     self.html_string.append('Cloud')
                     condensed = 1
