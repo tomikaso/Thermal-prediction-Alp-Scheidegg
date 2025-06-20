@@ -50,7 +50,7 @@ function col(lift){
                 return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
                 }
 function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model();}
-function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 600; h<=3000; h=h+200){
+function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 600; h<=2800; h=h+200){
       document.getElementById(h + "-" + t).innerHTML = ""; document.getElementById(h + "-" + t).style.backgroundColor = "white"}}}
 async function load_thermal_model()
   {
@@ -60,6 +60,7 @@ async function load_thermal_model()
   let adr = "invalid";
   let adr_flag = 0;
   document.getElementById("b2").innerHTML = "Tag " + day;
+  clear_table();
   for (let t in thermlist)
     {
 	if(thermlist[t].substring(0,3) == "DAY" && thermlist[t].substring(3,4) == day)
@@ -71,7 +72,10 @@ async function load_thermal_model()
 			adr_flag = 0;
 			if(thermlist[t] == "Cloud")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud.png' />";
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud.png?1' />";
+				} else if(thermlist[t] == "Raincloud")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/raincloud.png' />";
 				}
 			else
 				{
@@ -98,20 +102,6 @@ async function load_thermal_model()
 <h3>Thermik-Modell (noch experimentell)
     <button id="b2" onclick="load_thermal_model()" >load</button></h3>
 <table>
-    <tr>
-        <th>3'000</th>
-        <td id="3000-10"></td>
-        <td id="3000-11"></td>
-        <td id="3000-12"></td>
-        <td id="3000-13"></td>
-        <td id="3000-14"></td>
-        <td id="3000-15"></td>
-        <td id="3000-16"></td>
-        <td id="3000-17"></td>
-        <td id="3000-18"></td>
-        <td id="3000-19"></td>
-        <td id="3000-20"></td>
-    </tr>
     <tr>
         <th>2'800</th>
         <td id="2800-10"></td>
@@ -281,17 +271,18 @@ async function load_thermal_model()
         <td id="600-20"></td>
     </tr>
     <tr>
-        <th>Höhe/Zeit</th>
-        <th>10:00</th>
-        <th>11:00</th>
-        <th>12:00</th>
-        <th>13:00</th>
-        <th>14:00</th>
-        <th>15:00</th>
-        <th>16:00</th>
-        <th>17:00</th>
-        <th>18:00</th>
-        <th>19:00</th>
-        <th>20:00</th>
+        <th>H/Lt</th>
+        <th> 10h </th>
+        <th> 11h </th>
+        <th> 12h </th>
+        <th> 13h </th>
+        <th> 14h </th>
+        <th> 15h </th>
+        <th> 16h </th>
+        <th> 17h </th>
+        <th> 18h </th>
+        <th> 19h </th>
+        <th> 20h </th>
     </tr>
 </table>
+

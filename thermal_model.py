@@ -35,7 +35,7 @@ class thermal_model:
     html_string = []
 
     def __init__(self, temp_2m, dew_2m, temp_1000, dew_1000, temp_1500, dew_1500, temp_1900, dew_1900, temp_3000,
-                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, temp_advance):
+                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, temp_advance, precipitation):
         self.__start_level = 700
         self.__temps = []
         self.__dews = []
@@ -101,7 +101,10 @@ class thermal_model:
             self.__updraft.append(updraft)
             if i <= 3000 and i % 200 == 0:  # one data point each 200 meters
                 if self.__condensation[-1] == 'yes':
-                    self.html_string.append('Cloud')
+                    if precipitation > 0:
+                        self.html_string.append('Raincloud')
+                    else:
+                        self.html_string.append('Cloud')
                     condensed = 1
                 elif condensed == 0:
                     self.html_string.append(str(round(updraft, 1)))
