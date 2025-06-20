@@ -257,8 +257,8 @@ def create_thermal_data(index):
             model = thermal_model(temp700[index + k], dew700[index + k], temp1000[index + k], dew1000[index + k],
                                   temp1500[index + k], dew1500[index + k], temp1900[index + k], dew1900[index + k],
                                   temp3000[index + k], dew3000[index + k], temp4200[index + k], dew4200[index + k],
-                                  temp5600[index + k], dew5600[index + k],
-                                  radiation[index + k]/800, precipitation[index + k] - 0.5)
+                                  temp5600[index + k], dew5600[index + k], 1240, radiation[index + k]/800,
+                                  precipitation[index + k] - 0.1)
             # append model-data
             m_h = 600
             for model_data in model.html_string:
@@ -295,8 +295,7 @@ def create_thermal_data(index):
             # lift
             if wind1500[index + k] <= 25 and wind1900[index + k] <= 35:  # not too much wind for thermals
                 begin_factor = pow(max(0, temp_below - 0.5), 0.1)
-                lift = int(pow((max(0.1, ((max(0.1, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
-                               0.7) * 10) / 10
+                lift = model.average_lift
                 content = str(lift)
             else:
                 lift = 0
@@ -329,32 +328,32 @@ def create_thermal_data(index):
             if wind_calc > wind_max:  # determine direction of the wind-max
                 wind_max = wind_calc
                 major_wind_dir = wind_calc_dir            # base
-            base_hight = int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50
+            base_height = int(round((model.base_top / 50)) * 50)
             if press_diff >= 4:
                 foehn = max(foehn, press_diff)
                 content = str(int(press_diff + 0.5)) + "hPa"
             elif cloud_cover_mid[index + k] < 0.1 and cloud_cover_low[index + k] < 0.1:
                 content = 'blau'
-            elif precipitation[index + k] > 0.5 and temp1000[index + k] >= 1:
+            elif precipitation[index + k] > 0.1 and temp1000[index + k] >= 1:
                 content = 'Regen'
-            elif precipitation[index + k] > 0.5 and temp1000[index + k] < 1:
+            elif precipitation[index + k] > 0.1 and temp1000[index + k] < 1:
                 content = 'Schnee'
             else:
                 if lift > 0:
-                    content = str(base_hight)
+                    content = str(base_height)
                 else:
                     content = "-"
             img1.text((2 * border + tx + padding + col * 6, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             if lift >= 1:  # root-function gets 1 with a base of 2'000 meters
-                distance = int(distance + 4 * lift * pow(max((base_hight - 1200), 0), 0.5) / 28.2)
+                distance = int(distance + 4 * lift * pow(max((base_height - 1200), 0), 0.5) / 28.2)
             elif lift > 0.5:
                 distance = distance + 1
             # soaring
             content = "-"
             font_color = (20, 20, 20)
             if (220 < wind_calc_dir <= 290) and foehn < 4.5 and (15 < wind_calc <= 35) and \
-                    wind1900[index + k] < 50 and (precipitation[index + k] + precipitation[index + k + 1] < 0.5):
+                    wind1900[index + k] < 50 and (precipitation[index + k] + precipitation[index + k + 1] < 0.1):
                 content = "GH"
                 if soar_pot == 0:
                     soar_pot = 1

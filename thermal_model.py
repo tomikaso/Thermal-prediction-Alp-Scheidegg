@@ -33,9 +33,10 @@ class thermal_model:
     # simple thermal model
     start_level = 700
     html_string = []
-
+    average_lift = 0
+    base_top = 0
     def __init__(self, temp_2m, dew_2m, temp_1000, dew_1000, temp_1500, dew_1500, temp_1900, dew_1900, temp_3000,
-                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, temp_advance, precipitation):
+                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, temp_advance, precipitation):
         self.__start_level = 700
         self.__temps = []
         self.__dews = []
@@ -110,6 +111,10 @@ class thermal_model:
                     self.html_string.append(str(round(updraft, 1)))
             i = i + 100
 
+            # average lift
+            if i > start_height and updraft > 0.5 and self.__condensation[-1] == 'no':
+                self.average_lift = round(max(updraft, self.average_lift), 1)
+                self.base_top = i
     # print out results
     def show_results(self):
         i = 0

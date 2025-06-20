@@ -249,7 +249,8 @@ def create_thermal_data(index):
             model = thermal_model(temp700[index + k], dew700[index + k], temp1000[index + k], dew1000[index + k],
                                   temp1500[index + k], dew1500[index + k], temp1900[index + k], dew1900[index + k],
                                   temp3000[index + k], dew3000[index + k], temp4200[index + k], dew4200[index + k],
-                                  temp5600[index + k], dew5600[index + k], radiation[index + k]/800)
+                                  temp5600[index + k], dew5600[index + k],
+                                  1240, radiation[index + k]/800, precipitation[index + k] - 0.1)
             # append model-data
             m_h = 600
             for model_data in model.html_string:
@@ -257,6 +258,7 @@ def create_thermal_data(index):
                 m_h += 200
             # Testcode: model.show_results()
             print(model.html_string)
+            print('lift: ' + str(model.average_lift) + ' Base: ' + str(model.base_top))
 
             # standard calculations
             content = time[index + k][11:]
@@ -286,8 +288,8 @@ def create_thermal_data(index):
             # lift
             if wind1500[index + k] <= 20 and wind1900[index + k] <= 25:  # condition for thermals
                 begin_factor = pow(max(0, (temp700[index + k] - temp1000[index + k] - 2.5)), 0.5)
-                lift = int(pow((max(0.0, ((max(0.0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
-                               0.7) * 10) / 10
+                lift = model.average_lift
+                 # lift = int(pow((max(0.0, ((max(0.0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor, 0.7) * 10) / 10
                 content = str(lift)
             else:
                 lift = 0
@@ -321,7 +323,7 @@ def create_thermal_data(index):
                 wind_max = wind_calc
                 major_wind_dir = wind_calc_dir
             # base
-            base_hight = int(round((125 * (temp1000[index + k] - dew1000[index + k]) + 1000) / 50)) * 50
+            base_hight = int(round((model.base_top / 50)) * 50)
             if press_diff >= 4:
                 foehn = max(foehn, press_diff)
                 content = str(int(press_diff + 0.5)) + "hPa"
@@ -583,10 +585,7 @@ while i < len(time) and j < 5:
         print(time[i], ' Posi:', i, ' create forecast')
         x = datetime(int(time[i][:4]), int(time[i][5:-9]), int(time[i][8:-6]), 0, 0, 0)
         # fix scale
-        if temp1900[i] > 0:
-            offset = 0
-        else:
-            offset = 1
+        offset = - int(temp1900[i] / 10)  # for negative temperatures 1, then 0 for low positive and +1 if hot.
         # create lists for the emagramm
         temp.append(700)
         temp.append(temp700[i])
