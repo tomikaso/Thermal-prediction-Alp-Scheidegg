@@ -49,7 +49,7 @@ function col(lift){
                 let fac = (15625 - (l - 125)**2) / 260;
                 return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
                 }
-function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model();}
+function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model(); show_forecast(day);}
 function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 600; h<=2800; h=h+200){
       document.getElementById(h + "-" + t).innerHTML = ""; document.getElementById(h + "-" + t).style.backgroundColor = "white"}}}
 async function load_thermal_model()
@@ -59,11 +59,11 @@ async function load_thermal_model()
   thermlist = y.split(',');
   let adr = "invalid";
   let adr_flag = 0;
-  document.getElementById("b2").innerHTML = "Tag " + day;
+  document.getElementById("b2").innerHTML = "Tag " + day + " >";
   clear_table();
   for (let t in thermlist)
     {
-	if(thermlist[t].substring(0,3) == "DAY" && thermlist[t].substring(3,4) == day)
+	if(thermlist[t].substring(0,3) == "DAY" && thermlist[t].substring(3,4) == day && parseInt(thermlist[t].substring(9,13)) <= 2800)
 		{lt = thermlist[t].substring(6,8); height = thermlist[t].substring(9,13); adr = height + "-" + lt; adr_flag = 1;}
 	else
 		{
@@ -99,8 +99,8 @@ async function load_thermal_model()
 <h3>Wind</h3>
 <div id="display_wind"><img src="/images/thomaskamps/meteo_wind0.png"></div>
 <img src onerror='show_forecast(0)'>
-<h3>Thermik-Modell (noch experimentell)
-    <button id="b2" onclick="load_thermal_model()" >load</button></h3>
+<h3>Thermik-Modell (experimentell)
+    <button id="b2" onclick="new_day()" >load</button></h3>
 <table>
     <tr>
         <th>2'800</th>
@@ -285,4 +285,3 @@ async function load_thermal_model()
         <th> 20h </th>
     </tr>
 </table>
-

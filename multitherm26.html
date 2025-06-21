@@ -126,6 +126,7 @@
 
 <script>
    var day;
+   let loca = 0;
    var startgrid;
    var potarray = new Array();
    const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag", 						"Montag","Dienstag","Mittwoch","Donnerstag"];
@@ -144,7 +145,7 @@
    function setday(){day = 0; startgrid = "Scheidegg";
                      document.getElementById("my-div0").innerHTML = "Heute";
                      for (let j = 1; j <= 4; j++) {
-                          document.getElementById("my-div" + j).innerHTML = weekday[d.getDay() + j];}
+                          document.getElementById("my-div" + j).innerHTML = weekday[d.getDay() + day];}
 }
 function changeColor(i) {
     for (let l = 0; l <= 7; l++) {
@@ -168,12 +169,65 @@ function changeColor(i) {
               let fac = (15625 - (dist - 125)**2) / 260
                 return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
                 }
-    function show_grid(n) {startgrid = grids[n]; show_forecast(); set_active_location(n);}
+    function show_grid(n) {startgrid = grids[n]; show_forecast(); set_active_location(n); loca = n;
+                           clear_table(); load_thermal_model();}
     function set_active_location(loc){
              for (let l = 0; l <= 7; l++) {document.getElementById("thermal" + l).className = "thermal" + l;}
              document.getElementById("thermal" + loc).className   += " thermal_active";}
         function show_forecast() {document.getElementById("display_temp").innerHTML = "<h2>" + startgrid +
          " Day-" + day + "</h2><img src='/images/thomaskamps/multitherm/forecast" + startgrid + day + ".png?" + datehour() + "'>" ;}
+function clear_table(){ for (let t = 10; t<=20; t++)
+						{ for (let h = 600; h<=4000; h=h+200)
+							{
+						document.getElementById(h + "-" + t).innerHTML = "";
+						document.getElementById(h + "-" + t).style.backgroundColor = "white";
+							}
+						}
+					}
+function liftcol(lift){
+          		var l = parseFloat(lift);
+                if (l > 5 ){l = 5;}
+          		l = l * 30;
+                let r = 255 - l;
+                let fac = (15625 - (l - 125)**2) / 260;
+                return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
+                }
+async function load_thermal_model()
+  {
+  let x = await fetch("/images/thomaskamps/multitherm/thermal_data_multi.txt?"+ datehour());
+  let y = await x.text();
+  thermlist = y.split(',');
+  let adr = "invalid";
+  let adr_flag = 0;
+  document.getElementById("b2").innerHTML = startgrid + ", Tag " + day + " >";
+  clear_table();
+  for (let t in thermlist)
+    {
+	if(thermlist[t].substring(0,3) == "LOC" && thermlist[t].substring(7,8) == day && thermlist[t].substring(3,4) == loca )
+		{lt = thermlist[t].substring(10,12); height = thermlist[t].substring(13,17); adr = height + "-" + lt; adr_flag = 1;}
+	else
+		{
+		if (adr_flag == 1)
+			{
+			adr_flag = 0;
+			if(thermlist[t] == "Cloud")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud.png?1' />";
+				} else if(thermlist[t] == "Raincloud")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/raincloud.png' />";
+				}
+			else
+				{
+				document.getElementById(adr).innerHTML = thermlist[t];
+				document.getElementById(adr).style.backgroundColor = liftcol(thermlist[t]);
+				}
+			}
+		}
+	 }
+  }
+function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model();}
+
     </script>
 <div class="overview" id="overview">
     <button class="thermal0" id="thermal0" onclick="show_grid(0)"><a class="km">AS</a></button>
@@ -192,3 +246,275 @@ function changeColor(i) {
 <button class="button1" id="my-div4" onclick="changeColor(4)">Tag 4</button>
 <button class="button1" id="day_indicator">Today</button>
 <div id="display_temp"><img src="/images/thomaskamps/multitherm/forecastScheidegg0.png" ></div>
+<div>
+    <h3>Thermik-Modell (in Entwicklung)
+        <button id="b2" onclick="new_day()" >load</button></h3>
+    <table>
+        <tr>
+            <th>4'000</th>
+            <td id="4000-10"></td>
+            <td id="4000-11"></td>
+            <td id="4000-12"></td>
+            <td id="4000-13"></td>
+            <td id="4000-14"></td>
+            <td id="4000-15"></td>
+            <td id="4000-16"></td>
+            <td id="4000-17"></td>
+            <td id="4000-18"></td>
+            <td id="4000-19"></td>
+            <td id="4000-20"></td>
+        </tr>
+        <tr>
+            <th>3'800</th>
+            <td id="3800-10"></td>
+            <td id="3800-11"></td>
+            <td id="3800-12"></td>
+            <td id="3800-13"></td>
+            <td id="3800-14"></td>
+            <td id="3800-15"></td>
+            <td id="3800-16"></td>
+            <td id="3800-17"></td>
+            <td id="3800-18"></td>
+            <td id="3800-19"></td>
+            <td id="3800-20"></td>
+        </tr>
+        <tr>
+            <th>3'600</th>
+            <td id="3600-10"></td>
+            <td id="3600-11"></td>
+            <td id="3600-12"></td>
+            <td id="3600-13"></td>
+            <td id="3600-14"></td>
+            <td id="3600-15"></td>
+            <td id="3600-16"></td>
+            <td id="3600-17"></td>
+            <td id="3600-18"></td>
+            <td id="3600-19"></td>
+            <td id="3600-20"></td>
+        </tr>
+        <tr>
+            <th>3'400</th>
+            <td id="3400-10"></td>
+            <td id="3400-11"></td>
+            <td id="3400-12"></td>
+            <td id="3400-13"></td>
+            <td id="3400-14"></td>
+            <td id="3400-15"></td>
+            <td id="3400-16"></td>
+            <td id="3400-17"></td>
+            <td id="3400-18"></td>
+            <td id="3400-19"></td>
+            <td id="3400-20"></td>
+        </tr>
+        <tr>
+            <th>3'200</th>
+            <td id="3200-10"></td>
+            <td id="3200-11"></td>
+            <td id="3200-12"></td>
+            <td id="3200-13"></td>
+            <td id="3200-14"></td>
+            <td id="3200-15"></td>
+            <td id="3200-16"></td>
+            <td id="3200-17"></td>
+            <td id="3200-18"></td>
+            <td id="3200-19"></td>
+            <td id="3200-20"></td>
+        </tr>
+        <tr>
+            <th>3'000</th>
+            <td id="3000-10"></td>
+            <td id="3000-11"></td>
+            <td id="3000-12"></td>
+            <td id="3000-13"></td>
+            <td id="3000-14"></td>
+            <td id="3000-15"></td>
+            <td id="3000-16"></td>
+            <td id="3000-17"></td>
+            <td id="3000-18"></td>
+            <td id="3000-19"></td>
+            <td id="3000-20"></td>
+        </tr>
+        <tr>
+            <th>2'800</th>
+            <td id="2800-10"></td>
+            <td id="2800-11"></td>
+            <td id="2800-12"></td>
+            <td id="2800-13"></td>
+            <td id="2800-14"></td>
+            <td id="2800-15"></td>
+            <td id="2800-16"></td>
+            <td id="2800-17"></td>
+            <td id="2800-18"></td>
+            <td id="2800-19"></td>
+            <td id="2800-20"></td>
+        </tr>
+        <tr>
+            <th>2'600</th>
+            <td id="2600-10"></td>
+            <td id="2600-11"></td>
+            <td id="2600-12"></td>
+            <td id="2600-13"></td>
+            <td id="2600-14"></td>
+            <td id="2600-15"></td>
+            <td id="2600-16"></td>
+            <td id="2600-17"></td>
+            <td id="2600-18"></td>
+            <td id="2600-19"></td>
+            <td id="2600-20"></td>
+        </tr>
+        <tr>
+            <th>2'400</th>
+            <td id="2400-10"></td>
+            <td id="2400-11"></td>
+            <td id="2400-12"></td>
+            <td id="2400-13"></td>
+            <td id="2400-14"></td>
+            <td id="2400-15"></td>
+            <td id="2400-16"></td>
+            <td id="2400-17"></td>
+            <td id="2400-18"></td>
+            <td id="2400-19"></td>
+            <td id="2400-20"></td>
+        </tr>
+        <tr>
+            <th>2'200</th>
+            <td id="2200-10"></td>
+            <td id="2200-11"></td>
+            <td id="2200-12"></td>
+            <td id="2200-13"></td>
+            <td id="2200-14"></td>
+            <td id="2200-15"></td>
+            <td id="2200-16"></td>
+            <td id="2200-17"></td>
+            <td id="2200-18"></td>
+            <td id="2200-19"></td>
+            <td id="2200-20"></td>
+        </tr>
+        <tr>
+            <th>2'000</th>
+            <td id="2000-10"></td>
+            <td id="2000-11"></td>
+            <td id="2000-12"></td>
+            <td id="2000-13"></td>
+            <td id="2000-14"></td>
+            <td id="2000-15"></td>
+            <td id="2000-16"></td>
+            <td id="2000-17"></td>
+            <td id="2000-18"></td>
+            <td id="2000-19"></td>
+            <td id="2000-20"></td>
+        </tr>
+        <tr>
+            <th>1'800</th>
+            <td id="1800-10"></td>
+            <td id="1800-11"></td>
+            <td id="1800-12"></td>
+            <td id="1800-13"></td>
+            <td id="1800-14"></td>
+            <td id="1800-15"></td>
+            <td id="1800-16"></td>
+            <td id="1800-17"></td>
+            <td id="1800-18"></td>
+            <td id="1800-19"></td>
+            <td id="1800-20"></td>
+        </tr>
+        <tr>
+            <th>1'600</th>
+            <td id="1600-10"></td>
+            <td id="1600-11"></td>
+            <td id="1600-12"></td>
+            <td id="1600-13"></td>
+            <td id="1600-14"></td>
+            <td id="1600-15"></td>
+            <td id="1600-16"></td>
+            <td id="1600-17"></td>
+            <td id="1600-18"></td>
+            <td id="1600-19"></td>
+            <td id="1600-20"></td>
+        </tr>
+        <tr>
+            <th>1'400</th>
+            <td id="1400-10"></td>
+            <td id="1400-11"></td>
+            <td id="1400-12"></td>
+            <td id="1400-13"></td>
+            <td id="1400-14"></td>
+            <td id="1400-15"></td>
+            <td id="1400-16"></td>
+            <td id="1400-17"></td>
+            <td id="1400-18"></td>
+            <td id="1400-19"></td>
+            <td id="1400-20"></td>
+        </tr>
+        <tr>
+            <th>1'200</th>
+            <td id="1200-10"></td>
+            <td id="1200-11"></td>
+            <td id="1200-12"></td>
+            <td id="1200-13"></td>
+            <td id="1200-14"></td>
+            <td id="1200-15"></td>
+            <td id="1200-16"></td>
+            <td id="1200-17"></td>
+            <td id="1200-18"></td>
+            <td id="1200-19"></td>
+            <td id="1200-20"></td>
+        </tr>
+        <tr>
+            <th>1'000</th>
+            <td id="1000-10"></td>
+            <td id="1000-11"></td>
+            <td id="1000-12"></td>
+            <td id="1000-13"></td>
+            <td id="1000-14"></td>
+            <td id="1000-15"></td>
+            <td id="1000-16"></td>
+            <td id="1000-17"></td>
+            <td id="1000-18"></td>
+            <td id="1000-19"></td>
+            <td id="1000-20"></td>
+        </tr>
+        <tr>
+            <th>800</th>
+            <td id="800-10"></td>
+            <td id="800-11"></td>
+            <td id="800-12"></td>
+            <td id="800-13"></td>
+            <td id="800-14"></td>
+            <td id="800-15"></td>
+            <td id="800-16"></td>
+            <td id="800-17"></td>
+            <td id="800-18"></td>
+            <td id="800-19"></td>
+            <td id="800-20"></td>
+        </tr>
+        <tr>
+            <th>600</th>
+            <td id="600-10"></td>
+            <td id="600-11"></td>
+            <td id="600-12"></td>
+            <td id="600-13"></td>
+            <td id="600-14"></td>
+            <td id="600-15"></td>
+            <td id="600-16"></td>
+            <td id="600-17"></td>
+            <td id="600-18"></td>
+            <td id="600-19"></td>
+            <td id="600-20"></td>
+        </tr>
+        <tr>
+            <th>H/Lt</th>
+            <th> 10h </th>
+            <th> 11h </th>
+            <th> 12h </th>
+            <th> 13h </th>
+            <th> 14h </th>
+            <th> 15h </th>
+            <th> 16h </th>
+            <th> 17h </th>
+            <th> 18h </th>
+            <th> 19h </th>
+            <th> 20h </th>
+        </tr>
+    </table>
+</div>

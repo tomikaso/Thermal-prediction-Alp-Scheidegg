@@ -100,7 +100,7 @@ class thermal_model:
             #  updraft
             updraft = (updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.5) * 0.7
             self.__updraft.append(updraft)
-            if i <= 3000 and i % 200 == 0:  # one data point each 200 meters
+            if i <= 4200 and i % 200 == 0:  # one data point each 200 meters
                 if self.__condensation[-1] == 'yes':
                     if precipitation > 0:
                         self.html_string.append('Raincloud')
