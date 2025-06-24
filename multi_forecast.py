@@ -318,9 +318,9 @@ def create_thermal_data(index):
                                   temp1900[loc, index + k], dew1900[loc, index + k], temp3000[loc, index + k],
                                   dew3000[loc, index + k], temp4200[loc, index + k], dew4200[loc, index + k],
                                   temp5600[loc, index + k], dew5600[loc, index + k], start_hight[loc],
-                                  radiation[loc, index + k]/800, precipitation[loc, index + k] - 0.1)
+                                  radiation[loc, index + k], precipitation[loc, index + k] - 0.1)
             # append model-data
-            m_h = 600
+            m_h = 800
             for model_data in model.html_string:
                 model_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k+10) + 'H' + str(m_h) +
                                          ',' + model_data + ',')

@@ -1,9 +1,11 @@
 # thermal model to simulate a rising air parcel in the given atmosphere.
 import math
-updraft_factor = 30
+
+updraft_factor = 20
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
 mixing_100 = 0.15
+std_pressure = 101325
 
 
 # calculate density
@@ -35,8 +37,9 @@ class thermal_model:
     html_string = []
     average_lift = 0
     base_top = 0
+
     def __init__(self, temp_2m, dew_2m, temp_1000, dew_1000, temp_1500, dew_1500, temp_1900, dew_1900, temp_3000,
-                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, temp_advance, precipitation):
+                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, radiation, precipitation):
         self.__start_level = 700
         self.__temps = []
         self.__dews = []
@@ -47,36 +50,43 @@ class thermal_model:
         self.__air_density = []
         self.__heights = []
         self.__updraft = []
+        calculation_base = max(self.start_level, start_height - 500)
         updraft = 1
         condensed = 0
         self.html_string.clear()
         i = self.__start_level
-        while i <= 5600 and updraft > 0:
+        while i <= 5600 and (updraft > 0 or i <= calculation_base + 100):
             if i <= 1000:
                 val2st = 1000 - self.__start_level  # valley to start level
                 self.__temps.append(temp_2m * (1000 - i) / val2st + temp_1000 * (i - self.__start_level) / val2st)
                 self.__dews.append(dew_2m * (1000 - i) / val2st + dew_1000 * (i - self.__start_level) / val2st)
-            if i <= 1500 and i > 1000:
+            if 1500 >= i > 1000:
                 self.__temps.append(temp_1000 * (1500 - i) / 500 + temp_1500 * (i - 1000) / 500)
                 self.__dews.append(dew_1000 * (1500 - i) / 500 + dew_1500 * (i - 1000) / 500)
-            elif i <= 1900 and i > 1500:
+            elif 1900 >= i > 1500:
                 self.__temps.append(temp_1500 * (1900 - i) / 400 + temp_1900 * (i - 1500) / 400)
                 self.__dews.append(dew_1500 * (1900 - i) / 400 + dew_1900 * (i - 1500) / 400)
-            elif i <= 3000 and i > 1900:
+            elif 3000 >= i > 1900:
                 self.__temps.append(temp_1900 * (3000 - i) / 1100 + temp_3000 * (i - 1900) / 1100)
                 self.__dews.append(dew_1900 * (3000 - i) / 1100 + dew_3000 * (i - 1900) / 1100)
-            elif i <= 4200 and i > 3000:
+            elif 4200 >= i > 3000:
                 self.__temps.append(temp_3000 * (4200 - i) / 1200 + temp_4200 * (i - 3000) / 1200)
                 self.__dews.append(dew_3000 * (4200 - i) / 1200 + dew_4200 * (i - 3000) / 1200)
-            elif i <= 5600 and i > 4200:
+            elif 5600 >= i > 4200:
                 self.__temps.append(temp_4200 * (5600 - i) / 1400 + temp_5600 * (i - 4200) / 1400)
                 self.__dews.append(dew_4200 * (5600 - i) / 1400 + dew_5600 * (i - 4200) / 1400)
             self.__heights.append(i)
 
             # parcel conditions
             if i == self.__start_level:
-                self.__parcel_temps.append(temp_2m + temp_advance)
+                self.__parcel_temps.append(temp_2m + radiation / 800)
                 self.__parcel_dews.append(dew_2m)
+                self.__condensation.append('no')
+            elif calculation_base <= i < calculation_base + 100:
+                self.__parcel_temps.append(self.__temps[-1] + std_pressure / alt2pres(i) * radiation / 800)
+                print('i: ', i, 'Temp-Advance: ', std_pressure / alt2pres(i) * radiation / 800)
+                self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_100)
+                                          + mixing_100 * self.__dews[-1])
                 self.__condensation.append('no')
             else:
                 if self.__temps[-1] > self.__parcel_dews[-1] + 0.5:
@@ -96,25 +106,29 @@ class thermal_model:
                                                  rh_from_tdew(self.__parcel_temps[-1], self.__parcel_dews[-1])))
             #  density of the ambient air
             self.__air_density.append(density(alt2pres(i), self.__temps[-1],
-                                                 rh_from_tdew(self.__temps[-1], self.__dews[-1])))
+                                              rh_from_tdew(self.__temps[-1], self.__dews[-1])))
             #  updraft
-            updraft = (updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.5) * 0.7
+            updraft = (updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.5)
             self.__updraft.append(updraft)
             if i <= 4200 and i % 200 == 0:  # one data point each 200 meters
-                if self.__condensation[-1] == 'yes':
-                    if precipitation > 0:
-                        self.html_string.append('Raincloud')
-                    else:
-                        self.html_string.append('Cloud')
-                    condensed = 1
-                elif condensed == 0:
-                    self.html_string.append(str(round(updraft, 1)))
+                if i <= calculation_base:
+                    self.html_string.append('Green')
+                else:
+                    if self.__condensation[-1] == 'yes':
+                        if precipitation > 0:
+                            self.html_string.append('Raincloud')
+                        else:
+                            self.html_string.append('Cloud')
+                        condensed = 1
+                    elif condensed == 0:
+                        self.html_string.append(str(round(updraft, 1)))
             i = i + 100
 
-            # average lift
-            if i > start_height and updraft > 0.5 and self.__condensation[-1] == 'no':
+            # average lift and base / top
+            if i > start_height and updraft > 0.5 and condensed == 0:
                 self.average_lift = round(max(updraft, self.average_lift), 1)
                 self.base_top = i
+
     # print out results
     def show_results(self):
         i = 0
@@ -125,6 +139,7 @@ class thermal_model:
                   self.__condensation[i], ', Density=', round(self.__parcel_density[i], 4), ' ambient:',
                   round(self.__air_density[i], 4), ' updraft: ', round(self.__updraft[i], 2))
             i += 1
+
     # print out results
     def result_diagram(self):
         i = 0

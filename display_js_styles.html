@@ -50,7 +50,7 @@ function col(lift){
                 return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
                 }
 function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model(); show_forecast(day);}
-function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 600; h<=2800; h=h+200){
+function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 800; h<=2800; h=h+200){
       document.getElementById(h + "-" + t).innerHTML = ""; document.getElementById(h + "-" + t).style.backgroundColor = "white"}}}
 async function load_thermal_model()
   {
@@ -99,7 +99,7 @@ async function load_thermal_model()
 <h3>Wind</h3>
 <div id="display_wind"><img src="/images/thomaskamps/meteo_wind0.png"></div>
 <img src onerror='show_forecast(0)'>
-<h3>Thermik-Modell (experimentell)
+<h3>Thermik-Modell
     <button id="b2" onclick="new_day()" >load</button></h3>
 <table>
     <tr>
@@ -255,20 +255,6 @@ async function load_thermal_model()
         <td id="800-18"></td>
         <td id="800-19"></td>
         <td id="800-20"></td>
-    </tr>
-    <tr>
-        <th>600</th>
-        <td id="600-10"></td>
-        <td id="600-11"></td>
-        <td id="600-12"></td>
-        <td id="600-13"></td>
-        <td id="600-14"></td>
-        <td id="600-15"></td>
-        <td id="600-16"></td>
-        <td id="600-17"></td>
-        <td id="600-18"></td>
-        <td id="600-19"></td>
-        <td id="600-20"></td>
     </tr>
     <tr>
         <th>H/Lt</th>

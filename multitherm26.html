@@ -145,7 +145,7 @@
    function setday(){day = 0; startgrid = "Scheidegg";
                      document.getElementById("my-div0").innerHTML = "Heute";
                      for (let j = 1; j <= 4; j++) {
-                          document.getElementById("my-div" + j).innerHTML = weekday[d.getDay() + day];}
+                          document.getElementById("my-div" + j).innerHTML = weekday[d.getDay() + j];}
 }
 function changeColor(i) {
     for (let l = 0; l <= 7; l++) {
@@ -159,6 +159,8 @@ function changeColor(i) {
     }
     document.getElementById("my-div" + day).className = "active_button";
     show_forecast();
+    clear_table();
+    load_thermal_model();
 }
 
       function col(distst){
@@ -177,7 +179,7 @@ function changeColor(i) {
         function show_forecast() {document.getElementById("display_temp").innerHTML = "<h2>" + startgrid +
          " Day-" + day + "</h2><img src='/images/thomaskamps/multitherm/forecast" + startgrid + day + ".png?" + datehour() + "'>" ;}
 function clear_table(){ for (let t = 10; t<=20; t++)
-						{ for (let h = 600; h<=4000; h=h+200)
+						{ for (let h = 800; h<=4000; h=h+200)
 							{
 						document.getElementById(h + "-" + t).innerHTML = "";
 						document.getElementById(h + "-" + t).style.backgroundColor = "white";
@@ -199,7 +201,7 @@ async function load_thermal_model()
   thermlist = y.split(',');
   let adr = "invalid";
   let adr_flag = 0;
-  document.getElementById("b2").innerHTML = startgrid + ", Tag " + day + " >";
+  document.getElementById("b2").innerHTML = startgrid + ", " + weekday[d.getDay() + day];
   clear_table();
   for (let t in thermlist)
     {
@@ -216,6 +218,9 @@ async function load_thermal_model()
 				} else if(thermlist[t] == "Raincloud")
 				{
 				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/raincloud.png' />";
+				} else if(thermlist[t] == "Green")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png' />";
 				}
 			else
 				{
@@ -248,8 +253,22 @@ function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").inn
 <div id="display_temp"><img src="/images/thomaskamps/multitherm/forecastScheidegg0.png" ></div>
 <div>
     <h3>Thermik-Modell (in Entwicklung)
-        <button id="b2" onclick="new_day()" >load</button></h3>
+        <button id="b2">load</button></h3>
     <table>
+        <tr>
+            <th>4'200</th>
+            <td id="4200-10"></td>
+            <td id="4200-11"></td>
+            <td id="4200-12"></td>
+            <td id="4200-13"></td>
+            <td id="4200-14"></td>
+            <td id="4200-15"></td>
+            <td id="4200-16"></td>
+            <td id="4200-17"></td>
+            <td id="4200-18"></td>
+            <td id="4200-19"></td>
+            <td id="4200-20"></td>
+        </tr>
         <tr>
             <th>4'000</th>
             <td id="4000-10"></td>
@@ -487,20 +506,6 @@ function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").inn
             <td id="800-18"></td>
             <td id="800-19"></td>
             <td id="800-20"></td>
-        </tr>
-        <tr>
-            <th>600</th>
-            <td id="600-10"></td>
-            <td id="600-11"></td>
-            <td id="600-12"></td>
-            <td id="600-13"></td>
-            <td id="600-14"></td>
-            <td id="600-15"></td>
-            <td id="600-16"></td>
-            <td id="600-17"></td>
-            <td id="600-18"></td>
-            <td id="600-19"></td>
-            <td id="600-20"></td>
         </tr>
         <tr>
             <th>H/Lt</th>
