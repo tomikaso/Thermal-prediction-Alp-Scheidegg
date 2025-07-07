@@ -79,11 +79,11 @@ class thermal_model:
 
             # parcel conditions
             if i == self.__start_level:
-                self.__parcel_temps.append(temp_2m + radiation / 800)
+                self.__parcel_temps.append(temp_2m + radiation / 2400)  # just 1/3rd
                 self.__parcel_dews.append(dew_2m)
                 self.__condensation.append('no')
-            elif calculation_base <= i < calculation_base + 100:
-                self.__parcel_temps.append(self.__temps[-1] + std_pressure / alt2pres(i) * radiation / 800)
+            elif calculation_base <= i < calculation_base + 100:  # add 2 Kelvin under perfect conditions
+                self.__parcel_temps.append(self.__temps[-1] + std_pressure / alt2pres(i) * radiation / 800 * 2)
                 print('i: ', i, 'Temp-Advance: ', std_pressure / alt2pres(i) * radiation / 800)
                 self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_100)
                                           + mixing_100 * self.__dews[-1])
@@ -147,7 +147,6 @@ class thermal_model:
         while i < len(self.__heights) and self.__updraft[i] > 0:
             if self.__condensation[i] == 'yes':
                 cloud = 'cloud'
-                html_string += 'Cloud'
             else:
                 cloud = ''
             print(self.__heights[i], 'm, Up=', round(self.__updraft[i], 2), ' ', cloud)

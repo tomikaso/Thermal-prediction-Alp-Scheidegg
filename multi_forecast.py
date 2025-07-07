@@ -262,10 +262,6 @@ def create_lines(offset):
 
 
 def create_thermal_data(index):
-    # model-variables
-    t1 = 0.6 / valley_factor[loc]  # at this point thermals begin to be usable. high valleys work earlier.
-    tm = 1.2  # maximum possible temp
-    tf = 5  # temp factor
     tmp: float = 0
     distance = 0
     bise = 0
@@ -273,7 +269,6 @@ def create_thermal_data(index):
     strong_wind = 0
     foehn = 0
     major_wind_dir, wind_max, temp_below = 0, 0, 0
-    base_hight = 0
     extra_text = ""
     wind_start = 0
     wind_top = 0
@@ -296,19 +291,16 @@ def create_thermal_data(index):
             if start_hight[loc] <= 1000:
                 tmp = -int(100 * ((temp1500[loc, index + k] - temp500[loc, index + k]) / 10)) / 100
                 temp_below = (temp1000[loc, index + k] - temp2m[loc, index + k]) / (1000 - valley_hight[loc]) * -100
-                base_hight = int(round((125 * (temp1000[loc, index + k] - dew1000[loc, index + k]) + 1000) / 50)) * 50
                 wind_start = wind1000[loc, index + k]
                 wind_top = wind1500[loc, index + k]
             if 1000 < start_hight[loc] <= 1500:
                 tmp = -int(100 * ((temp1900[loc, index + k] - temp1000[loc, index + k]) / 9)) / 100
                 temp_below = (temp1500[loc, index + k] - temp2m[loc, index + k]) / (1500 - valley_hight[loc]) * -100
-                base_hight = int(round((125 * (temp1500[loc, index + k] - dew1500[loc, index + k]) + 1500) / 50)) * 50
                 wind_start = wind1500[loc, index + k]
                 wind_top = wind1900[loc, index + k]
             if 1500 < start_hight[loc] <= 2500:
                 tmp = -int(100 * ((temp3000[loc, index + k] - temp1500[loc, index + k]) / 15)) / 100
                 temp_below = (temp1900[loc, index + k] - temp1500[loc, index + k]) / (1900 - 1500) * -100
-                base_hight = int(round((125 * (temp1900[loc, index + k] - dew1900[loc, index + k]) + 1900) / 50)) * 50
                 wind_start = wind1900[loc, index + k]
                 wind_top = wind3000[loc, index + k]
 
@@ -347,8 +339,7 @@ def create_thermal_data(index):
             if wind_start <= 25 and wind_top <= 35:
                 begin_factor = pow(max(0, temp_below - 0.5), 0.1)
                 print('temp_below: ' + str(temp_below) + ' begin-Factor: ' + str(begin_factor))
-                lift = int(pow((max(0.1, ((max(0.1, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor,
-                               0.7) * 10) / 10
+                lift = model.average_lift
                 content = str(lift)
             else:
                 lift = 0
@@ -386,6 +377,7 @@ def create_thermal_data(index):
                 wind_max = wind1500[loc, index + k]
                 major_wind_dir = wind_dir1500[loc, index + k]
             # base
+            base_height = int(round((model.base_top / 50)) * 50)
             if north_south_diff[index + k] > south_foehn_tolerance[loc] or \
                     north_south_diff[index + k] < north_wind_tolerance[loc]:
                 if north_south_diff[index + k] > 0:
@@ -402,14 +394,14 @@ def create_thermal_data(index):
                 content = 'Schnee'
             else:
                 if lift > 0:
-                    content = str(base_hight)
+                    content = str(base_height)
                 else:
                     content = "-"
             img1.text((2 * border + tx + padding + col * 6, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             if lift >= 1:  # root-function gets 1 with a base of 2'000 meters
                 distance = int(distance + 4 * lift * xc_potential[loc]
-                               * pow(max((base_hight - start_hight[loc]), 0), 0.5) / 28.2)
+                               * pow(max((base_height - start_hight[loc]), 0), 0.5) / 28.2)
             elif lift > 0.5:
                 distance = distance + 1
         k = k + 1

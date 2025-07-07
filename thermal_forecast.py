@@ -198,7 +198,7 @@ def wind_color(strength, direction):
 
 
 def cloud_color(octas, rain):
-    if rain > 0.5:
+    if rain > 0.1:
         color = ['white', 'powderblue', 'lightblue', 'cornflowerblue', 'royalblue', 'blue', 'darkblue', 'navy', 'navy']
     else:
         color = ['white', 'whitesmoke', 'gainsboro', 'lightgrey', 'lightgray', 'silver', 'darkgrey', 'darkgray', 'grey', 'gray']
@@ -327,7 +327,8 @@ def create_thermal_data(index):
                     bise_start = k + 10
             if wind_calc > wind_max:  # determine direction of the wind-max
                 wind_max = wind_calc
-                major_wind_dir = wind_calc_dir            # base
+                major_wind_dir = wind_calc_dir
+            # base
             base_height = int(round((model.base_top / 50)) * 50)
             if press_diff >= 4:
                 foehn = max(foehn, press_diff)
