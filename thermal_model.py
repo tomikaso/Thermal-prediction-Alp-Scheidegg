@@ -55,7 +55,7 @@ class thermal_model:
         condensed = 0
         self.html_string.clear()
         i = self.__start_level
-        while i <= 5600 and (updraft > 0 or i <= calculation_base + 100):
+        while i <= 5600:
             if i <= 1000:
                 val2st = 1000 - self.__start_level  # valley to start level
                 self.__temps.append(temp_2m * (1000 - i) / val2st + temp_1000 * (i - self.__start_level) / val2st)
@@ -108,8 +108,10 @@ class thermal_model:
             self.__air_density.append(density(alt2pres(i), self.__temps[-1],
                                               rh_from_tdew(self.__temps[-1], self.__dews[-1])))
             #  updraft
-            updraft = (updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.5)
+            updraft = max(0, (updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.5))
             self.__updraft.append(updraft)
+
+            # write out results
             if i <= 4200 and i % 200 == 0:  # one data point each 200 meters
                 if i <= calculation_base:
                     self.html_string.append('Green')
@@ -117,10 +119,10 @@ class thermal_model:
                     if self.__condensation[-1] == 'yes':
                         if precipitation > 0:
                             self.html_string.append('Raincloud')
-                        else:
+                        elif updraft > 0:
                             self.html_string.append('Cloud')
                         condensed = 1
-                    elif condensed == 0:
+                    elif condensed == 0 and updraft > 0:
                         self.html_string.append(str(round(updraft, 1)))
             i = i + 100
 
