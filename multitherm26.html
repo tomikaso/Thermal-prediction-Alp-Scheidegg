@@ -176,10 +176,10 @@ function changeColor(i) {
     function set_active_location(loc){
              for (let l = 0; l <= 7; l++) {document.getElementById("thermal" + l).className = "thermal" + l;}
              document.getElementById("thermal" + loc).className   += " thermal_active";}
-        function show_forecast() {document.getElementById("display_temp").innerHTML = "<h2>" + startgrid +
-         " Day-" + day + "</h2><img src='/images/thomaskamps/multitherm/forecast" + startgrid + day + ".png?" + datehour() + "'>" ;}
+        function show_forecast() {document.getElementById("display_temp").innerHTML = "<h3>" + startgrid +
+         " Day-" + day + "</h3><img src='/images/thomaskamps/multitherm/forecast" + startgrid + day + ".png?" + datehour() + "'>" ;}
 function clear_table(){ for (let t = 10; t<=20; t++)
-						{ for (let h = 800; h<=4000; h=h+200)
+						{ for (let h = 800; h<=4200; h=h+200)
 							{
 						document.getElementById(h + "-" + t).innerHTML = "";
 						document.getElementById(h + "-" + t).style.backgroundColor = "white";
@@ -201,7 +201,7 @@ async function load_thermal_model()
   thermlist = y.split(',');
   let adr = "invalid";
   let adr_flag = 0;
-  document.getElementById("b2").innerHTML = startgrid + ", " + weekday[d.getDay() + day];
+  document.getElementById("b2").innerHTML = "Thermik-Modell: " + startgrid + ", " + weekday[d.getDay() + day];
   clear_table();
   for (let t in thermlist)
     {
@@ -231,7 +231,7 @@ async function load_thermal_model()
 		}
 	 }
   }
-function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model();}
+function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model(); show_forecast();}
 
     </script>
 <div class="overview" id="overview">
@@ -252,8 +252,7 @@ function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").inn
 <button class="button1" id="day_indicator">Today</button>
 <div id="display_temp"><img src="/images/thomaskamps/multitherm/forecastScheidegg0.png" ></div>
 <div>
-    <h3>Thermik-Modell (in Entwicklung)
-        <button id="b2">load</button></h3>
+    <h3 id="b2">Thermik-Modell</h3>
     <table>
         <tr>
             <th>4'200</th>

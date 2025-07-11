@@ -310,12 +310,13 @@ def create_thermal_data(index):
                                   temp1900[loc, index + k], dew1900[loc, index + k], temp3000[loc, index + k],
                                   dew3000[loc, index + k], temp4200[loc, index + k], dew4200[loc, index + k],
                                   temp5600[loc, index + k], dew5600[loc, index + k], start_hight[loc],
-                                  effective_sun(abs(radiation[loc, index + k]), start_angle[loc], k+10),
+                                  effective_sun(abs(radiation[loc, index + k]), start_angle[loc], k + 10) *
+                                  xc_potential[loc],
                                   precipitation[loc, index + k] - 0.1)
             # append model-data
             m_h = 800
             for model_data in model.html_string:
-                model_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k+10) + 'H' + str(m_h) +
+                model_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10) + 'H' + str(m_h) +
                                          ',' + model_data + ',')
                 m_h += 200
 
@@ -324,7 +325,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
-            sun = effective_sun(abs(radiation[loc, index + k] / 8), start_angle[loc], k+10)  # k+10 is the time
+            sun = effective_sun(abs(radiation[loc, index + k] / 8), start_angle[loc], k + 10)  # k+10 is the time
             img1.text((2 * border + tx + padding + col * 2, border + padding + ty / lines * (k + 1)), str(sun) + "%",
                       (20, 20, 20), font=font)
             # clouds
@@ -337,7 +338,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp)
                       , (20, 20, 20), font=font)
             # lift
-            if wind_start <= 25 and wind_top <= 35:
+            if wind_start <= 25 and wind_top <= 30:
                 begin_factor = pow(max(0, temp_below - 0.5), 0.1)
                 print('temp_below: ' + str(temp_below) + ' begin-Factor: ' + str(begin_factor))
                 lift = model.average_lift
@@ -389,9 +390,9 @@ def create_thermal_data(index):
                 lift = 0
             elif cloud_cover_mid[loc, index + k] < 0.1 and cloud_cover_low[loc, index + k] < 0.1:
                 content = 'blau'
-            elif precipitation[loc, index + k] > 0.5 and temp1500[loc, index + k] >= 1:
+            elif precipitation[loc, index + k] > 0.1 and temp1500[loc, index + k] >= 1:
                 content = 'Regen'
-            elif precipitation[loc, index + k] > 0.5 and temp1500[loc, index + k] < 1:
+            elif precipitation[loc, index + k] > 0.1 and temp1500[loc, index + k] < 1:
                 content = 'Schnee'
             else:
                 if lift > 0:
@@ -508,8 +509,8 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     # title
     if day > 1:
         img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for "
-            + x.strftime("%A, %d/%m/%Y") + ", ICON-EU (7km), run: " + icon_eu + ", updated: "
-            + now.strftime("%H:%M") + " CET", (20, 20, 20), font=font)
+                  + x.strftime("%A, %d/%m/%Y") + ", ICON-EU (7km), run: " + icon_eu + ", updated: "
+                  + now.strftime("%H:%M") + " CET", (20, 20, 20), font=font)
     else:
         img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for "
                   + x.strftime("%A, %d/%m/%Y") + ", ICON-D2, run: " + icon_d2 + ", updated: "
@@ -647,10 +648,10 @@ img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
 img1 = ImageDraw.Draw(img)  # Emagramm Image
 img1.rectangle(shape, fill="#ffffff", outline="white")
 # font
-#font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
-#font_sm = ImageFont.truetype("arial.ttf", 14, encoding="unic")
-#font_el = ImageFont.truetype("arial.ttf", 64, encoding="unic")
-#image_path = ""
+# font = ImageFont.truetype("arial.ttf", 18, encoding="unic")
+# font_sm = ImageFont.truetype("arial.ttf", 14, encoding="unic")
+# font_el = ImageFont.truetype("arial.ttf", 64, encoding="unic")
+# image_path = ""
 
 # font raspberry pi
 font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
@@ -686,10 +687,10 @@ d = 0
 weekday = int(now.strftime("%w"))
 wday = 7
 while d < 5:  # create days and lines
-    box = [(border + d * 204, border), (border + (d+1) * 204, h - border)]
+    box = [(border + d * 204, border), (border + (d + 1) * 204, h - border)]
     img1.rectangle(box, fill=(215, 244 - 20 * (d % 2), 255 - 20 * (d % 2)), outline='darkred')
     # x = datetime(int(time[d * 24 + 12][:4]), int(time[d * 24 + 12][5:-9]), int(time[d * 24 + 12][8:-6]), 0, 0, 0)
-    img1.text((border + d * 204 + padding, h - border),  wds[wday], (20, 20, 20), font=font)
+    img1.text((border + d * 204 + padding, h - border), wds[wday], (20, 20, 20), font=font)
     d = d + 1
     wday = (weekday + d) % 7
 s = - 12
@@ -699,8 +700,8 @@ while s <= 12:  # y-lines
     s = s + 2
 i = 0
 while i < 5 * 24:  # create pressure difference
-    shape_pd = [(border + i * 8.5, h/2 - 20 * min(max(north_south_diff[i], -14), 14)),
-                 (border + i * 8.5 + 8.5, h/2 - 20 * min(max(north_south_diff[i + 1], -14), 14))]
+    shape_pd = [(border + i * 8.5, h / 2 - 20 * min(max(north_south_diff[i], -14), 14)),
+                (border + i * 8.5 + 8.5, h / 2 - 20 * min(max(north_south_diff[i + 1], -14), 14))]
     img1.line(shape_pd, fill="blue", width=3)
     i = i + 1
 img1.text((10, 15), "Druckdifferenz Locarno - Wald ZH. ICON. Updated: " + now.strftime("%d/%m/%Y %H:%M")
@@ -735,28 +736,28 @@ session = ftplib.FTP('ftp.dczo.ch', constants.ftp_user, constants.ftp_pw)
 
 loc = 0
 while loc < max_locations:
-    print ("sending: ", locations[loc])
-    file0 = open('/var/www/html/thermals/forecast' + locations[loc] + '0.png', 'rb')      # file to send
-    file1 = open('/var/www/html/thermals/forecast' + locations[loc] + '1.png', 'rb')      # file to send
-    file2 = open('/var/www/html/thermals/forecast' + locations[loc] + '2.png', 'rb')      # file to send
-    file3 = open('/var/www/html/thermals/forecast' + locations[loc] + '3.png', 'rb')      # file to send
-    file4 = open('/var/www/html/thermals/forecast' + locations[loc] + '4.png', 'rb')      # file to send
-    session.storbinary('STOR multitherm/forecast' + locations[loc] + '0.png', file0)     # send the file
-    session.storbinary('STOR multitherm/forecast' + locations[loc] + '1.png', file1)     # send the file
-    session.storbinary('STOR multitherm/forecast' + locations[loc] + '2.png', file2)     # send the file
-    session.storbinary('STOR multitherm/forecast' + locations[loc] + '3.png', file3)     # send the file
-    session.storbinary('STOR multitherm/forecast' + locations[loc] + '4.png', file4)     # send the file
+    print("sending: ", locations[loc])
+    file0 = open('/var/www/html/thermals/forecast' + locations[loc] + '0.png', 'rb')  # file to send
+    file1 = open('/var/www/html/thermals/forecast' + locations[loc] + '1.png', 'rb')  # file to send
+    file2 = open('/var/www/html/thermals/forecast' + locations[loc] + '2.png', 'rb')  # file to send
+    file3 = open('/var/www/html/thermals/forecast' + locations[loc] + '3.png', 'rb')  # file to send
+    file4 = open('/var/www/html/thermals/forecast' + locations[loc] + '4.png', 'rb')  # file to send
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '0.png', file0)  # send the file
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '1.png', file1)  # send the file
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '2.png', file2)  # send the file
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '3.png', file3)  # send the file
+    session.storbinary('STOR multitherm/forecast' + locations[loc] + '4.png', file4)  # send the file
     loc = loc + 1
-file0 = open('/var/www/html/thermals/potential.txt', 'rb')      # file to send
-session.storbinary('STOR multitherm/potential.txt', file0)     # send the file
-file0 = open('/var/www/html/thermals/thermal_data_multi.txt', 'rb')      # multi-data to send
-session.storbinary('STOR multitherm/thermal_data_multi.txt', file0)     # send the file
-file0 = open('/var/www/html/thermals/pressure_diff.png', 'rb')      # file to send
-session.storbinary('STOR multitherm/pressure_diff.png', file0)     # send the file
+file0 = open('/var/www/html/thermals/potential.txt', 'rb')  # file to send
+session.storbinary('STOR multitherm/potential.txt', file0)  # send the file
+file0 = open('/var/www/html/thermals/thermal_data_multi.txt', 'rb')  # multi-data to send
+session.storbinary('STOR multitherm/thermal_data_multi.txt', file0)  # send the file
+file0 = open('/var/www/html/thermals/pressure_diff.png', 'rb')  # file to send
+session.storbinary('STOR multitherm/pressure_diff.png', file0)  # send the file
 file0.close()
 file1.close()
 file2.close()
 file3.close()
 file4.close()  # close files and FTP
 session.quit()
-print ("files sent to DCZO")
+print("files sent to DCZO")

@@ -293,7 +293,7 @@ def create_thermal_data(index):
             # temp beneath of Alp Scheidegg
             temp_below = (temp1500[index + k] - temp700[index + k]) / (1500 - 694) * -100
             # lift
-            if wind1500[index + k] <= 25 and wind1900[index + k] <= 35:  # not too much wind for thermals
+            if wind1500[index + k] <= 25 and wind1900[index + k] <= 30:  # not too much wind for thermals
                 begin_factor = pow(max(0, temp_below - 0.5), 0.1)
                 lift = model.average_lift
                 content = str(lift)

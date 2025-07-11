@@ -1,7 +1,7 @@
 # thermal model to simulate a rising air parcel in the given atmosphere.
 import math
 
-updraft_factor = 20
+updraft_factor = 40
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
 mixing_100 = 0.15
@@ -108,7 +108,7 @@ class thermal_model:
             self.__air_density.append(density(alt2pres(i), self.__temps[-1],
                                               rh_from_tdew(self.__temps[-1], self.__dews[-1])))
             #  updraft
-            updraft = max(0, (updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.5))
+            updraft = max(0, (updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.6))
             self.__updraft.append(updraft)
 
             # write out results
