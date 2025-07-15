@@ -4,7 +4,8 @@ import math
 updraft_factor = 40
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
-mixing_100 = 0.15
+mixing_dry = 0.15
+mixing_wet = 0.25
 std_pressure = 101325
 
 
@@ -51,7 +52,6 @@ class thermal_model:
         self.__heights = []
         self.__updraft = []
         calculation_base = max(self.start_level, start_height - 500)
-        updraft = 1
         condensed = 0
         self.html_string.clear()
         i = self.__start_level
@@ -85,22 +85,23 @@ class thermal_model:
             elif calculation_base <= i < calculation_base + 100:  # add 2 Kelvin under perfect conditions
                 self.__parcel_temps.append(self.__temps[-1] + std_pressure / alt2pres(i) * radiation / 800 * 2)
                 print('i: ', i, 'Temp-Advance: ', std_pressure / alt2pres(i) * radiation / 800)
-                self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_100)
-                                          + mixing_100 * self.__dews[-1])
+                self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_dry)
+                                          + mixing_dry * self.__dews[-1])
                 self.__condensation.append('no')
             else:
                 if self.__temps[-1] > self.__parcel_dews[-1] + 0.5:
                     # no condensation case
                     self.__parcel_temps.append(self.__parcel_temps[-1] - dry_adiabatic)
-                    self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_100)
-                                              + mixing_100 * self.__dews[-1])
+                    self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_dry)
+                                              + mixing_dry * self.__dews[-1])
                     self.__condensation.append('no')
                 else:
                     self.__condensation.append('yes')
                     # condensation case
                     self.__parcel_temps.append(self.__parcel_temps[-1] - moisture_adiabatic)
-                    self.__parcel_dews.append(self.__parcel_temps[-1] * (1 - mixing_100)
-                                              + mixing_100 * self.__dews[-1])
+                    self.__parcel_dews.append(self.__parcel_temps[-1] * (1 - mixing_wet)
+                                              + mixing_wet * self.__dews[-1])
+
             #  density of the air parcel
             self.__parcel_density.append(density(alt2pres(i), self.__parcel_temps[-1],
                                                  rh_from_tdew(self.__parcel_temps[-1], self.__parcel_dews[-1])))
