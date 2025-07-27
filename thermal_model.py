@@ -40,7 +40,8 @@ class thermal_model:
     base_top = 0
 
     def __init__(self, temp_2m, dew_2m, temp_1000, dew_1000, temp_1500, dew_1500, temp_1900, dew_1900, temp_3000,
-                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, radiation, precipitation):
+                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, radiation, precipitation,
+                 weather_cd):
         self.__start_level = 700
         self.__temps = []
         self.__dews = []
@@ -118,10 +119,14 @@ class thermal_model:
                     self.html_string.append('Green')
                 else:
                     if self.__condensation[-1] == 'yes':
-                        if precipitation > 0:
-                            self.html_string.append('Raincloud')
+                        if 95 <= weather_cd < 100:
+                            self.html_string.append('cloud_flash')
+                        elif precipitation > 2:
+                            self.html_string.append('cloud_rain2')
+                        elif precipitation > 0:
+                            self.html_string.append('cloud_rain1')
                         elif updraft > 0:
-                            self.html_string.append('Cloud')
+                            self.html_string.append('cloud_cumulus')
                         condensed = 1
                     elif condensed == 0 and updraft > 0:
                         self.html_string.append(str(round(updraft, 1)))

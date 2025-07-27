@@ -212,12 +212,18 @@ async function load_thermal_model()
 		if (adr_flag == 1)
 			{
 			adr_flag = 0;
-			if(thermlist[t] == "Cloud")
+			if(thermlist[t] == "cloud_cumulus")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud.png?1' />";
-				} else if(thermlist[t] == "Raincloud")
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_cumulus.png' />";
+				} else if(thermlist[t] == "cloud_rain1")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/raincloud.png' />";
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain1.png' />";
+				} else if(thermlist[t] == "cloud_rain2")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain2.png' />";
+				} else if(thermlist[t] == "cloud_flash")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_flash.png' />";
 				} else if(thermlist[t] == "Green")
 				{
 				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png' />";

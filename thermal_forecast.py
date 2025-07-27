@@ -37,7 +37,7 @@ def get_meteo():
                          'temperature_700hPa,dew_point_700hPa,wind_speed_700hPa,wind_direction_700hPa,'
                          'temperature_600hPa,dew_point_600hPa,wind_speed_600hPa,wind_direction_600hPa,'
                          'temperature_500hPa,dew_point_500hPa,wind_speed_500hPa,wind_direction_500hPa,'
-                         'freezing_level_height&timezone=Europe%2FBerlin&models=icon_seamless', timeout=10)
+                         'weather_code,freezing_level_height&timezone=Europe%2FBerlin&models=icon_seamless', timeout=10)
         response = json.loads(y.text)
         return response
     except requests.exceptions.ConnectTimeout:
@@ -258,7 +258,7 @@ def create_thermal_data(index):
                                   temp1500[index + k], dew1500[index + k], temp1900[index + k], dew1900[index + k],
                                   temp3000[index + k], dew3000[index + k], temp4200[index + k], dew4200[index + k],
                                   temp5600[index + k], dew5600[index + k], 1240, radiation[index + k],
-                                  precipitation[index + k] - 0.1)
+                                  precipitation[index + k] - 0.1, weather_code[index + k])
             # append model-data
             m_h = 800
             for model_data in model.html_string:
@@ -521,6 +521,7 @@ cloud_cover_low = hourly["cloud_cover_low"]
 cloud_cover_mid = hourly["cloud_cover_mid"]
 cloud_cover_high = hourly["cloud_cover_high"]
 pressure_msl = hourly["pressure_msl"]
+weather_code = hourly["weather_code"]
 freezing_level = hourly["freezing_level_height"]
 # get Locarno Pressure-Reference
 meteo_forcast_locarno = get_meteo_locarno()

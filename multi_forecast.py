@@ -26,7 +26,7 @@ start_angle = [200, 200, 235, 190, 200, 180, 180, 180]
 valley_hight = [700, 340, 430, 810, 600, 1250, 1050, 1200]
 valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2]
 xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2]
-north_wind_tolerance = [-100, -3.5, -100, -100, -100, -3.5, -4, -100]
+north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100]
 south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3]
 max_locations = 8
 flight_distance = np.zeros([max_locations, 5])
@@ -69,6 +69,7 @@ cloud_cover_low = np.array([])
 cloud_cover_mid = np.array([])
 cloud_cover_high = np.array([])
 pressure_msl = np.array([])
+weather_code = np.array([])
 freezing_level = np.array([])
 
 
@@ -84,7 +85,7 @@ def get_meteo(lat: float, lng: float):
     url = url + 'temperature_700hPa,dew_point_700hPa,wind_speed_700hPa,wind_direction_700hPa,'
     url = url + 'temperature_600hPa,dew_point_600hPa,wind_speed_600hPa,wind_direction_600hPa,'
     url = url + 'temperature_500hPa,dew_point_500hPa,wind_speed_500hPa,wind_direction_500hPa,'
-    url = url + 'freezing_level_height&timezone=Europe%2FBerlin&models=icon_seamless'
+    url = url + 'weather_code,freezing_level_height&timezone=Europe%2FBerlin&models=icon_seamless'
     print(url)
     try:
         y = requests.get(url)
@@ -312,7 +313,7 @@ def create_thermal_data(index):
                                   temp5600[loc, index + k], dew5600[loc, index + k], start_hight[loc],
                                   effective_sun(abs(radiation[loc, index + k]), start_angle[loc], k + 10) *
                                   xc_potential[loc],
-                                  precipitation[loc, index + k] - 0.1)
+                                  precipitation[loc, index + k] - 0.1, weather_code[loc, index + k])
             # append model-data
             m_h = 800
             for model_data in model.html_string:
@@ -576,6 +577,7 @@ while i < max_locations:
     cloud_cover_high = np.append(cloud_cover_high, hourly["cloud_cover_high"])
     pressure_msl = np.append(pressure_msl, hourly["pressure_msl"])
     freezing_level = np.append(freezing_level, hourly["freezing_level_height"])
+    weather_code = np.append(freezing_level, hourly["weather_code"])
 
     i = i + 1
 # convert Lists to arrays with two dimensions
@@ -617,6 +619,7 @@ cloud_cover_mid = cloud_cover_mid.reshape(i, -1)
 cloud_cover_high = cloud_cover_high.reshape(i, -1)
 pressure_msl = pressure_msl.reshape(i, -1)
 freezing_level = freezing_level.reshape(i, -1)
+weather_code = weather_code.reshape(i, -1)
 
 # generate the pressure-difference Locarno (position 1) to Scheidegg (position 0)
 pos = 0
@@ -624,11 +627,6 @@ while pos < len(pressure_msl[0]):
     print('pos: ', pos)
     north_south_diff.append(pressure_msl[1, pos] - pressure_msl[0, pos])
     pos = pos + 1
-
-# test purpose
-print('nptemp500 - reshaped: ', temp500)
-print('nptemp4200 - reshaped: ', temp4200)
-print('dewpoint 1000 - reshaped: ', dew1000)
 
 ###################
 # prepare diagram
