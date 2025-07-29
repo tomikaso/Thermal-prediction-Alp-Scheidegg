@@ -70,12 +70,24 @@ async function load_thermal_model()
 		if (adr_flag == 1)
 			{
 			adr_flag = 0;
-			if(thermlist[t] == "Cloud")
+			if(thermlist[t] == "cloud_cumulus")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud.png?1' />";
-				} else if(thermlist[t] == "Raincloud")
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_cumulus.png'>";
+				} else if(thermlist[t] == "cloud_rain1")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/raincloud.png' />";
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain1.png'>";
+				} else if(thermlist[t] == "cloud_rain2")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain2.png'>";
+				} else if(thermlist[t] == "cloud_flash")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_flash.png'>";
+				} else if(thermlist[t] == "cloud_snow")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow.png'>";
+				} else if(thermlist[t] == "Green")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png'>";
 				}
 			else
 				{
@@ -98,9 +110,7 @@ async function load_thermal_model()
 <div id="display_temp"><img src="/images/thomaskamps/forecast0.png"></div>
 <h3>Wind</h3>
 <div id="display_wind"><img src="/images/thomaskamps/meteo_wind0.png"></div>
-<img src onerror='show_forecast(0)'>
-<h3>Thermik-Modell
-    <button id="b2" onclick="new_day()" >load</button></h3>
+<h3>Thermik-Modell: <a id="b2" onclick="new_day()">load</a></h3>
 <table>
     <tr>
         <th>2'800</th>
@@ -271,3 +281,4 @@ async function load_thermal_model()
         <th> 20h </th>
     </tr>
 </table>
+<img src onerror='show_forecast(0)'>

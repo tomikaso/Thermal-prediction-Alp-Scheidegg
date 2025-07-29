@@ -214,19 +214,22 @@ async function load_thermal_model()
 			adr_flag = 0;
 			if(thermlist[t] == "cloud_cumulus")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_cumulus.png' />";
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_cumulus.png'>";
 				} else if(thermlist[t] == "cloud_rain1")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain1.png' />";
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain1.png'>";
 				} else if(thermlist[t] == "cloud_rain2")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain2.png' />";
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain2.png'>";
 				} else if(thermlist[t] == "cloud_flash")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_flash.png' />";
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_flash.png'>";
+				} else if(thermlist[t] == "cloud_snow")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow.png'>";
 				} else if(thermlist[t] == "Green")
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png' />";
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png'>";
 				}
 			else
 				{
