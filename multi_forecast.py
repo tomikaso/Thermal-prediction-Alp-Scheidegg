@@ -116,6 +116,17 @@ def get_meta_data(url):
         print("ICON weather request exception.")
 
 
+def cleanse_array(values):  # replace missing values in the ICON Model with predecessor values.
+    predecessor = 0
+    for v in range(len(values)):
+        if v > 0:
+            if values[v] is None:
+                values[v] = predecessor
+                print('Corrected Position: ', v)
+        predecessor = values[v]
+    return values
+
+
 def temp_color(tmp):
     color = ['lightgrey', 'palegreen', 'lawngreen', 'limegreen', 'orange']
     return color[min(int(max(0, (tmp - 0.55) * 10)), 4)]
@@ -340,8 +351,6 @@ def create_thermal_data(index):
                       , (20, 20, 20), font=font)
             # lift
             if wind_start <= 25 and wind_top <= 30:
-                begin_factor = pow(max(0, temp_below - 0.5), 0.1)
-                print('temp_below: ' + str(temp_below) + ' begin-Factor: ' + str(begin_factor))
                 lift = model.average_lift
                 content = str(lift)
             else:
@@ -529,55 +538,54 @@ while i < max_locations:
     longitude = coordinates[i, 1]
     print(locations[i], 'Coordinates: ', coordinates[i], ' latitude: ', latitude, ' long: ', longitude)
     forcast_payload = get_meteo(latitude, longitude)
-    print(forcast_payload)
     hourly = forcast_payload["hourly"]
     time = hourly["time"]
     # temperatures
-    temp2m = np.append(temp2m, hourly["temperature_2m"])
-    temp500 = np.append(temp500, hourly["temperature_950hPa"])
-    temp1000 = np.append(temp1000, hourly["temperature_900hPa"])
-    temp1500 = np.append(temp1500, hourly["temperature_850hPa"])
-    temp1900 = np.append(temp1900, hourly["temperature_800hPa"])
-    temp3000 = np.append(temp3000, hourly["temperature_700hPa"])
-    temp4200 = np.append(temp4200, hourly["temperature_600hPa"])
-    temp5600 = np.append(temp5600, hourly["temperature_500hPa"])
+    temp2m = cleanse_array(np.append(temp2m, hourly["temperature_2m"]))
+    temp500 = cleanse_array(np.append(temp500, hourly["temperature_950hPa"]))
+    temp1000 = cleanse_array(np.append(temp1000, hourly["temperature_900hPa"]))
+    temp1500 = cleanse_array(np.append(temp1500, hourly["temperature_850hPa"]))
+    temp1900 = cleanse_array(np.append(temp1900, hourly["temperature_800hPa"]))
+    temp3000 = cleanse_array(np.append(temp3000, hourly["temperature_700hPa"]))
+    temp4200 = cleanse_array(np.append(temp4200, hourly["temperature_600hPa"]))
+    temp5600 = cleanse_array(np.append(temp5600, hourly["temperature_500hPa"]))
     # dew-points
-    dew2m = np.append(dew2m, hourly["dew_point_2m"])
-    dew500 = np.append(dew500, hourly["dew_point_950hPa"])
-    dew1000 = np.append(dew1000, hourly["dew_point_900hPa"])
-    dew1500 = np.append(dew1500, hourly["dew_point_850hPa"])
-    dew1900 = np.append(dew1900, hourly["dew_point_800hPa"])
-    dew3000 = np.append(dew3000, hourly["dew_point_700hPa"])
-    dew4200 = np.append(dew4200, hourly["dew_point_600hPa"])
-    dew5600 = np.append(dew5600, hourly["dew_point_500hPa"])
+    dew2m = cleanse_array(np.append(dew2m, hourly["dew_point_2m"]))
+    dew500 = cleanse_array(np.append(dew500, hourly["dew_point_950hPa"]))
+    dew1000 = cleanse_array(np.append(dew1000, hourly["dew_point_900hPa"]))
+    dew1500 = cleanse_array(np.append(dew1500, hourly["dew_point_850hPa"]))
+    dew1900 = cleanse_array(np.append(dew1900, hourly["dew_point_800hPa"]))
+    dew3000 = cleanse_array(np.append(dew3000, hourly["dew_point_700hPa"]))
+    dew4200 = cleanse_array(np.append(dew4200, hourly["dew_point_600hPa"]))
+    dew5600 = cleanse_array(np.append(dew5600, hourly["dew_point_500hPa"]))
 
     # wind-speeds
-    wind10m = np.append(wind10m, hourly["wind_speed_10m"])
-    wind500 = np.append(wind500, hourly["wind_speed_950hPa"])
-    wind1000 = np.append(wind1000, hourly["wind_speed_900hPa"])
-    wind1500 = np.append(wind1500, hourly["wind_speed_850hPa"])
-    wind1900 = np.append(wind1900, hourly["wind_speed_800hPa"])
-    wind3000 = np.append(wind3000, hourly["wind_speed_700hPa"])
-    wind4200 = np.append(wind4200, hourly["wind_speed_600hPa"])
-    wind5600 = np.append(wind5600, hourly["wind_speed_500hPa"])
+    wind10m = cleanse_array(np.append(wind10m, hourly["wind_speed_10m"]))
+    wind500 = cleanse_array(np.append(wind500, hourly["wind_speed_950hPa"]))
+    wind1000 = cleanse_array(np.append(wind1000, hourly["wind_speed_900hPa"]))
+    wind1500 = cleanse_array(np.append(wind1500, hourly["wind_speed_850hPa"]))
+    wind1900 = cleanse_array(np.append(wind1900, hourly["wind_speed_800hPa"]))
+    wind3000 = cleanse_array(np.append(wind3000, hourly["wind_speed_700hPa"]))
+    wind4200 = cleanse_array(np.append(wind4200, hourly["wind_speed_600hPa"]))
+    wind5600 = cleanse_array(np.append(wind5600, hourly["wind_speed_500hPa"]))
     # wind-direction
-    wind_dir10m = np.append(wind_dir10m, hourly["wind_direction_10m"])
-    wind_dir500 = np.append(wind_dir500, hourly["wind_direction_950hPa"])
-    wind_dir1000 = np.append(wind_dir1000, hourly["wind_direction_900hPa"])
-    wind_dir1500 = np.append(wind_dir1500, hourly["wind_direction_850hPa"])
-    wind_dir1900 = np.append(wind_dir1900, hourly["wind_direction_800hPa"])
-    wind_dir3000 = np.append(wind_dir3000, hourly["wind_direction_700hPa"])
-    wind_dir4200 = np.append(wind_dir4200, hourly["wind_direction_600hPa"])
-    wind_dir5600 = np.append(wind_dir5600, hourly["wind_direction_500hPa"])
+    wind_dir10m = cleanse_array(np.append(wind_dir10m, hourly["wind_direction_10m"]))
+    wind_dir500 = cleanse_array(np.append(wind_dir500, hourly["wind_direction_950hPa"]))
+    wind_dir1000 = cleanse_array(np.append(wind_dir1000, hourly["wind_direction_900hPa"]))
+    wind_dir1500 = cleanse_array(np.append(wind_dir1500, hourly["wind_direction_850hPa"]))
+    wind_dir1900 = cleanse_array(np.append(wind_dir1900, hourly["wind_direction_800hPa"]))
+    wind_dir3000 = cleanse_array(np.append(wind_dir3000, hourly["wind_direction_700hPa"]))
+    wind_dir4200 = cleanse_array(np.append(wind_dir4200, hourly["wind_direction_600hPa"]))
+    wind_dir5600 = cleanse_array(np.append(wind_dir5600, hourly["wind_direction_500hPa"]))
     # other values
-    radiation = np.append(radiation, hourly["direct_radiation"])
-    precipitation = np.append(precipitation, hourly["precipitation"])
-    cloud_cover_low = np.append(cloud_cover_low, hourly["cloud_cover_low"])
-    cloud_cover_mid = np.append(cloud_cover_mid, hourly["cloud_cover_mid"])
-    cloud_cover_high = np.append(cloud_cover_high, hourly["cloud_cover_high"])
-    pressure_msl = np.append(pressure_msl, hourly["pressure_msl"])
-    freezing_level = np.append(freezing_level, hourly["freezing_level_height"])
-    weather_code = np.append(freezing_level, hourly["weather_code"])
+    radiation = cleanse_array(np.append(radiation, hourly["direct_radiation"]))
+    precipitation = cleanse_array(np.append(precipitation, hourly["precipitation"]))
+    cloud_cover_low = cleanse_array(np.append(cloud_cover_low, hourly["cloud_cover_low"]))
+    cloud_cover_mid = cleanse_array(np.append(cloud_cover_mid, hourly["cloud_cover_mid"]))
+    cloud_cover_high = cleanse_array(np.append(cloud_cover_high, hourly["cloud_cover_high"]))
+    pressure_msl = cleanse_array(np.append(pressure_msl, hourly["pressure_msl"]))
+    freezing_level = cleanse_array(np.append(freezing_level, hourly["freezing_level_height"]))
+    weather_code = cleanse_array(np.append(freezing_level, hourly["weather_code"]))
 
     i = i + 1
 # convert Lists to arrays with two dimensions
@@ -624,7 +632,6 @@ weather_code = weather_code.reshape(i, -1)
 # generate the pressure-difference Locarno (position 1) to Scheidegg (position 0)
 pos = 0
 while pos < len(pressure_msl[0]):
-    print('pos: ', pos)
     north_south_diff.append(pressure_msl[1, pos] - pressure_msl[0, pos])
     pos = pos + 1
 

@@ -125,12 +125,12 @@ class thermal_model:
                             if self.__temps[-1] > 0:
                                 self.html_string.append('cloud_rain2')
                             else:
-                                self.html_string.append('cloud_snow')
+                                self.html_string.append('cloud_snow2')
                         elif precipitation > 0:
                             if self.__temps[-1] > 0:
                                 self.html_string.append('cloud_rain1')
                             else:
-                                self.html_string.append('cloud_snow')
+                                self.html_string.append('cloud_snow1')
                         elif updraft > 0:
                             self.html_string.append('cloud_cumulus')
                         condensed = 1
