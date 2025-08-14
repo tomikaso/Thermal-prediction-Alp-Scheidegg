@@ -18,17 +18,18 @@ soar_potential = []
 north_south_diff = []
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
 
-locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol', 'Fiesch', 'Niesen']
+locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol', 'Fiesch', 'Niesen', 'Braunwald-Gumen']
 coordinates = np.array([[47.289, 8.915], [46.175384, 8.793927], [47.181896, 9.051195], [46.927030, 9.771950],
-                        [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389], [46.617260, 7.671066]])
-start_hight = [1200, 1500, 1000, 1650, 1440, 2150, 2200, 2200]
-start_angle = [200, 200, 235, 190, 200, 180, 180, 180]
-valley_hight = [700, 340, 430, 810, 600, 1250, 1050, 1200]
-valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2]
-xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2]
-north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100]
-south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3]
-max_locations = 8
+                        [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389], [46.617260, 7.671066],
+                        [46.927241, 9.001098]])
+start_hight = [1200, 1500, 1000, 1650, 1440, 2150, 2200, 2200, 2050]
+start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180]
+valley_hight = [700, 340, 430, 810, 600, 1250, 1050, 1200, 615]
+valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2, 1.1]
+xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2, 1.1]
+north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100]
+south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3, 3]
+max_locations = 9
 flight_distance = np.zeros([max_locations, 5])
 time = []
 temp2m = np.array([])
@@ -302,17 +303,14 @@ def create_thermal_data(index):
             # select temp, base and wind
             if start_hight[loc] <= 1000:
                 tmp = -int(100 * ((temp1500[loc, index + k] - temp500[loc, index + k]) / 10)) / 100
-                temp_below = (temp1000[loc, index + k] - temp2m[loc, index + k]) / (1000 - valley_hight[loc]) * -100
                 wind_start = wind1000[loc, index + k]
                 wind_top = wind1500[loc, index + k]
             if 1000 < start_hight[loc] <= 1500:
                 tmp = -int(100 * ((temp1900[loc, index + k] - temp1000[loc, index + k]) / 9)) / 100
-                temp_below = (temp1500[loc, index + k] - temp2m[loc, index + k]) / (1500 - valley_hight[loc]) * -100
                 wind_start = wind1500[loc, index + k]
                 wind_top = wind1900[loc, index + k]
             if 1500 < start_hight[loc] <= 2500:
                 tmp = -int(100 * ((temp3000[loc, index + k] - temp1500[loc, index + k]) / 15)) / 100
-                temp_below = (temp1900[loc, index + k] - temp1500[loc, index + k]) / (1900 - 1500) * -100
                 wind_start = wind1900[loc, index + k]
                 wind_top = wind3000[loc, index + k]
 
@@ -585,8 +583,7 @@ while i < max_locations:
     cloud_cover_high = cleanse_array(np.append(cloud_cover_high, hourly["cloud_cover_high"]))
     pressure_msl = cleanse_array(np.append(pressure_msl, hourly["pressure_msl"]))
     freezing_level = cleanse_array(np.append(freezing_level, hourly["freezing_level_height"]))
-    weather_code = cleanse_array(np.append(freezing_level, hourly["weather_code"]))
-
+    weather_code = cleanse_array(np.append(weather_code, hourly["weather_code"]))
     i = i + 1
 # convert Lists to arrays with two dimensions
 temp2m = temp2m.reshape(i, -1)
