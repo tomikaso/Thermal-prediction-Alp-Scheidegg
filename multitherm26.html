@@ -141,7 +141,7 @@
    let loca = 0;
    var startgrid;
    var potarray = new Array();
-   const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag", 						"Montag","Dienstag","Mittwoch","Donnerstag"];
+   const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag","Montag","Dienstag","Mittwoch","Donnerstag"];
    const grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen"];
    const models = ["ICON-D2", "ICON-D2", "ICON-EU", "ICON-EU", "ICON-EU" , "ICON-EU"];
    const d = new Date();
@@ -153,7 +153,9 @@
                       document.getElementById("display_temp").innerHTML = y;
                       setday();
                       set_active_location(0);
-                      show_forecast();}
+                      show_forecast();
+                      setTimeout(function(){changeColor(0)}, 1000);
+                      }
    function setday(){day = 0; startgrid = "Scheidegg";
                      document.getElementById("my-div0").innerHTML = "Heute";
                      for (let j = 1; j <= 4; j++) {

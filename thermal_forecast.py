@@ -76,7 +76,7 @@ def get_meta_data(url):
 
 def thermal_visualisation(temp):
     data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'sehr stabil', 'paleturquoise'),
-            (0.3, 'stabil', 'lightcyan'), (0.5, 'beginnend labil', 'azure'), (0.6, 'etwas labil', 'palegreen'),
+            (0.3, 'stabil', 'lightcyan'), (0.5, 'eher stabil', 'azure'), (0.6, 'etwas labil', 'palegreen'),
             (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'), (1, 'hyperlabil', 'yellowgreen')]
     i = 0
     cont = 'unknown'

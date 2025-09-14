@@ -122,12 +122,12 @@ class thermal_model:
                         if 95 <= weather_cd < 100:
                             self.html_string.append('cloud_flash')
                         elif precipitation > 2:
-                            if self.__temps[-1] > 0:
+                            if self.__temps[-1] >= 0:
                                 self.html_string.append('cloud_rain2')
                             else:
                                 self.html_string.append('cloud_snow2')
                         elif precipitation > 0:
-                            if self.__temps[-1] > 0:
+                            if self.__temps[-1] >= 0:
                                 self.html_string.append('cloud_rain1')
                             else:
                                 self.html_string.append('cloud_snow1')
