@@ -761,5 +761,15 @@ file1.close()
 file2.close()
 file3.close()
 file4.close()  # close files and FTP
+if now.hour == 6:  # send history files once a day at 6.42 o'clock
+    loc = 0
+    while loc < max_locations:
+        file0 = open('/var/www/html/thermals/forecast' + locations[loc] + '0.png', 'rb')  # file to send
+        session.storbinary('STOR thermal_history' + locations[loc] + now.strftime("%Y%m%d") + '0.png', file0)
+        loc = loc + 1
+    file0 = open('/var/www/html/thermals/potential.txt', 'rb')  # file to send
+    session.storbinary('STOR thermal_history/potential' + now.strftime("%Y%m%d") + '.txt', file0)
+    file0 = open('/var/www/html/thermals/thermal_data_multi.txt', 'rb')  # multi-data to send
+    session.storbinary('STOR thermal_history/thermal_data_multi' + now.strftime("%Y%m%d") + '.txt', file0)
 session.quit()
 print("files sent to DCZO")
