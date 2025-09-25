@@ -1,0 +1,136 @@
+<script>
+var thermlist = new Array();
+let day = 0;
+let expanded = 0;
+const today = new Date();
+const history = new Date();
+const hist_available = new Date("September 23, 2025");
+const hist_grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen"];
+var active_location = 0;
+function plusDate(dif){if ((today.getTime() >= history.getTime() + dif * 60 * 60 * 24 * 1000) && (hist_available.getTime() <= history.getTime() + dif * 60 * 60 * 24 * 1000)) 
+	{history.setDate(history.getDate() + dif);  document.getElementById("picked_date").innerHTML = " " + date_string(history) + " "; 
+	 document.getElementById("display_temp").innerHTML = "<img src='https://dczo.ch/images/thomaskamps/thermal_history/forecast" + hist_grids[active_location] + date_string2(history) + ".png'>";
+	 read_potential();
+	 }
+	}
+function set_hist_location(loc){active_location = loc;
+	document.getElementById("display_temp").innerHTML = "<img src='https://dczo.ch/images/thomaskamps/thermal_history/forecast" + hist_grids[active_location] + date_string2(history) + ".png'>";}																					 
+function expand(){if (expanded == 0){document.getElementById("historic").style.display = "block"; document.getElementById("collapse_button").style.backgroundColor = "#ccc"; 
+									 document.getElementById("collapse_button").innerHTML = "Historische Prognosen (-)"; expanded = 1; document.getElementById("picked_date").innerHTML = date_string(history);}
+					else {document.getElementById("historic").style.display = "none"; document.getElementById("collapse_button").style.backgroundColor = "#eee"; document.getElementById("collapse_button").innerHTML = "Historische Prognosen (+)"; expanded = 0;}
+					}
+function date_string(d){ return ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear();}
+function date_string2(d){ return (d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2) + ("0" + d.getDate()).slice(-2));}
+function col(lift){
+          		var l = parseFloat(lift);
+                if (l > 5 ){l = 5;}
+          		l = l * 30;
+                let r = 255 - l;
+                let fac = (15625 - (l - 125)**2) / 260;
+                return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
+                }
+function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b1").innerHTML = day + "+"; clear_table(); load_thermal_model();}
+function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 600; h<=4600; h=h+200){
+      document.getElementById(h + "-" + t).innerHTML = ""; document.getElementById(h + "-" + t).style.backgroundColor = "white"}}}	
+
+ function read_potential(){
+		let potential = "0, 0, 7, 0, 1, 0, 1, 0, 0, 4, 0, 13, 9, 0, 16, 0, 0, 2, 17, 0, 30, 0, 2, 6, 1, 0, 0, 17, 5, 28, 16, 2, 36, 28, 0, 3, 16, 11, 36, 15, 6, 26, 35, 0, 0, ";
+		histarray = potential.split(',');
+             for (let l = 0; l <= 8; l++) {document.getElementById("Loc0" + l).innerHTML = hist_grids[l];
+					for (let j = 0; j <= 4; j++) {document.getElementById("Loc0" + l + "-" + j).innerHTML = histarray[l + j * 9];}
+					}
+			 }
+</script>
+<div class="container">
+<button id="collapse_button" type="button" onclick="expand()" class="collapsible">Historische Prognosen (+)</button><br>
+<div id = "historic" class="content">
+<div class="date_div"><a class="prev" onclick="plusDate(-1)"> -1d </a><a class="prev" onclick="plusDate(-10)"> -10d </a>
+					  <a id = "picked_date">Datum</a>
+					  <a class="next" onclick="plusDate(10)"> +10d </a> <a class="next" onclick="plusDate(1)"> +1d </a>
+</div><button id="test">test</button>
+<h3>Thermik und Temp</h3>
+<div id="display_temp"></div>
+<table>
+	<tr>
+      <th>Location</th>
+      <th>Tag 1</th>
+      <th>Tag 2</th>
+      <th>Tag 3</th>
+      <th>Tag 4</th>
+      <th>Tag 5</th>
+    </tr>
+<tr>
+      <th id="Loc00" onclick = "set_hist_location(0)" ></th>
+      <td id="Loc00-0"></td>
+      <td id="Loc00-1"></td>
+      <td id="Loc00-2"></td>
+	  <td id="Loc00-3"></td>
+      <td id="Loc00-4"></td>
+    </tr>
+<tr>
+      <th id="Loc01" onclick = "set_hist_location(1)"></th>
+      <td id="Loc01-0"></td>
+      <td id="Loc01-1"></td>
+      <td id="Loc01-2"></td>
+	  <td id="Loc01-3"></td>
+      <td id="Loc01-4"></td>
+    </tr>
+	<tr>
+      <th id="Loc02" onclick = "set_hist_location(2)"></th>
+      <td id="Loc02-0"></td>
+      <td id="Loc02-1"></td>
+      <td id="Loc02-2"></td>
+	  <td id="Loc02-3"></td>
+      <td id="Loc02-4"></td>
+    </tr>
+	<tr>
+      <th id="Loc03" onclick = "set_hist_location(3)"></th>
+      <td id="Loc03-0"></td>
+      <td id="Loc03-1"></td>
+      <td id="Loc03-2"></td>
+	  <td id="Loc03-3"></td>
+      <td id="Loc03-4"></td>
+    </tr>
+	<tr>
+      <th id="Loc04" onclick = "set_hist_location(4)"></th>
+      <td id="Loc04-0"></td>
+      <td id="Loc04-1"></td>
+      <td id="Loc04-2"></td>
+	  <td id="Loc04-3"></td>
+      <td id="Loc04-4"></td>
+    </tr>
+	<tr>
+      <th id="Loc05" onclick = "set_hist_location(5)"></th>
+      <td id="Loc05-0"></td>
+      <td id="Loc05-1"></td>
+      <td id="Loc05-2"></td>
+	  <td id="Loc05-3"></td>
+      <td id="Loc05-4"></td>
+    </tr>
+	<tr>
+      <th id="Loc06" onclick = "set_hist_location(6)"></th>
+      <td id="Loc06-0"></td>
+      <td id="Loc06-1"></td>
+      <td id="Loc06-2"></td>
+	  <td id="Loc06-3"></td>
+      <td id="Loc06-4"></td>
+    </tr>
+	<tr>
+      <th id="Loc07" onclick = "set_hist_location(7)"></th>
+      <td id="Loc07-0"></td>
+      <td id="Loc07-1"></td>
+      <td id="Loc07-2"></td>
+	  <td id="Loc07-3"></td>
+      <td id="Loc07-4"></td>
+    </tr>
+	<tr>
+      <th id="Loc08" onclick = "set_hist_location(8)"></th>
+      <td id="Loc08-0"></td>
+      <td id="Loc08-1"></td>
+      <td id="Loc08-2"></td>
+	  <td id="Loc08-3"></td>
+      <td id="Loc08-4"></td>
+    </tr>
+</table>
+</div>
+</div>
