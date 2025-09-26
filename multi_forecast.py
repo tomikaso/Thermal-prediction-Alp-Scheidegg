@@ -765,7 +765,7 @@ if now.hour == 6:  # send history files once a day at 6.42 o'clock
     loc = 0
     while loc < max_locations:
         file0 = open('/var/www/html/thermals/forecast' + locations[loc] + '0.png', 'rb')  # file to send
-        session.storbinary('STOR thermal_history' + locations[loc] + now.strftime("%Y%m%d") + '0.png', file0)
+        session.storbinary('STOR thermal_history/forecast' + locations[loc] + now.strftime("%Y%m%d") + '.png', file0)
         loc = loc + 1
     file0 = open('/var/www/html/thermals/potential.txt', 'rb')  # file to send
     session.storbinary('STOR thermal_history/potential' + now.strftime("%Y%m%d") + '.txt', file0)
