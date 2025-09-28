@@ -1,5 +1,139 @@
+<script>
+const today = new Date();
+const history = new Date();
+const hist_available = new Date("September 23, 2025");
+const hist_grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen"];
+var active_location = 0;
+function plusDate(dif){if ((today.getTime() >= history.getTime() + dif * 60 * 60 * 24 * 1000) && (hist_available.getTime() <= history.getTime() + dif * 60 * 60 * 24 * 1000))
+	{history.setDate(history.getDate() + dif);  document.getElementById("picked_date").innerHTML = " " + date_string(history) + " ";
+show_hist(active_location);
+read_hist_potential(date_string2(history));
+hist_thermal_model(date_string2(history));
+	 }
+	}
+function date_string(d){ return ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear();}
+function date_string2(d){ return (d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2) + ("0" + d.getDate()).slice(-2));}
+function set_hist_location(loc){
+             for (let l = 0; l <= 8; l++) {document.getElementById("hist" + l).className = "thermal" + l;}
+             document.getElementById("hist" + loc).className   += " thermal_active";}
+async function read_hist_potential(date){let x = await fetch('/images/thomaskamps/thermal_history/potential' + date + '.txt');
+   let y = await x.text();
+   histarray = y.split(',');
+      for (let l = 0; l <= 8; l++) {document.getElementById("hist" + l).innerHTML = "<a class='km'>" + histarray[l] + "</a>";
+          document.getElementById("hist" + l).style.backgroundColor = col(histarray[l]);}
+	}
+function show_hist(loc){active_location = loc; document.getElementById("display_hist").innerHTML = "<img src='/images/thomaskamps/thermal_history/forecast" + hist_grids[active_location] + date_string2(history) + ".png'>";  document.getElementById("hist_headline").innerHTML = "Temp-Prognose: " + hist_grids[active_location] + " vom " + date_string(history);
+set_hist_location(loc);
+hist_thermal_model(date_string2(history));}
+
+function clear_hist(){ for (let t = 10; t<=20; t++)
+	{ for (let h = 800; h<=4200; h=h+200){
+		document.getElementById("hist" + h + "-" + t).innerHTML = "";
+		document.getElementById("hist" + h + "-" + t).style.backgroundColor = "white";
+}}}
+async function hist_thermal_model(date)
+  {
+  let x = await fetch('/images/thomaskamps/thermal_history/thermal_data_multi' + date + '.txt');
+  let y = await x.text();
+  histlist = y.split(',');
+  let adr = "invalid";
+  let adr_flag = 0;
+  clear_hist();
+  for (let t in histlist)
+    {
+	if(histlist[t].substring(0,3) == "LOC" && histlist[t].substring(7,8) == "0" && histlist[t].substring(3,4) == active_location )
+		{lt = histlist[t].substring(10,12); height = histlist[t].substring(13,17); adr = "hist" + height + "-" + lt; adr_flag = 1;}
+	else
+		{
+		if (adr_flag == 1)
+			{
+			adr_flag = 0;
+			if(histlist[t] == "cloud_cumulus")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_cumulus.png'>";
+				} else if(histlist[t] == "cloud_rain1")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain1.png'>";
+				} else if(histlist[t] == "cloud_rain2")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain2.png'>";
+				} else if(histlist[t] == "cloud_flash")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_flash.png'>";
+				} else if(histlist[t] == "cloud_snow1")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow1.png'>";
+				} else if(histlist[t] == "cloud_snow2")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow2.png'>";
+				}
+                else if(histlist[t] == "Green")
+				{
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png'>";
+				}
+			else
+				{
+				document.getElementById(adr).innerHTML = histlist[t];
+				document.getElementById(adr).style.backgroundColor = liftcol(histlist[t]);
+				}
+			}
+		}
+	 }
+  document.getElementById("hist_headline_modell").innerHTML = "Thermikmodell: " + hist_grids[active_location] + " vom " + date_string(history);
+  }
+</script>
+<style>
+    .date_div {
+     position: relative;
+     display: table;
+     width: 100%;
+     margin-left: auto;
+     margin-right: auto;
+     background-color: #0261AB;
+     color: darkslategray;
+     font-size: 18pt;
+     line-height: 1.6;
+	 text-align: center;
+	 padding: 3px;
+   }
+/* Next & previous buttons */
+	.prev, .next, .h_date {
+		cursor: pointer;
+		position: relative;
+		top: 0%;
+		width: auto;
+		padding: 12px;
+		margin-top: 0px;
+		color: lightgrey;
+		font-weight: bold;
+		font-size: 18px;
+		transition: 0.6s ease;
+		border-radius: 3px 3px 3px 3px;
+		user-select: none;
+		}
+/* Position the "next button" to the right */
+		.next {
+		right: 0;
+		}
+
+		/* On hover, add a black background color with a little bit see-through */
+		.prev:hover, .next:hover {
+		background-color: rgba(40,40,80,0.8);
+        text-decoration: none;
+		}
+        .h_date:hover {
+        text-decoration: none;
+		}
+</style>
+
+// Script part above
+// Accordion Part below
+
+
+
+<p>Historische Prognosen seit dem 23.09.2025. Jeweils die früh-morgens-Version.</p>
 <div class="date_div"><a class="prev" onclick="plusDate(-1)">-1d</a><a class="prev" onclick="plusDate(-10)">-10d</a>
-  <a class="h_date" id="picked_date"> Datum </a><a class="next" onclick="plusDate(10)">+10d</a>
+  <a class="h_date" id="picked_date" onclick="plusDate(0)"> Datum </a><a class="next" onclick="plusDate(10)">+10d</a>
   <a class="next" onclick="plusDate(1)"> +1d</a></div>
 <div class="overview" id="hist_overview">
   <button class="thermal1" id="hist1" onclick="show_hist(1)"><a class="km">LO</a></button>
@@ -15,7 +149,7 @@
 <h3 id="hist_headline">Thermik und Temp</h3>
 <div id="display_hist"><img src="images/thomaskamps/multitherm/forecastScheidegg0.png" /></div>
 <div>
-  <h3 id="hist_mod">Thermik-Modell</h3>
+  <h3 id="hist_headline_modell">Thermik-Modell</h3>
   <table>
     <tr>
       <th>4'200</th>
@@ -285,131 +419,3 @@
     </tr>
   </table>
 </div>
-
-*** HTML / JS-Section!
-
-<script>
-const today = new Date();
-const history = new Date();
-const hist_available = new Date("September 23, 2025");
-const hist_grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen"];
-var active_location = 0;
-function plusDate(dif){if ((today.getTime() >= history.getTime() + dif * 60 * 60 * 24 * 1000) && (hist_available.getTime() <= history.getTime() + dif * 60 * 60 * 24 * 1000))
-	{history.setDate(history.getDate() + dif);  document.getElementById("picked_date").innerHTML = " " + date_string(history) + " ";
-document.getElementById("display_hist").innerHTML = "<img src='/images/thomaskamps/thermal_history/forecast" + hist_grids[active_location] + date_string2(history) + ".png'>";
-read_hist_potential(date_string2(history));
-hist_thermal_model(date_string2(history));
-	 }
-	}
-function date_string(d){ return ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear();}
-function date_string2(d){ return (d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2) + ("0" + d.getDate()).slice(-2));}
-function set_hist_location(loc){
-             for (let l = 0; l <= 8; l++) {document.getElementById("hist" + l).className = "thermal" + l;}
-             document.getElementById("hist" + loc).className   += " thermal_active";}
-async function read_hist_potential(date){let x = await fetch('/images/thomaskamps/thermal_history/potential' + date + '.txt');
-   let y = await x.text();
-   histarray = y.split(',');
-      for (let l = 0; l <= 8; l++) {document.getElementById("hist" + l).innerHTML = "<a class='km'>" + histarray[l] + "</a>";
-          document.getElementById("hist" + l).style.backgroundColor = col(histarray[l]);}
-	}
-function show_hist(loc){active_location = loc; document.getElementById("display_hist").innerHTML = "<img src='/images/thomaskamps/thermal_history/forecast" + hist_grids[active_location] + date_string2(history) + ".png'>";  document.getElementById("hist_headline").innerHTML = "Prognose: " + hist_grids[active_location]; set_hist_location(loc);
-hist_thermal_model(date_string2(history));}
-
-function clear_hist(){ for (let t = 10; t<=20; t++)
-	{ for (let h = 800; h<=4200; h=h+200){
-		document.getElementById("hist" + h + "-" + t).innerHTML = "";
-		document.getElementById("hist" + h + "-" + t).style.backgroundColor = "white";
-}}}
-async function hist_thermal_model(date)
-  {
-  let x = await fetch('/images/thomaskamps/thermal_history/thermal_data_multi' + date + '.txt');
-  let y = await x.text();
-  histlist = y.split(',');
-  let adr = "invalid";
-  let adr_flag = 0;
-  clear_hist();
-  for (let t in histlist)
-    {
-	if(histlist[t].substring(0,3) == "LOC" && histlist[t].substring(7,8) == "0" && histlist[t].substring(3,4) == active_location )
-		{lt = histlist[t].substring(10,12); height = histlist[t].substring(13,17); adr = "hist" + height + "-" + lt; adr_flag = 1;}
-	else
-		{
-		if (adr_flag == 1)
-			{
-			adr_flag = 0;
-			if(histlist[t] == "cloud_cumulus")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_cumulus.png'>";
-				} else if(histlist[t] == "cloud_rain1")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain1.png'>";
-				} else if(histlist[t] == "cloud_rain2")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain2.png'>";
-				} else if(histlist[t] == "cloud_flash")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_flash.png'>";
-				} else if(histlist[t] == "cloud_snow1")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow1.png'>";
-				} else if(histlist[t] == "cloud_snow2")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow2.png'>";
-				}
-                else if(histlist[t] == "Green")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png'>";
-				}
-			else
-				{
-				document.getElementById(adr).innerHTML = histlist[t];
-				document.getElementById(adr).style.backgroundColor = liftcol(histlist[t]);
-				}
-			}
-		}
-	 }
-  }
-</script>
-<style>
-    .date_div {
-     position: relative;
-     display: table;
-     width: 100%;
-     margin-left: auto;
-     margin-right: auto;
-     background-color: #0261AB;
-     color: darkslategray;
-     font-size: 18pt;
-     line-height: 1.6;
-	 text-align: center;
-	 padding: 3px;
-   }
-/* Next & previous buttons */
-	.prev, .next, .h_date {
-		cursor: pointer;
-		position: relative;
-		top: 0%;
-		width: auto;
-		padding: 12px;
-		margin-top: 0px;
-		color: lightgrey;
-		font-weight: bold;
-		font-size: 18px;
-		transition: 0.6s ease;
-		border-radius: 3px 3px 3px 3px;
-		user-select: none;
-		}
-/* Position the "next button" to the right */
-		.next {
-		right: 0;
-		}
-
-		/* On hover, add a black background color with a little bit see-through */
-		.prev:hover, .next:hover {
-		background-color: rgba(40,40,80,0.8);
-        text-decoration: none;
-		}
-        .h_date:hover {
-        text-decoration: none;
-		}
-</style>
