@@ -1,6 +1,6 @@
 <style>
 .km {
-  font-size: 20px;
+  font-size: 18px;
   color: #444;
 }
 .km:hover {
@@ -22,8 +22,8 @@
   position: absolute;
   left: 58%;
   top:  23%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: lightgreen;
   margin: 0px;
   border-radius: 25px;
@@ -34,8 +34,8 @@
   position: absolute;
   left: 55%;
   top:  74%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: lightgreen;
   margin: 0px;
   border-radius: 25px;
@@ -46,8 +46,8 @@
   position: absolute;
   left: 63%;
   top:  31%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: lightgreen;
   margin: 0px;
   border-radius: 25px;
@@ -58,8 +58,8 @@
   position: absolute;
   left: 73%;
   top:  40%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: lightgreen;
   margin: 0px;
   border-radius: 25px;
@@ -70,8 +70,8 @@
   position: absolute;
   left: 31%;
   top:  24%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: lightgreen;
   margin: 0px;
   border-radius: 25px;
@@ -82,8 +82,8 @@
   position: absolute;
   left: 83%;
   top:  50%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: lightgreen;
   margin: 0px;
   border-radius: 25px;
@@ -94,8 +94,8 @@
   position: absolute;
   left: 39%;
   top:  65%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: lightgreen;
   margin: 0px;
   border-radius: 25px;
@@ -106,8 +106,8 @@
   position: absolute;
   left: 32%;
   top:  50%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: lightgreen;
   margin: 0px;
   border-radius: 25px;
@@ -118,14 +118,26 @@
   position: absolute;
   left: 60%;
   top:  40%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: lightgreen;
   margin: 0px;
   border-radius: 25px;
   cursor: pointer;
 }
 .thermal8:hover {border-color: red;}
+.thermal9 {
+  position: absolute;
+  left: 57%;
+  top:  61%;
+  width: 36px;
+  height: 36px;
+  background-color: lightgreen;
+  margin: 0px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+.thermal9:hover {border-color: red;}
 .button1 {  width: 90px;   height: 40px;   background-color: blue-grey;  margin: 5px;
    			border-radius: 5px;   font-size: 14px;   color: #444; cursor: pointer;
    			}
@@ -141,8 +153,8 @@
    let loca = 0;
    var startgrid;
    var potarray = new Array();
-   const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag","Montag","Dienstag","Mittwoch","Donnerstag"];
-   const grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen"];
+   const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag", 						"Montag","Dienstag","Mittwoch","Donnerstag"];
+   const grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen", "Cari"];
    const models = ["ICON-D2", "ICON-D2", "ICON-EU", "ICON-EU", "ICON-EU" , "ICON-EU"];
    const d = new Date();
    function datehour() {return d.getHours() + 100 * d.getDate() + 10000 * d.getMonth();}
@@ -154,7 +166,7 @@
                       setday();
                       set_active_location(0);
                       show_forecast();
-                      setTimeout(function(){changeColor(0)}, 1000);
+                      setTimeout(function (){changeColor(0)}, 1000);
                       }
    function setday(){day = 0; startgrid = "Scheidegg";
                      document.getElementById("my-div0").innerHTML = "Heute";
@@ -162,9 +174,9 @@
                           document.getElementById("my-div" + j).innerHTML = weekday[d.getDay() + j];}
 }
 function changeColor(i) {
-    for (let l = 0; l <= 8; l++) {
-        document.getElementById("thermal" + l).style.backgroundColor = col(potarray[l + 9 * i]);
-        document.getElementById("thermal" + l).innerHTML = "<a class='km'>" + potarray[l + 9 * i] + "</a>";
+    for (let l = 0; l <= 9; l++) {
+        document.getElementById("thermal" + l).style.backgroundColor = col(potarray[l + 10 * i]);
+        document.getElementById("thermal" + l).innerHTML = "<a class='km'>" + potarray[l + 10 * i] + "</a>";
     }
     day = i;
     document.getElementById("day_indicator").innerHTML = models[day];
@@ -188,7 +200,7 @@ function changeColor(i) {
     function show_grid(n) {startgrid = grids[n]; show_forecast(); set_active_location(n); loca = n;
                            clear_table(); load_thermal_model();}
     function set_active_location(loc){
-             for (let l = 0; l <= 8; l++) {document.getElementById("thermal" + l).className = "thermal" + l;}
+             for (let l = 0; l <= 9; l++) {document.getElementById("thermal" + l).className = "thermal" + l;}
              document.getElementById("thermal" + loc).className   += " thermal_active";}
         function show_forecast() {document.getElementById("display_temp").innerHTML = "<h3>" + startgrid +
          " Day-" + day + "</h3><img src='/images/thomaskamps/multitherm/forecast" + startgrid + day + ".png?" + datehour() + "'>" ;}
@@ -271,6 +283,7 @@ function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").inn
     <button class="thermal5" id="thermal5" onclick="show_grid(5)"><a class="km">SC</a></button>
     <button class="thermal6" id="thermal6" onclick="show_grid(6)"><a class="km">FI</a></button>
     <button class="thermal7" id="thermal7" onclick="show_grid(7)"><a class="km">NI</a></button>
+    <button class="thermal9" id="thermal9" onclick="show_grid(9)"><a class="km">CA</a></button>
 </div>
 <button class="button1" id="my-div0" onclick="changeColor(0)">Heute</button>
 <button class="button1" id="my-div1" onclick="changeColor(1)">Tag 1</button>

@@ -18,18 +18,19 @@ soar_potential = []
 north_south_diff = []
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
 
-locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol', 'Fiesch', 'Niesen', 'Braunwald-Gumen']
+locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol', 'Fiesch', 'Niesen',
+             'Braunwald-Gumen', 'Cari']
 coordinates = np.array([[47.289, 8.915], [46.175384, 8.793927], [47.181896, 9.051195], [46.927030, 9.771950],
                         [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389], [46.617260, 7.671066],
-                        [46.927241, 9.001098]])
-start_hight = [1200, 1500, 1000, 1650, 1440, 2150, 2200, 2200, 2050]
-start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180]
-valley_hight = [700, 340, 430, 810, 600, 1250, 1050, 1200, 615]
-valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2, 1.1]
-xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2, 1.1]
-north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100]
-south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3, 3]
-max_locations = 9
+                        [46.927241, 9.001098], [46.511744, 8.820113]])
+start_hight = [1200, 1500, 1000, 1650, 1440, 2150, 2200, 2200, 2050, 2280]
+start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180, 190]
+valley_hight = [700, 340, 430, 810, 600, 1250, 1050, 1200, 615, 720]
+valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2, 1.1, 1.1]
+xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2, 1.1, 1.1]
+north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5]
+south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3, 3, 4]
+max_locations = 10
 flight_distance = np.zeros([max_locations, 5])
 time = []
 temp2m = np.array([])
@@ -761,7 +762,7 @@ file1.close()
 file2.close()
 file3.close()
 file4.close()  # close files and FTP
-if now.hour == 6:  # send history files once a day at 6.42 o'clock
+if now.hour == 6:  # send history files once a day at 6.21 o'clock
     loc = 0
     while loc < max_locations:
         file0 = open('/var/www/html/thermals/forecast' + locations[loc] + '0.png', 'rb')  # file to send
