@@ -690,7 +690,7 @@ d = 0
 weekday = int(now.strftime("%w"))
 wday = 7
 while d < 5:  # create days and lines
-    box = [(border + d * 204, border), (border + (d + 1) * 204, h - border)]
+    box = (border + d * 204, border, border + (d + 1) * 204, h - border)
     img1.rectangle(box, fill=(215, 244 - 20 * (d % 2), 255 - 20 * (d % 2)), outline='darkred')
     # x = datetime(int(time[d * 24 + 12][:4]), int(time[d * 24 + 12][5:-9]), int(time[d * 24 + 12][8:-6]), 0, 0, 0)
     img1.text((border + d * 204 + padding, h - border), wds[wday], (20, 20, 20), font=font)
@@ -720,18 +720,16 @@ while day < 5:
         loc = loc + 1
     day = day + 1
 print(distances)
-result_file = open(image_path + "potential.txt", "w")
-result_file.write(distances)
-result_file.close()
+file3 = open(image_path + "potential.txt", "w")
+file3.write(distances)
 
 # create csv with thermal updrafts
 final_string = ''
 for data in model_html_string:
     final_string += data
 print(final_string)  # append model-data)
-result_file = open(image_path + "thermal_data_multi.txt", "w")
-result_file.write(final_string)
-result_file.close()
+file4 = open(image_path + "thermal_data_multi.txt", "w")
+file4.write(final_string)
 print("everything done :-)")
 
 # send it to DCZO-webserver
@@ -753,10 +751,10 @@ while loc < max_locations:
     loc = loc + 1
 file0 = open('/var/www/html/thermals/potential.txt', 'rb')  # file to send
 session.storbinary('STOR multitherm/potential.txt', file0)  # send the file
-file0 = open('/var/www/html/thermals/thermal_data_multi.txt', 'rb')  # multi-data to send
-session.storbinary('STOR multitherm/thermal_data_multi.txt', file0)  # send the file
-file0 = open('/var/www/html/thermals/pressure_diff.png', 'rb')  # file to send
-session.storbinary('STOR multitherm/pressure_diff.png', file0)  # send the file
+file1 = open('/var/www/html/thermals/thermal_data_multi.txt', 'rb')  # multi-data to send
+session.storbinary('STOR multitherm/thermal_data_multi.txt', file1)  # send the file
+file2 = open('/var/www/html/thermals/pressure_diff.png', 'rb')  # file to send
+session.storbinary('STOR multitherm/pressure_diff.png', file2)  # send the file
 file0.close()
 file1.close()
 file2.close()
