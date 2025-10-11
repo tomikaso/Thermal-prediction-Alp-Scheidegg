@@ -52,6 +52,16 @@ def get_meteo():
         status = 'offline'
 
 
+def cleanse_array(values):  # replace missing values in the ICON Model with predecessor values.
+    predecessor = 0
+    for v in range(len(values)):
+        if values[v] is None:
+            values[v] = predecessor
+            print('Corrected Position: ', v)
+        predecessor = values[v]
+    return values
+
+
 def get_meteo_locarno():
     status = 'online'
     try:
@@ -505,53 +515,53 @@ forcast_payload = json.loads(forcast_dump)
 hourly = forcast_payload["hourly"]
 time = hourly["time"]
 # temperatures
-temp700 = hourly["temperature_2m"]
-temp1000 = hourly["temperature_900hPa"]
-temp1500 = hourly["temperature_850hPa"]
-temp1900 = hourly["temperature_800hPa"]
-temp3000 = hourly["temperature_700hPa"]
-temp4200 = hourly["temperature_600hPa"]
-temp5600 = hourly["temperature_500hPa"]
+temp700 = cleanse_array(hourly["temperature_2m_meteoswiss_icon_ch2"])
+temp1000 = cleanse_array(hourly["temperature_900hPa"])
+temp1500 = cleanse_array(hourly["temperature_850hPa"])
+temp1900 = cleanse_array(hourly["temperature_800hPa"])
+temp3000 = cleanse_array(hourly["temperature_700hPa"])
+temp4200 = cleanse_array(hourly["temperature_600hPa"])
+temp5600 = cleanse_array(hourly["temperature_500hPa"])
 # dew-points
-dew700 = hourly["dew_point_2m"]
-dew1000 = hourly["dew_point_900hPa"]
-dew1500 = hourly["dew_point_850hPa"]
-dew1900 = hourly["dew_point_800hPa"]
-dew3000 = hourly["dew_point_700hPa"]
-dew4200 = hourly["dew_point_600hPa"]
-dew5600 = hourly["dew_point_500hPa"]
+dew700 = cleanse_array(hourly["dew_point_2m"])
+dew1000 = cleanse_array(hourly["dew_point_900hPa"])
+dew1500 = cleanse_array(hourly["dew_point_850hPa"])
+dew1900 = cleanse_array(hourly["dew_point_800hPa"])
+dew3000 = cleanse_array(hourly["dew_point_700hPa"])
+dew4200 = cleanse_array(hourly["dew_point_600hPa"])
+dew5600 = cleanse_array(hourly["dew_point_500hPa"])
 # wind-speeds
-wind700 = hourly["wind_speed_10m"]
-wind1000 = hourly["wind_speed_900hPa"]
-wind1500 = hourly["wind_speed_850hPa"]
-wind1900 = hourly["wind_speed_800hPa"]
-wind3000 = hourly["wind_speed_700hPa"]
-wind4200 = hourly["wind_speed_600hPa"]
-wind5600 = hourly["wind_speed_500hPa"]
+wind700 = cleanse_array(hourly["wind_speed_10m"])
+wind1000 = cleanse_array(hourly["wind_speed_900hPa"])
+wind1500 = cleanse_array(hourly["wind_speed_850hPa"])
+wind1900 = cleanse_array(hourly["wind_speed_800hPa"])
+wind3000 = cleanse_array(hourly["wind_speed_700hPa"])
+wind4200 = cleanse_array(hourly["wind_speed_600hPa"])
+wind5600 = cleanse_array(hourly["wind_speed_500hPa"])
 # wind-direction
-wind_dir700 = hourly["wind_direction_10m"]
-wind_dir1000 = hourly["wind_direction_900hPa"]
-wind_dir1500 = hourly["wind_direction_850hPa"]
-wind_dir1900 = hourly["wind_direction_800hPa"]
-wind_dir3000 = hourly["wind_direction_700hPa"]
-wind_dir4200 = hourly["wind_direction_600hPa"]
-wind_dir5600 = hourly["wind_direction_500hPa"]
+wind_dir700 = cleanse_array(hourly["wind_direction_10m"])
+wind_dir1000 = cleanse_array(hourly["wind_direction_900hPa"])
+wind_dir1500 = cleanse_array(hourly["wind_direction_850hPa"])
+wind_dir1900 = cleanse_array(hourly["wind_direction_800hPa"])
+wind_dir3000 = cleanse_array(hourly["wind_direction_700hPa"])
+wind_dir4200 = cleanse_array(hourly["wind_direction_600hPa"])
+wind_dir5600 = cleanse_array(hourly["wind_direction_500hPa"])
 # other values
-radiation = hourly["direct_radiation"]
-precipitation = hourly["precipitation"]
-cloud_cover_low = hourly["cloud_cover_low"]
-cloud_cover_mid = hourly["cloud_cover_mid"]
-cloud_cover_high = hourly["cloud_cover_high"]
-pressure_msl = hourly["pressure_msl"]
-weather_code = hourly["weather_code"]
-freezing_level = hourly["freezing_level_height"]
+radiation = cleanse_array(hourly["direct_radiation"])
+precipitation = cleanse_array(hourly["precipitation"])
+cloud_cover_low = cleanse_array(hourly["cloud_cover_low"])
+cloud_cover_mid = cleanse_array(hourly["cloud_cover_mid"])
+cloud_cover_high = cleanse_array(hourly["cloud_cover_high"])
+pressure_msl = cleanse_array(hourly["pressure_msl"])
+weather_code = cleanse_array(hourly["weather_code"])
+freezing_level = cleanse_array(hourly["freezing_level_height"])
 # get Locarno Pressure-Reference
 meteo_forcast_locarno = get_meteo_locarno()
 print(meteo_forcast_locarno)
 forcast_dump_locarno = json.dumps(meteo_forcast_locarno)
 forcast_payload_locarno = json.loads(forcast_dump_locarno)
-hourly_locarno = forcast_payload_locarno["hourly"]
-pressure_msl_locarno = hourly_locarno["pressure_msl"]
+hourly_locarno = cleanse_array(forcast_payload_locarno["hourly"])
+pressure_msl_locarno = cleanse_array(hourly_locarno["pressure_msl"])
 
 ###################
 # prepare diagram

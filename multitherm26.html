@@ -145,6 +145,7 @@
 .active_button {width: 90px;  height: 40px;  border-color: red;   margin: 5px;
  			border-radius: 5px; font-size: 14px; color: #444;}
 .thermal_active {border-color: red;}
+.thermal_model {line-height: 1.2;}
 </style>
 <body onload="load_potential()">
 
@@ -294,7 +295,7 @@ function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").inn
 <div id="display_temp"><img src="/images/thomaskamps/multitherm/forecastScheidegg0.png" ></div>
 <div>
     <h3 id="b2">Thermik-Modell</h3>
-    <table>
+    <table class = "thermal_model">
         <tr>
             <th>4'200</th>
             <td id="4200-10"></td>
