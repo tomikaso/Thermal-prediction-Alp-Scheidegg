@@ -40,8 +40,8 @@ class thermal_model:
     base_top = 0
 
     def __init__(self, temp_2m, dew_2m, temp_1000, dew_1000, temp_1500, dew_1500, temp_1900, dew_1900, temp_3000,
-                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, radiation, precipitation,
-                 weather_cd):
+                 dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, mountain_top, radiation,
+                 precipitation, weather_cd):
         self.__start_level = 700
         self.__temps = []
         self.__dews = []
@@ -83,16 +83,19 @@ class thermal_model:
                 self.__parcel_temps.append(temp_2m + radiation / 2400)  # just 1/3rd
                 self.__parcel_dews.append(dew_2m)
                 self.__condensation.append('no')
-            elif calculation_base <= i < calculation_base + 100:  # add 2 Kelvin under perfect conditions
-                self.__parcel_temps.append(self.__temps[-1] + std_pressure / alt2pres(i) * radiation / 800 * 2)
-                print('i: ', i, 'Temp-Advance: ', std_pressure / alt2pres(i) * radiation / 800)
+            elif calculation_base <= i < calculation_base + 100:  # add 1 Kelvin under perfect conditions
+                self.__parcel_temps.append(self.__temps[-1] + std_pressure / alt2pres(i) * radiation / 800)
                 self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_dry)
                                           + mixing_dry * self.__dews[-1])
                 self.__condensation.append('no')
             else:
                 if self.__temps[-1] > self.__parcel_dews[-1] + 0.5:
                     # no condensation case
-                    self.__parcel_temps.append(self.__parcel_temps[-1] - dry_adiabatic)
+                    if i <= mountain_top:  # add some energy as long as the peaks of the mountains are reached
+                        self.__parcel_temps.append(self.__parcel_temps[-1] - dry_adiabatic
+                                                   + std_pressure / alt2pres(i) * radiation / 2400)
+                    else:
+                        self.__parcel_temps.append(self.__parcel_temps[-1] - dry_adiabatic)
                     self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_dry)
                                               + mixing_dry * self.__dews[-1])
                     self.__condensation.append('no')

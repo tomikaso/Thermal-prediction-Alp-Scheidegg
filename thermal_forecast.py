@@ -270,7 +270,7 @@ def create_thermal_data(index):
             model = thermal_model(temp700[index + k], dew700[index + k], temp1000[index + k], dew1000[index + k],
                                   temp1500[index + k], dew1500[index + k], temp1900[index + k], dew1900[index + k],
                                   temp3000[index + k], dew3000[index + k], temp4200[index + k], dew4200[index + k],
-                                  temp5600[index + k], dew5600[index + k], 1240, radiation[index + k],
+                                  temp5600[index + k], dew5600[index + k], 1240, 1240, radiation[index + k],
                                   precipitation[index + k] - 0.1, weather_code[index + k])
             # append model-data
             m_h = 800

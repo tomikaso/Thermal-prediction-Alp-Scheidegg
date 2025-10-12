@@ -23,9 +23,10 @@ locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol',
 coordinates = np.array([[47.289, 8.915], [46.175384, 8.793927], [47.181896, 9.051195], [46.927030, 9.771950],
                         [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389], [46.617260, 7.671066],
                         [46.927241, 9.001098], [46.511744, 8.820113]])
-start_hight = [1200, 1500, 1000, 1650, 1440, 2150, 2200, 2200, 2050, 2280]
+start_height = [1200, 1500, 1020, 1650, 1440, 2150, 2200, 2200, 2050, 2280]
 start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180, 190]
-valley_hight = [700, 340, 430, 810, 600, 1250, 1050, 1200, 615, 720]
+valley_height = [700, 340, 430, 810, 600, 1250, 1050, 1200, 615, 720]
+mountain_top = [1250, 2200, 1500, 2400, 1440, 3200, 3300, 2500, 2600, 2500]
 valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2, 1.1, 1.1]
 xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2, 1.1, 1.1]
 north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5]
@@ -121,10 +122,9 @@ def get_meta_data(url):
 def cleanse_array(values):  # replace missing values in the ICON Model with predecessor values.
     predecessor = 0
     for v in range(len(values)):
-        if v > 0:
-            if values[v] is None:
-                values[v] = predecessor
-                print('Corrected Position: ', v)
+        if values[v] is None:
+            values[v] = predecessor
+            print('Corrected Position: ', v)
         predecessor = values[v]
     return values
 
@@ -302,15 +302,15 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
                       font=font)
             # select temp, base and wind
-            if start_hight[loc] <= 1000:
+            if start_height[loc] <= 1000:
                 tmp = -int(100 * ((temp1500[loc, index + k] - temp500[loc, index + k]) / 10)) / 100
                 wind_start = wind1000[loc, index + k]
                 wind_top = wind1500[loc, index + k]
-            if 1000 < start_hight[loc] <= 1500:
+            if 1000 < start_height[loc] <= 1500:
                 tmp = -int(100 * ((temp1900[loc, index + k] - temp1000[loc, index + k]) / 9)) / 100
                 wind_start = wind1500[loc, index + k]
                 wind_top = wind1900[loc, index + k]
-            if 1500 < start_hight[loc] <= 2500:
+            if 1500 < start_height[loc] <= 2500:
                 tmp = -int(100 * ((temp3000[loc, index + k] - temp1500[loc, index + k]) / 15)) / 100
                 wind_start = wind1900[loc, index + k]
                 wind_top = wind3000[loc, index + k]
@@ -320,9 +320,9 @@ def create_thermal_data(index):
                                   dew1000[loc, index + k], temp1500[loc, index + k], dew1500[loc, index + k],
                                   temp1900[loc, index + k], dew1900[loc, index + k], temp3000[loc, index + k],
                                   dew3000[loc, index + k], temp4200[loc, index + k], dew4200[loc, index + k],
-                                  temp5600[loc, index + k], dew5600[loc, index + k], start_hight[loc],
-                                  effective_sun(abs(radiation[loc, index + k]), start_angle[loc], k + 10) *
-                                  xc_potential[loc],
+                                  temp5600[loc, index + k], dew5600[loc, index + k], start_height[loc],
+                                  mountain_top[loc],
+                                  effective_sun(abs(radiation[loc, index + k]), start_angle[loc], k + 10),
                                   precipitation[loc, index + k] - 0.1, weather_code[loc, index + k])
             # append model-data
             m_h = 800
@@ -412,7 +412,7 @@ def create_thermal_data(index):
                       (20, 20, 20), font=font)
             if lift >= 1:  # root-function gets 1 with a base of 2'000 meters
                 distance = int(distance + 4 * lift * xc_potential[loc]
-                               * pow(max((base_height - start_hight[loc]), 0), 0.5) / 28.2)
+                               * pow(max((base_height - start_height[loc]), 0), 0.5) / 28.2)
             elif lift > 0.5:
                 distance = distance + 1
         k = k + 1
@@ -517,11 +517,11 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
     # title
     if day > 1:
-        img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for "
+        img1.text((10, 15), locations[loc] + ", " + str(start_height[loc]) + "m. Forecast for "
                   + x.strftime("%A, %d/%m/%Y") + ", ICON-EU (7km), run: " + icon_eu + ", updated: "
                   + now.strftime("%H:%M") + " CET", (20, 20, 20), font=font)
     else:
-        img1.text((10, 15), locations[loc] + ", " + str(start_hight[loc]) + "m. Forecast for "
+        img1.text((10, 15), locations[loc] + ", " + str(start_height[loc]) + "m. Forecast for "
                   + x.strftime("%A, %d/%m/%Y") + ", ICON-D2, run: " + icon_d2 + ", updated: "
                   + now.strftime("%H:%M") + " CET", (20, 20, 20), font=font)
     # save the image here
