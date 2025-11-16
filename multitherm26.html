@@ -146,6 +146,57 @@
  			border-radius: 5px; font-size: 14px; color: #444;}
 .thermal_active {border-color: red;}
 .thermal_model {line-height: 1.2;}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 17px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 17px;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 13px;
+  width: 13px;
+  left: 2px;
+  bottom: 2px;
+  border-radius: 50%;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: red;
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px red;
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(13px);
+  -ms-transform: translateX(13px);
+  transform: translateX(13px);
+}
+.wind_font {
+  font-size: 14px;
+  color: dimgrey;
+  padding: 2px 2px 8px 2px;
+}
 </style>
 <body onload="load_potential()">
 
@@ -157,6 +208,7 @@
    const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag", 						"Montag","Dienstag","Mittwoch","Donnerstag"];
    const grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen", "Cari"];
    const models = ["ICON-D2", "ICON-D2", "ICON-EU", "ICON-EU", "ICON-EU" , "ICON-EU"];
+   const wind_color = ["palegreen", "springgreen", "limegreen", "lawngreen", "greenyellow", "yellow", "orange", "orangered", "tomato", "indianred", "sienna"];
    const d = new Date();
    function datehour() {return d.getHours() + 100 * d.getDate() + 10000 * d.getMonth();}
    async function load_potential(){document.getElementById("display_temp").innerHTML = "<h3>loading...</h3>";
@@ -272,7 +324,40 @@ async function load_thermal_model()
 	 }
   }
 function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model(); show_forecast();}
-
+async function load_wind()
+  {
+  let w = await fetch("/images/thomaskamps/multitherm/wind_data_multi.txt?"+ datehour());
+  let y = await w.text();
+  windlist = y.split(',');
+  let adr = "invalid";
+  let adr_flag = 0;
+  document.getElementById("b2").innerHTML = "Wind-Daten: " + startgrid + ", " + weekday[d.getDay() + day];
+  clear_table();
+  for (let t in windlist)
+    {
+	if(windlist[t].substring(0,3) == "LOC" && windlist[t].substring(7,8) == day && windlist[t].substring(3,4) == loca )
+		{lt = windlist[t].substring(10,12); height = windlist[t].substring(13,17); adr = height + "-" + lt; adr_flag = 1;}
+	else
+		{
+		if (adr_flag == 1)
+			{
+			adr_flag = 0;
+			wind_speed = parseInt(windlist[t].substring(0,3));
+			wind_angle = parseInt(windlist[t].substring(6,9));
+			wind_pic = Math.floor((wind_angle + 22)/ 45) * 45 % 360
+			document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/wind" + wind_pic + ".png'><a class='wind_font'>" + wind_speed + "</a>";
+			document.getElementById(adr).style.backgroundColor = wind_color[Math.min(Math.floor(wind_speed/5), 10)];
+			}
+		}
+	}
+  }
+function display_wind(){
+   var isChecked = document.getElementById("wind_therm_chk").checked;
+   if (isChecked)
+        {document.getElementById("wind_therm").innerHTML = " Thermik"; load_thermal_model();}
+   else
+        {document.getElementById("wind_therm").innerHTML = " Wind"; load_wind();}
+    }
     </script>
 <div class="overview" id="overview">
     <button class="thermal1" id="thermal1" onclick="show_grid(1)"><a class="km">LO</a></button>
@@ -294,7 +379,9 @@ function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").inn
 <button class="button1" id="day_indicator">Today</button>
 <div id="display_temp"><img src="/images/thomaskamps/multitherm/forecastScheidegg0.png" ></div>
 <div>
-    <h3 id="b2">Thermik-Modell</h3>
+    <h3 id="b2">Thermik-Modell</h3><label class="switch" id="wind_therm_select" onclick="display_wind()" >
+    <input type="checkbox" id="wind_therm_chk" checked><span class="slider"></span>
+</label><span id="wind_therm">  Thermik</span>
     <table class = "thermal_model">
         <tr>
             <th>4'200</th>
