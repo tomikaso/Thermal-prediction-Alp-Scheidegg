@@ -119,26 +119,26 @@ class thermal_model:
             # write out results
             if i <= 4200 and i % 200 == 0:  # one data point each 200 meters
                 if i <= calculation_base:
-                    self.html_string.append('Green')
+                    self.html_string.append(str(i) + ',Green')
                 else:
                     if self.__condensation[-1] == 'yes':
                         if 95 <= weather_cd < 100:
-                            self.html_string.append('cloud_flash')
+                            self.html_string.append(str(i) + ',cloud_flash')
                         elif precipitation > 2:
                             if self.__temps[-1] >= 0:
-                                self.html_string.append('cloud_rain2')
+                                self.html_string.append(str(i) + ',cloud_rain2')
                             else:
-                                self.html_string.append('cloud_snow2')
+                                self.html_string.append(str(i) + ',cloud_snow2')
                         elif precipitation > 0:
                             if self.__temps[-1] >= 0:
-                                self.html_string.append('cloud_rain1')
+                                self.html_string.append(str(i) + ',cloud_rain1')
                             else:
-                                self.html_string.append('cloud_snow1')
+                                self.html_string.append(str(i) + ',cloud_snow1')
                         elif updraft > 0:
-                            self.html_string.append('cloud_cumulus')
+                            self.html_string.append(str(i) + ',cloud_cumulus')
                         condensed = 1
                     elif condensed == 0 and updraft > 0:
-                        self.html_string.append(str(round(updraft, 1)))
+                        self.html_string.append(str(i) + ',' + str(round(updraft, 1)))
             i = i + 100
 
             # average lift and base / top

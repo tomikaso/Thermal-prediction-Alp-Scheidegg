@@ -5,12 +5,14 @@ import math
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from thermal_model import thermal_model
+from wind_interpolation import wind_interpolation
 import ftplib
 import constants
 
 # initializing the most important variables
 now = datetime.now()
 model_html_string = []
+wind_html_string = []
 # for the data grid
 col = 64
 lines = 14
@@ -26,7 +28,7 @@ coordinates = np.array([[47.289, 8.915], [46.175384, 8.793927], [47.181896, 9.05
 start_height = [1200, 1500, 1020, 1650, 1440, 2150, 2200, 2200, 2050, 2280]
 start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180, 190]
 valley_height = [700, 340, 430, 810, 600, 1250, 1050, 1200, 615, 720]
-mountain_top = [1250, 2200, 1500, 2400, 1440, 3200, 3300, 2500, 2600, 2500]
+mountain_top = [1400, 2200, 1500, 2400, 1440, 3200, 3300, 2500, 2600, 2500]
 valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2, 1.1, 1.1]
 xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2, 1.1, 1.1]
 north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5]
@@ -325,12 +327,21 @@ def create_thermal_data(index):
                                   effective_sun(abs(radiation[loc, index + k]), start_angle[loc], k + 10),
                                   precipitation[loc, index + k] - 0.1, weather_code[loc, index + k])
             # append model-data
-            m_h = 800
             for model_data in model.html_string:
-                model_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10) + 'H' + str(m_h) +
-                                         ',' + model_data + ',')
-                m_h += 200
+                model_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10)
+                                         + 'H' + model_data + ',')
 
+            # call wind interpolation
+            w_data = wind_interpolation(wind500[loc, index + k], wind_dir500[loc, index + k],
+                                        wind1000[loc, index + k], wind_dir1000[loc, index + k],
+                                        wind1500[loc, index + k], wind_dir1500[loc, index + k],
+                                        wind1900[loc, index + k], wind_dir1900[loc, index + k],
+                                        wind3000[loc, index + k], wind_dir3000[loc, index + k],
+                                        wind4200[loc, index + k], wind_dir4200[loc, index + k])
+            # append wind-data
+            for wind_data in w_data.html_string:
+                wind_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10)
+                                        + 'H' + wind_data + ',')
             # wind
             content = str(int(wind_start)) + wind_direction(wind_dir1500[loc, index + k])
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
@@ -727,9 +738,16 @@ file3.write(distances)
 final_string = ''
 for data in model_html_string:
     final_string += data
-print(final_string)  # append model-data)
 file4 = open(image_path + "thermal_data_multi.txt", "w")
 file4.write(final_string)
+
+# create csv with the interpolated wind data
+final_string = ''
+for data in wind_html_string:
+    final_string += data
+file2 = open(image_path + "wind_data_multi.txt", "w")
+file2.write(final_string)
+
 print("everything done :-)")
 
 # send it to DCZO-webserver
@@ -755,6 +773,8 @@ file1 = open('/var/www/html/thermals/thermal_data_multi.txt', 'rb')  # multi-dat
 session.storbinary('STOR multitherm/thermal_data_multi.txt', file1)  # send the file
 file2 = open('/var/www/html/thermals/pressure_diff.png', 'rb')  # file to send
 session.storbinary('STOR multitherm/pressure_diff.png', file2)  # send the file
+file3 = open('/var/www/html/thermals/wind_data_multi.txt', 'rb')  # multi-data to send
+session.storbinary('STOR multitherm/wind_data_multi.txt', file3)  # send the file
 file0.close()
 file1.close()
 file2.close()
