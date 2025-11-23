@@ -117,7 +117,7 @@ class thermal_model:
             self.__updraft.append(updraft)
 
             # write out results
-            if i <= 4200 and i % 200 == 0:  # one data point each 200 meters
+            if i <= 4000 and i % 200 == 0:  # one data point each 200 meters
                 if i <= calculation_base:
                     self.html_string.append(str(i) + ',Green')
                 else:

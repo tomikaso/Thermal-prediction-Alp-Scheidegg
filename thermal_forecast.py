@@ -298,6 +298,13 @@ def create_thermal_data(index):
             clouds_h = int(abs(cloud_cover_high[index + k] / 12.5))
             img1.text((2 * border + tx + padding + col * 3, border + padding + ty / lines * (k + 1)),
                       str(clouds_l) + "-" + str(clouds_m) + "-" + str(clouds_h), (20, 20, 20), font=font)
+            # append cirrus: just one Line on 4'200 meter
+            if clouds_m < 2:
+                cloud = 'cirrus0' + str(clouds_h) + ','
+            else:
+                cloud = 'stratus0' + str(clouds_m) + ','
+            model_html_string.append('DAY' + str(j) + 'LT' + str(k + 10) + 'H4200,' + cloud)
+
             # temp
             tmp = -int(100 * ((temp1900[index + k] - temp1000[index + k]) / 9)) / 100
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp),

@@ -194,7 +194,7 @@ input:checked + .slider:before {
 }
 .wind_font {
   font-size: 12px;
-  color: dimgrey;
+  color: darkslategray;
   padding: 0px 0px 0px 0px;
 }
 </style>
@@ -209,7 +209,7 @@ input:checked + .slider:before {
    const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag", 						"Montag","Dienstag","Mittwoch","Donnerstag"];
    const grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen", "Cari"];
    const models = ["ICON-D2", "ICON-D2", "ICON-EU", "ICON-EU", "ICON-EU" , "ICON-EU"];
-   const wind_color = ["limegreen", "springgreen", "lawngreen", "greenyellow", "yellow", "gold", "orange", "orangered", "tomato", "indianred", "sienna"];
+   const wind_color = ["limegreen", "springgreen", "lawngreen", "greenyellow", "yellow", "gold", "orange", "orangered", "tomato", "lightcoral", "indianred", "orchid", "darkorchid"];
    const d = new Date();
    function datehour() {return d.getHours() + 100 * d.getDate() + 10000 * d.getMonth();}
    async function load_potential(){document.getElementById("display_temp").innerHTML = "<h3>loading...</h3>";
@@ -253,7 +253,7 @@ function arrow_svg(angle){
       let by = r + padd + Math.cos((angle + 130) * pi180) * r * 0.8;
       let cx = r + padd - Math.sin((angle - 130) * pi180) * r * 0.8;
       let cy = r + padd + Math.cos((angle - 130) * pi180) * r * 0.8;
-      return `<svg height="10" width="10" xmlns=http://www.w3.org/2000/svg><polygon points="${cx},${cy} ${ax},${ay} ${bx},${by} ${a2x},${a2y}" fill = "grey"></svg>`}
+      return `<svg height="10" width="10" xmlns=http://www.w3.org/2000/svg><polygon points="${cx},${cy} ${ax},${ay} ${bx},${by} ${a2x},${a2y}" fill = "darkslategray"></svg>`}
 
       function col(distst){
           		var dist = parseInt(distst);
@@ -290,6 +290,7 @@ async function load_thermal_model()
   let x = await fetch("/images/thomaskamps/multitherm/thermal_data_multi.txt?"+ datehour());
   let y = await x.text();
   thermlist = y.split(',');
+  document.getElementById("4200").innerHTML = "Cloud";
   let adr = "invalid";
   let adr_flag = 0;
   document.getElementById("b2").innerHTML = "Thermik-Modell: " + startgrid + ", " + weekday[d.getDay() + day];
@@ -303,28 +304,10 @@ async function load_thermal_model()
 		if (adr_flag == 1)
 			{
 			adr_flag = 0;
-			if(thermlist[t] == "cloud_cumulus")
+            if(isNaN(thermlist[t]))
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_cumulus.png'>";
-				} else if(thermlist[t] == "cloud_rain1")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain1.png'>";
-				} else if(thermlist[t] == "cloud_rain2")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain2.png'>";
-				} else if(thermlist[t] == "cloud_flash")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_flash.png'>";
-				} else if(thermlist[t] == "cloud_snow1")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow1.png'>";
-				} else if(thermlist[t] == "cloud_snow2")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow2.png'>";
-				}
-                else if(thermlist[t] == "Green")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png'>";
+				svg_adr = thermlist[t] + '.svg'
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/" + svg_adr + "'>";
 				}
 			else
 				{
@@ -344,6 +327,7 @@ async function load_wind()
   let w = await fetch("/images/thomaskamps/multitherm/wind_data_multi.txt?"+ datehour());
   let y = await w.text();
   windlist = y.split(',');
+  document.getElementById("4200").innerHTML = "4'200";
   let adr = "invalid";
   let adr_flag = 0;
   document.getElementById("b2").innerHTML = "Wind-Daten: " + startgrid + ", " + weekday[d.getDay() + day];
@@ -360,7 +344,7 @@ async function load_wind()
 			wind_speed = parseInt(windlist[t].substring(0,3));
 			wind_angle = parseInt(windlist[t].substring(6,9));
 			document.getElementById(adr).innerHTML = arrow_svg(wind_angle) + "<span class='wind_font'>" + wind_speed + "</span>";
-			document.getElementById(adr).style.backgroundColor = wind_color[Math.min(Math.floor(wind_speed/5), 10)];
+			document.getElementById(adr).style.backgroundColor = wind_color[Math.min(Math.floor(wind_speed/5), 12)];
 			}
 		}
 	}
@@ -372,7 +356,7 @@ function display_wind() {
     } else {
         mode = "wind";
     }
-    load_data();
+    setTimeout(function (){load_data()}, 200);
 }
 function load_data()
     {clear_table();
@@ -404,7 +388,7 @@ function load_data()
     <h3 id="b2">Thermik-Modell</h3><span>Wind  </span><label class="switch" id="wind_therm_select" onclick="display_wind()" ><input type="checkbox" id="wind_therm_chk" checked><span class="slider"></span></label><span>  Thermik</span>
     <table class = "thermal_model">
         <tr>
-            <th>4'200</th>
+            <th id="4200">Cloud</th>
             <td id="4200-10"></td>
             <td id="4200-11"></td>
             <td id="4200-12"></td>
