@@ -33,6 +33,7 @@ valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2, 1.1, 1.1]
 xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2, 1.1, 1.1]
 north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5]
 south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3, 3, 4]
+sunset = {1: 16, 2: 17, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
 max_locations = 10
 flight_distance = np.zeros([max_locations, 5])
 time = []
@@ -358,10 +359,13 @@ def create_thermal_data(index):
                       str(clouds_l) + "-" + str(clouds_m) + "-" + str(clouds_h), (20, 20, 20), font=font)
 
             # append cirrus: just one Line on 4'200 meter
+            moon = ''
+            if k + 10 >= sunset[int(now.strftime('%m'))]:  # take the night-symbols after sunset
+                moon = '_night'
             if clouds_m < 2:
-                cloud = 'cirrus0' + str(clouds_h) + ','
+                cloud = 'cirrus' + moon + '0' + str(clouds_h) + ','
             else:
-                cloud = 'stratus0' + str(clouds_m) + ','
+                cloud = 'stratus' + moon + '0' + str(clouds_m) + ','
             model_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10) + 'H4200,' + cloud)
 
             # temp

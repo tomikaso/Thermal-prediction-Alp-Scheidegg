@@ -2,9 +2,10 @@
 const today = new Date();
 const history = new Date();
 const hist_available = new Date("September 23, 2025");
-const hist_grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen"];
+const hist_grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen", "Cari"];
 var active_location = 0;
-function plusDate(dif){if ((today.getTime() >= history.getTime() + dif * 60 * 60 * 24 * 1000) && (hist_available.getTime() <= history.getTime() + dif * 60 * 60 * 24 * 1000))
+setTimeout(function (){plusDate(-1)}, 1000);
+function plusDate(dif){if ((today.getTime() >= history.getTime() + (dif * 60 * 60 * 24000 + 3600 * 7000)) && (hist_available.getTime() <= history.getTime() + dif * 60 * 60 * 24000))
 	{history.setDate(history.getDate() + dif);  document.getElementById("picked_date").innerHTML = " " + date_string(history) + " ";
 show_hist(active_location);
 read_hist_potential(date_string2(history));
@@ -14,12 +15,12 @@ hist_thermal_model(date_string2(history));
 function date_string(d){ return ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear();}
 function date_string2(d){ return (d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2) + ("0" + d.getDate()).slice(-2));}
 function set_hist_location(loc){
-             for (let l = 0; l <= 8; l++) {document.getElementById("hist" + l).className = "thermal" + l;}
+             for (let l = 0; l <= 9; l++) {document.getElementById("hist" + l).className = "thermal" + l;}
              document.getElementById("hist" + loc).className   += " thermal_active";}
 async function read_hist_potential(date){let x = await fetch('/images/thomaskamps/thermal_history/potential' + date + '.txt');
    let y = await x.text();
    histarray = y.split(',');
-      for (let l = 0; l <= 8; l++) {document.getElementById("hist" + l).innerHTML = "<a class='km'>" + histarray[l] + "</a>";
+      for (let l = 0; l <= 9; l++) {document.getElementById("hist" + l).innerHTML = "<a class='km'>" + histarray[l] + "</a>";
           document.getElementById("hist" + l).style.backgroundColor = col(histarray[l]);}
 	}
 function show_hist(loc){active_location = loc; document.getElementById("display_hist").innerHTML = "<img src='/images/thomaskamps/thermal_history/forecast" + hist_grids[active_location] + date_string2(history) + ".png'>";  document.getElementById("hist_headline").innerHTML = "Temp-Prognose: " + hist_grids[active_location] + " vom " + date_string(history);
@@ -47,29 +48,11 @@ async function hist_thermal_model(date)
 		{
 		if (adr_flag == 1)
 			{
-			adr_flag = 0;
-			if(histlist[t] == "cloud_cumulus")
+            adr_flag = 0;
+            if(isNaN(histlist[t]))
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_cumulus.png'>";
-				} else if(histlist[t] == "cloud_rain1")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain1.png'>";
-				} else if(histlist[t] == "cloud_rain2")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain2.png'>";
-				} else if(histlist[t] == "cloud_flash")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_flash.png'>";
-				} else if(histlist[t] == "cloud_snow1")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow1.png'>";
-				} else if(histlist[t] == "cloud_snow2")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow2.png'>";
-				}
-                else if(histlist[t] == "Green")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png'>";
+				svg_adr = histlist[t] + '.svg'
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/svg/" + svg_adr + "'>";
 				}
 			else
 				{

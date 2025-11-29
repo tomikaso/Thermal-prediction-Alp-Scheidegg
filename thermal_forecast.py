@@ -23,6 +23,7 @@ now = datetime.now()
 col = 60
 lines = 14
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
+sunset = {1: 16, 2: 17, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
 
 
 # get the data
@@ -299,10 +300,13 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 3, border + padding + ty / lines * (k + 1)),
                       str(clouds_l) + "-" + str(clouds_m) + "-" + str(clouds_h), (20, 20, 20), font=font)
             # append cirrus: just one Line on 4'200 meter
+            moon = ''
+            if k + 10 >= sunset[int(now.strftime('%m'))]:  # take the night-symbols after sunset
+                moon = '_night'
             if clouds_m < 2:
-                cloud = 'cirrus0' + str(clouds_h) + ','
+                cloud = 'cirrus' + moon + '0' + str(clouds_h) + ','
             else:
-                cloud = 'stratus0' + str(clouds_m) + ','
+                cloud = 'stratus' + moon + '0' + str(clouds_m) + ','
             model_html_string.append('DAY' + str(j) + 'LT' + str(k + 10) + 'H4200,' + cloud)
 
             # temp
