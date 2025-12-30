@@ -24,22 +24,60 @@
         cursor: pointer;
         border-color: #b00;
     }
+    .thermal_model {line-height: 1.2;}
+    .switch {
+  position: relative;  display: inline-block;  width: 30px;  height: 17px;
+}
+.switch input {
+  opacity: 0;  width: 0;  height: 0;
+}
+.slider {
+  position: absolute;  cursor: pointer;  top: 0;  left: 0;  right: 0;  bottom: 0;  border-radius: 17px;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;  content: "";  height: 13px;  width: 13px;  left: 2px;  bottom: 2px;  border-radius: 50%;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: red;
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px red;
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(13px);
+  -ms-transform: translateX(13px);
+  transform: translateX(13px);
+}
+.wind_font {
+  font-size: 12px;
+  color: darkslategray;
+  padding: 0px 0px 0px 0px;
+}
 </style>
 <h1>Thermikprognose Alp Scheidegg</h1>
 <script>
     const h = new Date();
     let day = 0;
+    let mode = "thermal";
+    const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag", "Montag","Dienstag","Mittwoch","Donnerstag"];
+    const wind_color = ["limegreen", "springgreen", "lawngreen", "greenyellow", "yellow", "gold", "orange", "orangered", "tomato", "lightcoral", "indianred", "orchid", "darkorchid"];
+    const models = ["ICON-D2", "ICON-D2", "ICON-EU", "ICON-EU", "ICON-EU" , "ICON-EU"];
     function datehour() {return h.getHours() + 100 * h.getDate() + 10000 * h.getMonth();}
 	function show_forecast(d) {
 					document.getElementById("display_temp").innerHTML = "<img src='/images/thomaskamps/forecast" + d + ".png?" + datehour() + "'>";
-        document.getElementById("display_wind").innerHTML = "<img src='/images/thomaskamps/meteo_wind" + d + ".png?" + datehour() + "'>";
 					for (let j = 0; j <= 4; j++) {
 				document.getElementById("my-div" + j).className = "button1";
 document.getElementById("my-div" + j).innerHTML = "<img src='/images/thomaskamps/thermal_button" + j + ".png?" + datehour() + "'>";}
 
 					document.getElementById("my-div" + d).className  = "active_button";
         day = d;
-    load_thermal_model();}
+    load_data();}
 var thermlist = new Array();
 function col(lift){
           		var l = parseFloat(lift);
@@ -49,8 +87,8 @@ function col(lift){
                 let fac = (15625 - (l - 125)**2) / 260;
                 return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
                 }
-function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = day + "+"; clear_table(); load_thermal_model(); show_forecast(day);}
-function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 800; h<=2800; h=h+200){
+function new_day(){day ++; if(day > 4){day=0;} document.getElementById("b2").innerHTML = "loading"; clear_table(); show_forecast(day);}
+function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 800; h<=3000; h=h+200){
       document.getElementById(h + "-" + t).innerHTML = ""; document.getElementById(h + "-" + t).style.backgroundColor = "white"}}}
 async function load_thermal_model()
   {
@@ -59,35 +97,23 @@ async function load_thermal_model()
   thermlist = y.split(',');
   let adr = "invalid";
   let adr_flag = 0;
-  document.getElementById("b2").innerHTML = "Tag " + day + " >";
   clear_table();
+  document.getElementById("3000").innerHTML = "Cloud";
+  document.getElementById("b3").innerHTML = "Thermik-Modell";
   for (let t in thermlist)
     {
-	if(thermlist[t].substring(0,3) == "DAY" && thermlist[t].substring(3,4) == day && parseInt(thermlist[t].substring(9,13)) <= 2800)
-		{lt = thermlist[t].substring(6,8); height = thermlist[t].substring(9,13); adr = height + "-" + lt; adr_flag = 1;}
+	if(thermlist[t].substring(0,3) == "DAY" && thermlist[t].substring(3,4) == day && (parseInt(thermlist[t].substring(9,13)) <= 2800 || parseInt(thermlist[t].substring(9,13)) == 4200))
+		{lt = thermlist[t].substring(6,8); height = thermlist[t].substring(9,13); if(height=='4200'){height='3000'}
+         adr = height + "-" + lt; adr_flag = 1;}
 	else
 		{
 		if (adr_flag == 1)
 			{
 			adr_flag = 0;
-			if(thermlist[t] == "cloud_cumulus")
+            if(isNaN(thermlist[t]))
 				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_cumulus.png'>";
-				} else if(thermlist[t] == "cloud_rain1")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain1.png'>";
-				} else if(thermlist[t] == "cloud_rain2")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_rain2.png'>";
-				} else if(thermlist[t] == "cloud_flash")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_flash.png'>";
-				} else if(thermlist[t] == "cloud_snow")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/cloud_snow.png'>";
-				} else if(thermlist[t] == "Green")
-				{
-				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/green.png'>";
+				svg_adr = thermlist[t] + '.svg'
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/svg/" + svg_adr + "'>";
 				}
 			else
 				{
@@ -98,6 +124,66 @@ async function load_thermal_model()
 		}
 	 }
   }
+ function arrow_svg(angle){
+      var pi180 = Math.PI / 180;
+      let r = 5;
+      let padd = 1;
+      let ax = r + padd - Math.sin(angle * pi180) * r;
+      let ay = r + padd + Math.cos(angle * pi180) * r;
+      let a2x = r + padd - Math.sin((angle + 180) * pi180) * r * 0.2;
+      let a2y = r + padd + Math.cos((angle + 180) * pi180) * r * 0.2;
+      let bx = r + padd - Math.sin((angle + 130) * pi180) * r * 0.8;
+      let by = r + padd + Math.cos((angle + 130) * pi180) * r * 0.8;
+      let cx = r + padd - Math.sin((angle - 130) * pi180) * r * 0.8;
+      let cy = r + padd + Math.cos((angle - 130) * pi180) * r * 0.8;
+      return `<svg height="10" width="10" xmlns=http://www.w3.org/2000/svg><polygon points="${cx},${cy} ${ax},${ay} ${bx},${by} ${a2x},${a2y}" fill = "darkslategray"></svg>`}
+async function load_wind()
+  {
+  let w = await fetch("/images/thomaskamps/wind_data.txt?"+ datehour());
+  let y = await w.text();
+  windlist = y.split(',');
+  document.getElementById("3000").innerHTML = "3'000";
+  document.getElementById("b3").innerHTML = "Wind-Daten " + models[day];
+  let adr = "invalid";
+  let adr_flag = 0;
+  clear_table();
+  for (let t in windlist)
+    {
+	if(windlist[t].substring(0,3) == "DAY" && windlist[t].substring(3,4) == day && (parseInt(windlist[t].substring(9,13)) <= 3000))
+		{lt = windlist[t].substring(6,8); height = windlist[t].substring(9,13); adr = height + "-" + lt; adr_flag = 1;}
+	else
+		{
+		if (adr_flag == 1)
+			{
+			adr_flag = 0;
+			wind_speed = parseInt(windlist[t].substring(0,3));
+			wind_angle = parseInt(windlist[t].substring(6,9));
+			document.getElementById(adr).innerHTML = arrow_svg(wind_angle) + "<span class='wind_font'>" + wind_speed + "</span>";
+			if ((wind_angle >= 140 && wind_angle <= 320) || wind_speed >= 20){
+			    document.getElementById(adr).style.backgroundColor = wind_color[Math.min(Math.floor(wind_speed/5), 12)];
+			    } else {
+			    document.getElementById(adr).style.backgroundColor = "khaki";
+			    }
+			}
+		}
+	}
+  }
+ function show_wind() {
+    thermal_wind_switch = document.getElementById("wind_therm_chk").checked;
+    if (thermal_wind_switch) {
+        mode = "thermal";
+    } else {
+        mode = "wind";
+    }
+    setTimeout(function (){load_data()}, 200);
+}
+function load_data()
+    {clear_table();
+    document.getElementById("b2").innerHTML = weekday[h.getDay() + day] + " >";
+    if (mode == "thermal")
+        {load_thermal_model();}
+        else {load_wind();}
+    }
 </script>
 <div class="overview" id="overview">
     <button class="button1" id="my-div0" onclick="show_forecast(0)"><img src="/images/thomaskamps/thermal_button0.png"></button>
@@ -108,10 +194,23 @@ async function load_thermal_model()
 </div>
 <h3>Thermik und Temp</h3>
 <div id="display_temp"><img src="/images/thomaskamps/forecast0.png"></div>
-<h3>Wind</h3>
-<div id="display_wind"><img src="/images/thomaskamps/meteo_wind0.png"></div>
-<h3>Thermik-Modell: <a id="b2" onclick="new_day()">load</a></h3>
-<table>
+<h3><span id="b3">Thermik-Modell</span>: <a id="b2" onclick="new_day()"></a></h3>
+<span>Wind  </span><label class="switch" id="wind_therm_select" onclick="show_wind()" ><input type="checkbox" id="wind_therm_chk" checked><span class="slider"></span></label><span>  Thermik</span>
+<table class = "thermal_model">
+    <tr>
+        <th id="3000">Cloud</th>
+        <td id="3000-10"></td>
+        <td id="3000-11"></td>
+        <td id="3000-12"></td>
+        <td id="3000-13"></td>
+        <td id="3000-14"></td>
+        <td id="3000-15"></td>
+        <td id="3000-16"></td>
+        <td id="3000-17"></td>
+        <td id="3000-18"></td>
+        <td id="3000-19"></td>
+        <td id="3000-20"></td>
+    </tr>
     <tr>
         <th>2'800</th>
         <td id="2800-10"></td>

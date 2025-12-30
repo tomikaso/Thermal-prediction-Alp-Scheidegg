@@ -243,8 +243,8 @@ function changeColor(i) {
 }
 function arrow_svg(angle){
       var pi180 = Math.PI / 180;
-      let r = 5
-      let padd = 1
+      let r = 5;
+      let padd = 1;
       let ax = r + padd - Math.sin(angle * pi180) * r;
       let ay = r + padd + Math.cos(angle * pi180) * r;
       let a2x = r + padd - Math.sin((angle + 180) * pi180) * r * 0.2;

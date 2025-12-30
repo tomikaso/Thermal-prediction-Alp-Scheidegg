@@ -1,15 +1,16 @@
 import ftplib
 import math
 from datetime import datetime
-
 import json
 import requests
 from PIL import Image, ImageDraw, ImageFont
 from thermal_model import thermal_model
+from wind_interpolation import wind_interpolation
 import constants
 
 # initialize variable
 model_html_string = []
+wind_html_string = []
 temp = []
 dew_point = []
 wind = []
@@ -244,9 +245,6 @@ def effective_sun(sun, start_angle, hrs):
 # create thermal data lines
 def create_thermal_data(index):
     # model-variables
-    t1 = 0.6  # at this point thermals begin to be usable
-    tm = 1.2  # maximum possible temp
-    tf = 5  # temp factor
     distance = 0
     bise = 0
     bise_start = 0
@@ -277,6 +275,18 @@ def create_thermal_data(index):
             # append model-data
             for model_data in model.html_string:
                 model_html_string.append('DAY' + str(j) + 'LT' + str(k + 10) + 'H' + model_data + ',')
+
+            # call wind interpolation
+            w_data = wind_interpolation(wind700[index + k], wind_dir700[index + k],
+                                        wind1000[index + k], wind_dir1000[index + k],
+                                        wind1500[index + k], wind_dir1500[index + k],
+                                        wind1900[index + k], wind_dir1900[index + k],
+                                        wind3000[index + k], wind_dir3000[index + k],
+                                        wind4200[index + k], wind_dir4200[index + k])
+            # append wind-data
+            for wind_data in w_data.html_string:
+                wind_html_string.append('DAY' + str(j) + 'LT' + str(k + 10)
+                                        + 'H' + wind_data + ',')
 
             # standard calculations
             content = time[index + k][11:]
@@ -425,106 +435,6 @@ def create_thermal_data(index):
     ov_potential.append(distance)
     ov_remark.append(extra_text)
     soar_potential.append(soar_pot)
-
-
-# functions for the wind-diagram
-def wind_diagram(index):
-    pad = 4  # extra-Padding
-    c = 0
-    while c < 17:
-        # headline
-        img1.text((2 * border + c * col, border + pad), str(c + 6) + ":00", (20, 20, 20), font=font)
-        # wind
-        box = ((2 * border + c * col - pad, border - pad + 2 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 2.8 * ty / lines))
-        img1.rectangle(box, fill=wind_color(wind4200[index + c], wind_dir4200[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 2 * ty / lines), str(int(wind4200[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 2 * ty / lines, wind_dir4200[index + c]),
-            fill='dimgrey')
-
-        box = ((2 * border + c * col - pad, border - pad + 3 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 3.8 * ty / lines))
-        img1.rectangle(box, fill=wind_color(wind3000[index + c], wind_dir3000[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 3 * ty / lines), str(int(wind3000[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 3 * ty / lines, wind_dir3000[index + c]),
-            fill='dimgrey')
-
-        box = ((2 * border + c * col - pad, border - pad + 4 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 4.8 * ty / lines))
-        img1.rectangle(box, fill=wind_color(wind1900[index + c], wind_dir1900[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 4 * ty / lines), str(int(wind1900[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 4 * ty / lines, wind_dir1900[index + c]),
-            fill='dimgrey')
-
-        box = ((2 * border + c * col - pad, border - pad + 5 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 5.8 * ty / lines))
-        img1.rectangle(box, fill=wind_color(wind1500[index + c], wind_dir1500[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 5 * ty / lines), str(int(wind1500[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 5 * ty / lines, wind_dir1500[index + c]),
-            fill='dimgrey')
-
-        box = ((2 * border + c * col - pad, border - pad + 6 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 6.8 * ty / lines))
-        img1.rectangle(box, fill=wind_color(wind1000[index + c], wind_dir1000[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 6 * ty / lines), str(int(wind1000[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 6 * ty / lines, wind_dir1000[index + c]),
-            fill='dimgrey')
-        # clouds
-        clouds_l = int(abs(cloud_cover_low[index + c] / 12.5))
-        clouds_m = int(abs(cloud_cover_mid[index + c] / 12.5))
-        clouds_h = int(abs(cloud_cover_high[index + c] / 12.5))
-        rain = precipitation[index + c]
-        # clouds_high
-        box = ((2 * border + c * col - pad, border - pad + 8 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 8.8 * ty / lines))
-        img1.rectangle(box, fill=cloud_color(clouds_h / 2, rain), outline='white')  # less color for high clouds
-        img1.text((2 * border + c * col, border + 8 * ty / lines), "  " + str(clouds_h), (20, 20, 20), font=font)
-        # clouds_mid
-        box = ((2 * border + c * col - pad, border - pad + 9 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 9.8 * ty / lines))
-        img1.rectangle(box, fill=cloud_color(clouds_m, rain), outline='white')
-        img1.text((2 * border + c * col, border + 9 * ty / lines), "  " + str(clouds_m), (20, 20, 20), font=font)
-        # clouds_low
-        box = ((2 * border + c * col - pad, border - pad + 10 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 10.8 * ty / lines))
-        img1.rectangle(box, fill=cloud_color(clouds_l, rain), outline='white')
-        img1.text((2 * border + c * col, border + 10 * ty / lines), "  " + str(clouds_l), (20, 20, 20), font=font)
-        # Temp until 3'000 meter
-        grad3000 = -int(100 * ((temp3000[index + c] - temp1900[index + c]) / 11)) / 100
-        box = ((2 * border + c * col - pad, border - pad + 12 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 12.8 * ty / lines))
-        img1.rectangle(box, fill=temp_color(grad3000), outline='white')
-        img1.text((2 * border + c * col, border + 12 * ty / lines), str(grad3000), (20, 20, 20), font=font)
-        # Temp until 1'900 meter
-        grad1900 = -int(100 * ((temp1900[index + c] - temp1000[index + c]) / 9)) / 100
-        box = ((2 * border + c * col - pad, border - pad + 13 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 13.8 * ty / lines))
-        img1.rectangle(box, fill=temp_color(grad1900), outline='white')
-        img1.text((2 * border + c * col, border + 13 * ty / lines), str(grad1900), (20, 20, 20), font=font)
-        # Süd-Nord-Überdruck
-        sn_diff = pressure_msl_locarno[index + c] - pressure_msl[index + c]
-        box = ((2 * border + c * col - pad, border - pad + 14 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 14.8 * ty / lines))
-        img1.rectangle(box, fill=wind_color(max(0, (8 * sn_diff)), 270), outline='white')
-        img1.text((2 * border + c * col, border + 14 * ty / lines), str(int(sn_diff + 0.5)) + "hPa", (20, 20, 20),
-                  font=font)
-        c = c + 1
-    z = 0
-    categories = ["Wind (km/h)", "4200", "3000", "1900", "1500", "1000", "Wolken (Achtel)", "hoch", "mittel", "tief"
-        , "Temp (°C/100m)", "3000", "1900", "Föhn", ""]
-    while z < 14:
-        img1.text((border, border + (z + 1) * ty / lines), categories.pop(0), (20, 20, 20), font=font)
-        z = z + 1
 
 
 # here we start
@@ -694,20 +604,6 @@ while i < len(time) and j < 5:
             ov_days.append("7")
         else:
             ov_days.append(x.strftime("%w"))
-        # the second image for the wind
-        img = Image.new("RGB", (w, h), color=(250, 250, 250, 250))
-        img1 = ImageDraw.Draw(img)
-        img1.rectangle(shape, fill="#ffffff", outline="white")
-        wind_diagram(i - 8)  # 14:00 - 8 = 06:00Uhr
-        if j < 2:
-            img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-                      + ", ICON-D2, run: " + icon_d2 + ". updated: " + now.strftime("%d/%m/%Y %H:%M")
-                      + " CET", (20, 20, 20), font=font)
-        else:
-            img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-                      + ", ICON-EU (7km), run: " + icon_eu + ". updated: " + now.strftime("%d/%m/%Y %H:%M")
-                      + " CET", (20, 20, 20), font=font)
-        img.save("/var/www/html/thermals/meteo_wind" + str(j) + ".png")
 
         # reset variables
         j = j + 1
@@ -763,6 +659,14 @@ result_file = open(image_path + "thermal_data.txt", "w")
 result_file.write(final_string)
 result_file.close()
 
+# create csv with the interpolated wind data
+final_string = ''
+for data in wind_html_string:
+    final_string += data
+file = open(image_path + "wind_data.txt", "w")
+file.write(final_string)
+file.close()
+
 print("Hoi Thomas")
 # send it to DCZO-webserver
 session = ftplib.FTP('ftp.dczo.ch', constants.ftp_user, constants.ftp_pw)
@@ -771,33 +675,25 @@ file1 = open('/var/www/html/thermals/forecast1.png', 'rb')  # file to send
 file2 = open('/var/www/html/thermals/forecast2.png', 'rb')  # file to send
 file3 = open('/var/www/html/thermals/forecast3.png', 'rb')  # file to send
 file4 = open('/var/www/html/thermals/forecast4.png', 'rb')  # file to send
-wind_file0 = open('/var/www/html/thermals/meteo_wind0.png', 'rb')  # wind_file to send
-wind_file1 = open('/var/www/html/thermals/meteo_wind1.png', 'rb')  # wind_file to send
-wind_file2 = open('/var/www/html/thermals/meteo_wind2.png', 'rb')  # wind_file to send
-wind_file3 = open('/var/www/html/thermals/meteo_wind3.png', 'rb')  # wind_file to send
-wind_file4 = open('/var/www/html/thermals/meteo_wind4.png', 'rb')  # wind_file to send
 ovr_file0 = open('/var/www/html/thermals/thermal_button0.png', 'rb')  # overview0 to send
 ovr_file1 = open('/var/www/html/thermals/thermal_button1.png', 'rb')  # overview1 to send
 ovr_file2 = open('/var/www/html/thermals/thermal_button2.png', 'rb')  # overview2 to send
 ovr_file3 = open('/var/www/html/thermals/thermal_button3.png', 'rb')  # overview3 to send
 ovr_file4 = open('/var/www/html/thermals/thermal_button4.png', 'rb')  # overview4 to send
 therm_model = open('/var/www/html/thermals/thermal_data.txt', 'rb')  # thermal_model to send
+wind_model = open('/var/www/html/thermals/wind_data.txt', 'rb')  # thermal_model to send
 session.storbinary('STOR forecast0.png', file)  # send the file
 session.storbinary('STOR forecast1.png', file1)  # send the file
 session.storbinary('STOR forecast2.png', file2)  # send the file
 session.storbinary('STOR forecast3.png', file3)  # send the file
 session.storbinary('STOR forecast4.png', file4)  # send the file
-session.storbinary('STOR meteo_wind0.png', wind_file0)  # send the file
-session.storbinary('STOR meteo_wind1.png', wind_file1)  # send the file
-session.storbinary('STOR meteo_wind2.png', wind_file2)  # send the file
-session.storbinary('STOR meteo_wind3.png', wind_file3)  # send the file
-session.storbinary('STOR meteo_wind4.png', wind_file4)  # send the file
 session.storbinary('STOR thermal_button0.png', ovr_file0)  # send the file
 session.storbinary('STOR thermal_button1.png', ovr_file1)  # send the file
 session.storbinary('STOR thermal_button2.png', ovr_file2)  # send the file
 session.storbinary('STOR thermal_button3.png', ovr_file3)  # send the file
 session.storbinary('STOR thermal_button4.png', ovr_file4)  # send the file
 session.storbinary('STOR thermal_data.txt', therm_model)  # send the file
+session.storbinary('STOR wind_data.txt', wind_model)  # send the file
 file.close()  # close file and FTP
 session.quit()
 print("files sent to DCZO")
