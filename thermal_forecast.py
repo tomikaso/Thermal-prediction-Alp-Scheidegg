@@ -24,7 +24,7 @@ now = datetime.now()
 col = 60
 lines = 14
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
-sunset = {1: 16, 2: 17, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
+sunset = {1: 17, 2: 18, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
 
 
 # get the data
@@ -34,6 +34,7 @@ def get_meteo():
         y = requests.get('https://api.open-meteo.com/v1/forecast?latitude=47.289&longitude=8.915&'  # Wald ZH
                          'hourly=temperature_2m,wind_speed_10m,wind_direction_10m,dew_point_2m,pressure_msl,'
                          'direct_radiation,precipitation,cloud_cover_low,cloud_cover_mid,cloud_cover_high,'
+                         'temperature_950hPa,dew_point_950hPa,wind_speed_950hPa,wind_direction_950hPa,'
                          'temperature_900hPa,dew_point_900hPa,wind_speed_900hPa,wind_direction_900hPa,'
                          'temperature_850hPa,dew_point_850hPa,wind_speed_850hPa,wind_direction_850hPa,'
                          'temperature_800hPa,dew_point_800hPa,wind_speed_800hPa,wind_direction_800hPa,'
@@ -266,7 +267,7 @@ def create_thermal_data(index):
                       ' LT    km/h            l-m-h  °/100m   m/s   m', (20, 20, 20), font=font)
         else:
             # call thermal model
-            model = thermal_model(temp700[index + k], dew700[index + k], temp1000[index + k], dew1000[index + k],
+            model = thermal_model(temp500[index + k], dew500[index + k], temp1000[index + k], dew1000[index + k],
                                   temp1500[index + k], dew1500[index + k], temp1900[index + k], dew1900[index + k],
                                   temp3000[index + k], dew3000[index + k], temp4200[index + k], dew4200[index + k],
                                   temp5600[index + k], dew5600[index + k], 1240, 1400, radiation[index + k],
@@ -277,7 +278,7 @@ def create_thermal_data(index):
                 model_html_string.append('DAY' + str(j) + 'LT' + str(k + 10) + 'H' + model_data + ',')
 
             # call wind interpolation
-            w_data = wind_interpolation(wind700[index + k], wind_dir700[index + k],
+            w_data = wind_interpolation(wind500[index + k], wind_dir500[index + k],
                                         wind1000[index + k], wind_dir1000[index + k],
                                         wind1500[index + k], wind_dir1500[index + k],
                                         wind1900[index + k], wind_dir1900[index + k],
@@ -323,11 +324,8 @@ def create_thermal_data(index):
             tmp = -int(100 * ((temp1900[index + k] - temp1000[index + k]) / 9)) / 100
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp),
                       (20, 20, 20), font=font)
-            # temp beneath of Alp Scheidegg
-            temp_below = (temp1500[index + k] - temp700[index + k]) / (1500 - 694) * -100
             # lift
             if wind1500[index + k] <= 25 and wind1900[index + k] <= 30:  # not too much wind for thermals
-                begin_factor = pow(max(0, temp_below - 0.5), 0.1)
                 lift = model.average_lift
                 content = str(lift)
             else:
@@ -443,7 +441,7 @@ forcast_payload = get_meteo()
 hourly = forcast_payload["hourly"]
 time = hourly["time"]
 # temperatures
-temp700 = cleanse_array(hourly["temperature_2m"])
+temp500 = cleanse_array(hourly["temperature_950hPa"])
 temp1000 = cleanse_array(hourly["temperature_900hPa"])
 temp1500 = cleanse_array(hourly["temperature_850hPa"])
 temp1900 = cleanse_array(hourly["temperature_800hPa"])
@@ -451,7 +449,7 @@ temp3000 = cleanse_array(hourly["temperature_700hPa"])
 temp4200 = cleanse_array(hourly["temperature_600hPa"])
 temp5600 = cleanse_array(hourly["temperature_500hPa"])
 # dew-points
-dew700 = cleanse_array(hourly["dew_point_2m"])
+dew500 = cleanse_array(hourly["dew_point_950hPa"])
 dew1000 = cleanse_array(hourly["dew_point_900hPa"])
 dew1500 = cleanse_array(hourly["dew_point_850hPa"])
 dew1900 = cleanse_array(hourly["dew_point_800hPa"])
@@ -459,7 +457,7 @@ dew3000 = cleanse_array(hourly["dew_point_700hPa"])
 dew4200 = cleanse_array(hourly["dew_point_600hPa"])
 dew5600 = cleanse_array(hourly["dew_point_500hPa"])
 # wind-speeds
-wind700 = cleanse_array(hourly["wind_speed_10m"])
+wind500 = cleanse_array(hourly["wind_speed_950hPa"])
 wind1000 = cleanse_array(hourly["wind_speed_900hPa"])
 wind1500 = cleanse_array(hourly["wind_speed_850hPa"])
 wind1900 = cleanse_array(hourly["wind_speed_800hPa"])
@@ -467,7 +465,7 @@ wind3000 = cleanse_array(hourly["wind_speed_700hPa"])
 wind4200 = cleanse_array(hourly["wind_speed_600hPa"])
 wind5600 = cleanse_array(hourly["wind_speed_500hPa"])
 # wind-direction
-wind_dir700 = cleanse_array(hourly["wind_direction_10m"])
+wind_dir500 = cleanse_array(hourly["wind_direction_950hPa"])
 wind_dir1000 = cleanse_array(hourly["wind_direction_900hPa"])
 wind_dir1500 = cleanse_array(hourly["wind_direction_850hPa"])
 wind_dir1900 = cleanse_array(hourly["wind_direction_800hPa"])
@@ -529,8 +527,8 @@ while i < len(time) and j < 5:
         # fix scale
         offset = - int(temp1900[i] / 10)  # for negative temperatures 1, then 0 for low positive and +1 if hot.
         # create lists for the emagramm
-        temp.append(700)
-        temp.append(temp700[i])
+        temp.append(500)
+        temp.append(temp500[i])
         temp.append(1000)
         temp.append(temp1000[i])
         temp.append(1500)
@@ -544,8 +542,8 @@ while i < len(time) and j < 5:
         temp.append(5600)
         temp.append(temp5600[i])
         # now the dew_point ;-)
-        dew_point.append(700)
-        dew_point.append(dew700[i])
+        dew_point.append(500)
+        dew_point.append(dew500[i])
         dew_point.append(1000)
         dew_point.append(dew1000[i])
         dew_point.append(1500)
@@ -559,9 +557,9 @@ while i < len(time) and j < 5:
         dew_point.append(5600)
         dew_point.append(dew5600[i])
         # finally the wind
-        wind.append(700)
-        wind.append(wind700[i])
-        wind.append(wind_dir700[i])
+        wind.append(500)
+        wind.append(wind500[i])
+        wind.append(wind_dir500[i])
         wind.append(1000)
         wind.append(wind1000[i])
         wind.append(wind_dir1000[i])
