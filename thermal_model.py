@@ -54,6 +54,7 @@ class thermal_model:
         self.__updraft = []
         calculation_base = max(self.start_level, start_height - 500)
         condensed = 0
+        updraft = 0
         self.html_string.clear()
         i = self.__start_level
         while i <= 5600:
@@ -101,10 +102,11 @@ class thermal_model:
                     self.__condensation.append('no')
                 else:
                     self.__condensation.append('yes')
+                    factor = max(1, 2 - updraft)  # the weaker the updraft, the more mixes ambient air into the parcel
                     # condensation case
                     self.__parcel_temps.append(self.__parcel_temps[-1] - moisture_adiabatic)
-                    self.__parcel_dews.append(self.__parcel_temps[-1] * (1 - mixing_wet)
-                                              + mixing_wet * self.__dews[-1])
+                    self.__parcel_dews.append((self.__parcel_dews[-1] - moisture_adiabatic) * (1 - mixing_wet * factor)
+                                              + mixing_wet * factor * self.__dews[-1])
 
             #  density of the air parcel
             self.__parcel_density.append(density(alt2pres(i), self.__parcel_temps[-1],

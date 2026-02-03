@@ -1,12 +1,14 @@
-import requests
-import json
 import math
-from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
+import json
+import requests
+from PIL import Image, ImageDraw, ImageFont
 from thermal_model import thermal_model
+from wind_interpolation import wind_interpolation
 
 # initialize variable
 model_html_string = []
+wind_html_string = []
 temp = []
 dew_point = []
 wind = []
@@ -15,13 +17,12 @@ ov_days = []
 ov_potential = []
 ov_remark = []
 soar_potential = []
-
 now = datetime.now()
 # for the data grid
 col = 60
 lines = 14
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
-
+sunset = {1: 17, 2: 18, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
 
 
 # get the data
@@ -31,14 +32,14 @@ def get_meteo():
         y = requests.get('https://api.open-meteo.com/v1/forecast?latitude=47.289&longitude=8.915&'  # Wald ZH
                          'hourly=temperature_2m,wind_speed_10m,wind_direction_10m,dew_point_2m,pressure_msl,'
                          'direct_radiation,precipitation,cloud_cover_low,cloud_cover_mid,cloud_cover_high,'
+                         'temperature_950hPa,dew_point_950hPa,wind_speed_950hPa,wind_direction_950hPa,'
                          'temperature_900hPa,dew_point_900hPa,wind_speed_900hPa,wind_direction_900hPa,'
                          'temperature_850hPa,dew_point_850hPa,wind_speed_850hPa,wind_direction_850hPa,'
                          'temperature_800hPa,dew_point_800hPa,wind_speed_800hPa,wind_direction_800hPa,'
                          'temperature_700hPa,dew_point_700hPa,wind_speed_700hPa,wind_direction_700hPa,'
                          'temperature_600hPa,dew_point_600hPa,wind_speed_600hPa,wind_direction_600hPa,'
                          'temperature_500hPa,dew_point_500hPa,wind_speed_500hPa,wind_direction_500hPa,'
-                         'weather_code,freezing_level_height&timezone=Europe%2FBerlin&models=meteoswiss_icon_ch2,'
-                         'meteoswiss_icon_ch1,meteoswiss_icon_seamless', timeout=10)
+                         'weather_code,freezing_level_height&timezone=Europe%2FBerlin&models=icon_seamless', timeout=10)
         response = json.loads(y.text)
         return response
     except requests.exceptions.ConnectTimeout:
@@ -71,13 +72,23 @@ def get_meteo_locarno():
 
         return response_locarno
     except requests.exceptions.ConnectTimeout:
-        print("ICON API timed out.")
+        print("ICON API Locarno timed out.")
         status = 'offline'
+
+
+def get_meta_data(url):
+    try:
+        y = requests.get(url)
+        response = json.loads(y.text)
+        ts = int(response['last_run_availability_time'])
+        return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M') + ' CET'
+    except requests.exceptions.ConnectTimeout:
+        print("ICON API timed out.")
 
 
 def thermal_visualisation(temp):
     data = [(-100, 'Inversion', 'thistle'), (-0.1, 'isotherm', 'PowderBlue'), (0.1, 'sehr stabil', 'paleturquoise'),
-            (0.3, 'stabil', 'lightcyan'), (0.5, 'beginnend labil', 'azure'), (0.6, 'etwas labil', 'palegreen'),
+            (0.3, 'stabil', 'lightcyan'), (0.5, 'eher stabil', 'azure'), (0.6, 'etwas labil', 'palegreen'),
             (0.7, 'labil', 'greenyellow'), (0.8, 'sehr labil', 'chartreuse'), (1, 'hyperlabil', 'yellowgreen')]
     i = 0
     cont = 'unknown'
@@ -140,7 +151,7 @@ def draw_wind(wind):
     while len(wind) > 0:
         direction = wind.pop()
         strength = int(wind.pop())
-        hight = wind.pop()
+        height = wind.pop()
         if strength < 16 and 180 < direction < 320:
             dot_color = "limegreen"
         elif strength < 30:
@@ -149,15 +160,15 @@ def draw_wind(wind):
             dot_color = "tomato"
         # wind-arrow
         dx = wind_dot * 2.3 * math.sin(math.radians(direction + 180)) + tx + border
-        dy = - wind_dot * 2.3 * math.cos(math.radians(direction + 180)) + border + (hmax - hight) / hd * ty
+        dy = - wind_dot * 2.3 * math.cos(math.radians(direction + 180)) + border + (hmax - height) / hd * ty
         dx1 = wind_dot * 2 * math.sin(math.radians(direction + 320)) + tx + border
-        dy1 = - wind_dot * 2 * math.cos(math.radians(direction + 320)) + border + (hmax - hight) / hd * ty
+        dy1 = - wind_dot * 2 * math.cos(math.radians(direction + 320)) + border + (hmax - height) / hd * ty
         dx2 = wind_dot * 1 * math.sin(math.radians(direction)) + tx + border
-        dy2 = - wind_dot * 1 * math.cos(math.radians(direction)) + border + (hmax - hight) / hd * ty
+        dy2 = - wind_dot * 1 * math.cos(math.radians(direction)) + border + (hmax - height) / hd * ty
         dx3 = wind_dot * 2 * math.sin(math.radians(direction + 40)) + tx + border
-        dy3 = - wind_dot * 2 * math.cos(math.radians(direction + 40)) + border + (hmax - hight) / hd * ty
+        dy3 = - wind_dot * 2 * math.cos(math.radians(direction + 40)) + border + (hmax - height) / hd * ty
         img1.polygon([dx, dy, dx1, dy1, dx2, dy2, dx3, dy3], fill=dot_color)
-        img1.text((tx + border + wind_dot * 2, + border + (hmax - hight) / hd * ty - wind_dot * 1.5), str(strength),
+        img1.text((tx + border + wind_dot * 2, + border + (hmax - height) / hd * ty - wind_dot * 1.5), str(strength),
                   (20, 20, 20), font=font)
 
 
@@ -200,7 +211,7 @@ def wind_color(strength, direction):
 
 
 def cloud_color(octas, rain):
-    if rain > 0.5:
+    if rain > 0.1:
         color = ['white', 'powderblue', 'lightblue', 'cornflowerblue', 'royalblue', 'blue', 'darkblue', 'navy', 'navy']
     else:
         color = ['white', 'whitesmoke', 'gainsboro', 'lightgrey', 'lightgray', 'silver', 'darkgrey', 'darkgray', 'grey',
@@ -233,9 +244,6 @@ def effective_sun(sun, start_angle, hrs):
 # create thermal data lines
 def create_thermal_data(index):
     # model-variables
-    t1 = 0.6  # at this point thermals begin to be usable
-    tm = 1.2  # maximum possible temp
-    tf = 5  # temp factor
     distance = 0
     bise = 0
     bise_start = 0
@@ -252,24 +260,32 @@ def create_thermal_data(index):
             # headline
         if k == -1:
             img1.text((2 * border + tx + padding, border + ty / lines * (k + 1)),
-                      'Zeit    Wind   Sonne  Wolken   Temp   Lift   Basis   Soar', (20, 20, 20), font=font)
+                      'Zeit  Wind  Sonne  Wolken  Temp  Lift  Basis Soar', (20, 20, 20), font=font)
             img1.text((2 * border + tx + padding, border + 2.5 * padding + ty / lines * (k + 1)),
-                      ' LT     km/h                l-m-h    K/100m   m/s    m', (20, 20, 20), font=font)
+                      ' LT    km/h            l-m-h  °/100m   m/s   m', (20, 20, 20), font=font)
         else:
             # call thermal model
-            model = thermal_model(temp700[index + k], dew700[index + k], temp1000[index + k], dew1000[index + k],
+            model = thermal_model(temp500[index + k], dew500[index + k], temp1000[index + k], dew1000[index + k],
                                   temp1500[index + k], dew1500[index + k], temp1900[index + k], dew1900[index + k],
                                   temp3000[index + k], dew3000[index + k], temp4200[index + k], dew4200[index + k],
-                                  temp5600[index + k], dew5600[index + k],
-                                  1240, radiation[index + k], precipitation[index + k] - 0.1, weather_code)
+                                  temp5600[index + k], dew5600[index + k], 1240, 1400, radiation[index + k],
+                                  precipitation[index + k] - 0.1, weather_code[index + k])
+            model.show_results()  # Testcode!
             # append model-data
-            m_h = 600
             for model_data in model.html_string:
-                model_html_string.append('DAY' + str(j) + 'LT' + str(k+10) + 'H' + str(m_h) + ',' + model_data + ',')
-                m_h += 200
-            # Testcode: model.show_results()
-            print(model.html_string)
-            print('lift: ' + str(model.average_lift) + ' Base: ' + str(model.base_top))
+                model_html_string.append('DAY' + str(j) + 'LT' + str(k + 10) + 'H' + model_data + ',')
+
+            # call wind interpolation
+            w_data = wind_interpolation(wind500[index + k], wind_dir500[index + k],
+                                        wind1000[index + k], wind_dir1000[index + k],
+                                        wind1500[index + k], wind_dir1500[index + k],
+                                        wind1900[index + k], wind_dir1900[index + k],
+                                        wind3000[index + k], wind_dir3000[index + k],
+                                        wind4200[index + k], wind_dir4200[index + k])
+            # append wind-data
+            for wind_data in w_data.html_string:
+                wind_html_string.append('DAY' + str(j) + 'LT' + str(k + 10)
+                                        + 'H' + wind_data + ',')
 
             # standard calculations
             content = time[index + k][11:]
@@ -277,13 +293,13 @@ def create_thermal_data(index):
                       font=font)
             # wind
             wind_calc = (wind1000[index + k] + wind1500[index + k]) / 2
-            wind_calc_dir = wind_dir1500[index + k]
             press_diff = pressure_msl_locarno[index + k] - pressure_msl[index + k]
+            wind_calc_dir = wind_dir1500[index + k]
             content = str(int(wind_calc)) + wind_direction(wind_calc_dir)
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
-            sun = effective_sun(abs(radiation[index + k] / 8), 200, k+10)  # 200° - south start. k+10 is the time
+            sun = effective_sun(abs(radiation[index + k] / 8), 200, k + 10)  # 200° - south start. k+10 is the time
             img1.text((2 * border + tx + padding + col * 2, border + padding + ty / lines * (k + 1)), str(sun) + "%",
                       (20, 20, 20), font=font)
             # clouds
@@ -292,15 +308,23 @@ def create_thermal_data(index):
             clouds_h = int(abs(cloud_cover_high[index + k] / 12.5))
             img1.text((2 * border + tx + padding + col * 3, border + padding + ty / lines * (k + 1)),
                       str(clouds_l) + "-" + str(clouds_m) + "-" + str(clouds_h), (20, 20, 20), font=font)
+            # append cirrus: just one Line on 4'200 meter
+            moon = ''
+            if k + 10 >= sunset[int(now.strftime('%m'))]:  # take the night-symbols after sunset
+                moon = '_night'
+            if clouds_m < 2:
+                cloud = 'cirrus' + moon + '0' + str(clouds_h) + ','
+            else:
+                cloud = 'stratus' + moon + '0' + str(clouds_m) + ','
+            model_html_string.append('DAY' + str(j) + 'LT' + str(k + 10) + 'H4200,' + cloud)
+
             # temp
             tmp = -int(100 * ((temp1900[index + k] - temp1000[index + k]) / 9)) / 100
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp),
                       (20, 20, 20), font=font)
             # lift
-            if wind1500[index + k] <= 20 and wind1900[index + k] <= 25:  # condition for thermals
-                begin_factor = pow(max(0, (temp700[index + k] - temp1000[index + k] - 2.5)), 0.5)
+            if wind1500[index + k] <= 25 and wind1900[index + k] <= 30:  # not too much wind for thermals
                 lift = model.average_lift
-                 # lift = int(pow((max(0.0, ((max(0.0, (tmp - t1) / (tm - t1)) * tf + sun / 100) - 1)) * 2) * begin_factor, 0.7) * 10) / 10
                 content = str(lift)
             else:
                 lift = 0
@@ -334,32 +358,32 @@ def create_thermal_data(index):
                 wind_max = wind_calc
                 major_wind_dir = wind_calc_dir
             # base
-            base_hight = int(round((model.base_top / 50)) * 50)
+            base_height = int(round((model.base_top / 50)) * 50)
             if press_diff >= 4:
                 foehn = max(foehn, press_diff)
                 content = str(int(press_diff + 0.5)) + "hPa"
             elif cloud_cover_mid[index + k] < 0.1 and cloud_cover_low[index + k] < 0.1:
                 content = 'blau'
-            elif precipitation[index + k] > 0.5 and temp1000[index + k] >= 1:
+            elif precipitation[index + k] > 0.1 and temp1000[index + k] >= 1:
                 content = 'Regen'
-            elif precipitation[index + k] > 0.5 and temp1000[index + k] < 1:
+            elif precipitation[index + k] > 0.1 and temp1000[index + k] < 1:
                 content = 'Schnee'
             else:
                 if lift > 0:
-                    content = str(base_hight)
+                    content = str(base_height)
                 else:
                     content = "-"
             img1.text((2 * border + tx + padding + col * 6, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             if lift >= 1:  # root-function gets 1 with a base of 2'000 meters
-                distance = int(distance + 4 * lift * pow(max((base_hight - 1200), 0), 0.5) / 28.2)
+                distance = int(distance + 4 * lift * pow(max((base_height - 1200), 0), 0.5) / 28.2)
             elif lift > 0.5:
                 distance = distance + 1
             # soaring
             content = "-"
             font_color = (20, 20, 20)
             if (220 < wind_calc_dir <= 290) and foehn < 4.5 and (15 < wind_calc <= 35) and \
-                    wind1900[index + k] < 50 and (precipitation[index + k] + precipitation[index + k + 1] < 0.5):
+                    wind1900[index + k] < 50 and (precipitation[index + k] + precipitation[index + k + 1] < 0.1):
                 content = "GH"
                 if soar_pot == 0:
                     soar_pot = 1
@@ -371,6 +395,7 @@ def create_thermal_data(index):
                 if wind_calc > 25:
                     font_color = (255, 164, 20)  # orange
                     soar_pot = 3
+
             img1.text((2 * border + tx + padding + col * 7, border + padding + ty / lines * (k + 1)), content,
                       font_color, font=font)
         k = k + 1
@@ -407,115 +432,14 @@ def create_thermal_data(index):
     ov_remark.append(extra_text)
     soar_potential.append(soar_pot)
 
-# functions for the wind-diagram
-def wind_diagram(index):
-    pad = 4  # extra-Padding
-    c = 0
-    while c < 17:
-        # headline
-        img1.text((2 * border + c * col, border + pad), str(c + 6) + ":00", (20, 20, 20), font=font)
-        # wind
-        box = ((2 * border + c * col - pad, border - pad + 2 * ty / lines),
-               (2 * border + (c + 1) * col - pad, border - pad + 2.8 * ty / lines))
-        img1.rectangle(box, fill=wind_color(wind4200[index + c], wind_dir4200[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 2 * ty / lines), str(int(wind4200[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 2 * ty / lines, wind_dir4200[index + c]),
-            fill='dimgrey')
-
-        box1 = ((2 * border + c * col - pad, border - pad + 3 * ty / lines),
-                (2 * border + (c + 1) * col - pad, border - pad + 3.8 * ty / lines))
-        img1.rectangle(box1, fill=wind_color(wind3000[index + c], wind_dir3000[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 3 * ty / lines), str(int(wind3000[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 3 * ty / lines, wind_dir3000[index + c]),
-            fill='dimgrey')
-
-        box1 = ((2 * border + c * col - pad, border - pad + 4 * ty / lines),
-                (2 * border + (c + 1) * col - pad, border - pad + 4.8 * ty / lines))
-        img1.rectangle(box1, fill=wind_color(wind1900[index + c], wind_dir1900[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 4 * ty / lines), str(int(wind1900[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 4 * ty / lines, wind_dir1900[index + c]),
-            fill='dimgrey')
-
-        box1 = ((2 * border + c * col - pad, border - pad + 5 * ty / lines),
-                (2 * border + (c + 1) * col - pad, border - pad + 5.8 * ty / lines))
-        img1.rectangle(box1, fill=wind_color(wind1500[index + c], wind_dir1500[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 5 * ty / lines), str(int(wind1500[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 5 * ty / lines, wind_dir1500[index + c]),
-            fill='dimgrey')
-
-        box1 = ((2 * border + c * col - pad, border - pad + 6 * ty / lines),
-                (2 * border + (c + 1) * col - pad, border - pad + 6.8 * ty / lines))
-        img1.rectangle(box1, fill=wind_color(wind1000[index + c], wind_dir1000[index + c]), outline='white')
-        img1.text((2 * border + c * col + 6 * pad, border + 6 * ty / lines), str(int(wind1000[index + c])),
-                  (20, 20, 20), font=font)
-        img1.polygon(
-            calc_arrow(2 * border + c * col + 2 * pad, border + 3 * pad + 6 * ty / lines, wind_dir1000[index + c]),
-            fill='dimgrey')
-        # clouds
-        clouds_l = int(abs(cloud_cover_low[index + c] / 12.5))
-        clouds_m = int(abs(cloud_cover_mid[index + c] / 12.5))
-        clouds_h = int(abs(cloud_cover_high[index + c] / 12.5))
-        rain = precipitation[index + c]
-        # clouds_high
-        box1 = ((2 * border + c * col - pad, border - pad + 8 * ty / lines),
-                (2 * border + (c + 1) * col - pad, border - pad + 8.8 * ty / lines))
-        img1.rectangle(box1, fill=cloud_color(clouds_h / 2, rain), outline='white')  # less color for high clouds
-        img1.text((2 * border + c * col, border + 8 * ty / lines), "  " + str(clouds_h), (20, 20, 20), font=font)
-        # clouds_mid
-        box1 = ((2 * border + c * col - pad, border - pad + 9 * ty / lines),
-                (2 * border + (c + 1) * col - pad, border - pad + 9.8 * ty / lines))
-        img1.rectangle(box1, fill=cloud_color(clouds_m, rain), outline='white')
-        img1.text((2 * border + c * col, border + 9 * ty / lines), "  " + str(clouds_m), (20, 20, 20), font=font)
-        # clouds_low
-        box1 = ((2 * border + c * col - pad, border - pad + 10 * ty / lines),
-                (2 * border + (c + 1) * col - pad, border - pad + 10.8 * ty / lines))
-        img1.rectangle(box1, fill=cloud_color(clouds_l, rain), outline='white')
-        img1.text((2 * border + c * col, border + 10 * ty / lines), "  " + str(clouds_l), (20, 20, 20), font=font)
-        # Temp until 3'000 meter
-        grad3000 = -int(100 * ((temp3000[index + c] - temp1900[index + c]) / 11)) / 100
-        box1 = ((2 * border + c * col - pad, border - pad + 12 * ty / lines),
-                (2 * border + (c + 1) * col - pad, border - pad + 12.8 * ty / lines))
-        img1.rectangle(box1, fill=temp_color(grad3000), outline='white')
-        img1.text((2 * border + c * col, border + 12 * ty / lines), str(grad3000), (20, 20, 20), font=font)
-        # Temp until 1'900 meter
-        grad1900 = -int(100 * ((temp1900[index + c] - temp1000[index + c]) / 9)) / 100
-        box1 = ((2 * border + c * col - pad, border - pad + 13 * ty / lines),
-                (2 * border + (c + 1) * col - pad, border - pad + 13.8 * ty / lines))
-        img1.rectangle(box1, fill=temp_color(grad1900), outline='white')
-        img1.text((2 * border + c * col, border + 13 * ty / lines), str(grad1900), (20, 20, 20), font=font)
-        # Süd-Nord-Überdruck
-        sn_diff = pressure_msl_locarno[index + c] - pressure_msl[index + c]
-        box1 = ((2 * border + c * col - pad, border - pad + 14 * ty / lines), (2 * border + (c + 1) * col - pad,
-                                                                               border - pad + 14.8 * ty / lines))
-        img1.rectangle(box1, fill=wind_color(max(0, (8 * sn_diff)), 270), outline='white')
-        img1.text((2 * border + c * col, border + 14 * ty / lines), str(int(sn_diff + 0.5)) + "hPa", (20, 20, 20),
-                  font=font)
-        c = c + 1
-    z = 0
-    categories = ["Wind (km/h)", "4200", "3000", "1900", "1500", "1000", "Wolken (Achtel)", "hoch", "mittel", "tief"
-        , "Temp (°C/100m)", "3000", "1900", "Föhn", ""]
-    while z < 14:
-        img1.text((border, border + (z + 1) * ty / lines), categories.pop(0), (20, 20, 20), font=font)
-        z = z + 1
-
 
 # here we start
-meteo_forcast = get_meteo()
-print(meteo_forcast)
-forcast_dump = json.dumps(meteo_forcast)
-forcast_payload = json.loads(forcast_dump)
+forcast_payload = get_meteo()
+# print(meteo_forcast)
 hourly = forcast_payload["hourly"]
 time = hourly["time"]
 # temperatures
-temp700 = cleanse_array(hourly["temperature_2m_meteoswiss_icon_ch2"])
+temp500 = cleanse_array(hourly["temperature_950hPa"])
 temp1000 = cleanse_array(hourly["temperature_900hPa"])
 temp1500 = cleanse_array(hourly["temperature_850hPa"])
 temp1900 = cleanse_array(hourly["temperature_800hPa"])
@@ -523,7 +447,7 @@ temp3000 = cleanse_array(hourly["temperature_700hPa"])
 temp4200 = cleanse_array(hourly["temperature_600hPa"])
 temp5600 = cleanse_array(hourly["temperature_500hPa"])
 # dew-points
-dew700 = cleanse_array(hourly["dew_point_2m"])
+dew500 = cleanse_array(hourly["dew_point_950hPa"])
 dew1000 = cleanse_array(hourly["dew_point_900hPa"])
 dew1500 = cleanse_array(hourly["dew_point_850hPa"])
 dew1900 = cleanse_array(hourly["dew_point_800hPa"])
@@ -531,7 +455,7 @@ dew3000 = cleanse_array(hourly["dew_point_700hPa"])
 dew4200 = cleanse_array(hourly["dew_point_600hPa"])
 dew5600 = cleanse_array(hourly["dew_point_500hPa"])
 # wind-speeds
-wind700 = cleanse_array(hourly["wind_speed_10m"])
+wind500 = cleanse_array(hourly["wind_speed_950hPa"])
 wind1000 = cleanse_array(hourly["wind_speed_900hPa"])
 wind1500 = cleanse_array(hourly["wind_speed_850hPa"])
 wind1900 = cleanse_array(hourly["wind_speed_800hPa"])
@@ -539,7 +463,7 @@ wind3000 = cleanse_array(hourly["wind_speed_700hPa"])
 wind4200 = cleanse_array(hourly["wind_speed_600hPa"])
 wind5600 = cleanse_array(hourly["wind_speed_500hPa"])
 # wind-direction
-wind_dir700 = cleanse_array(hourly["wind_direction_10m"])
+wind_dir500 = cleanse_array(hourly["wind_direction_950hPa"])
 wind_dir1000 = cleanse_array(hourly["wind_direction_900hPa"])
 wind_dir1500 = cleanse_array(hourly["wind_direction_850hPa"])
 wind_dir1900 = cleanse_array(hourly["wind_direction_800hPa"])
@@ -555,13 +479,17 @@ cloud_cover_high = cleanse_array(hourly["cloud_cover_high"])
 pressure_msl = cleanse_array(hourly["pressure_msl"])
 weather_code = cleanse_array(hourly["weather_code"])
 freezing_level = cleanse_array(hourly["freezing_level_height"])
+
 # get Locarno Pressure-Reference
 meteo_forcast_locarno = get_meteo_locarno()
 print(meteo_forcast_locarno)
 forcast_dump_locarno = json.dumps(meteo_forcast_locarno)
 forcast_payload_locarno = json.loads(forcast_dump_locarno)
-hourly_locarno = cleanse_array(forcast_payload_locarno["hourly"])
+hourly_locarno = forcast_payload_locarno["hourly"]
 pressure_msl_locarno = cleanse_array(hourly_locarno["pressure_msl"])
+# get meta-data of the weather model
+icon_eu = get_meta_data('https://api.open-meteo.com/data/dwd_icon_eu/static/meta.json')
+icon_d2 = get_meta_data('https://api.open-meteo.com/data/dwd_icon_d2/static/meta.json')
 
 ###################
 # prepare diagram
@@ -582,11 +510,13 @@ font_el = ImageFont.truetype("arial.ttf", 64, encoding="unic")
 # font = ImageFont.load_default(size=20)
 # font_sm = ImageFont.load_default(size=10)
 
+
 # create new image
 img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
 # create rectangle image
-img1 = ImageDraw.Draw(img)  # Emagramm Image
+img1 = ImageDraw.Draw(img)
 img1.rectangle(shape, fill="#ffffff", outline="white")
+image_path = ""  # in the PasPi: "/var/www/html/thermals/"
 
 # get the data ready
 print(len(time))
@@ -599,8 +529,8 @@ while i < len(time) and j < 5:
         # fix scale
         offset = - int(temp1900[i] / 10)  # for negative temperatures 1, then 0 for low positive and +1 if hot.
         # create lists for the emagramm
-        temp.append(700)
-        temp.append(temp700[i])
+        temp.append(500)
+        temp.append(temp500[i])
         temp.append(1000)
         temp.append(temp1000[i])
         temp.append(1500)
@@ -614,8 +544,8 @@ while i < len(time) and j < 5:
         temp.append(5600)
         temp.append(temp5600[i])
         # now the dew_point ;-)
-        dew_point.append(700)
-        dew_point.append(dew700[i])
+        dew_point.append(500)
+        dew_point.append(dew500[i])
         dew_point.append(1000)
         dew_point.append(dew1000[i])
         dew_point.append(1500)
@@ -629,9 +559,9 @@ while i < len(time) and j < 5:
         dew_point.append(5600)
         dew_point.append(dew5600[i])
         # finally the wind
-        wind.append(700)
-        wind.append(wind700[i])
-        wind.append(wind_dir700[i])
+        wind.append(500)
+        wind.append(wind500[i])
+        wind.append(wind_dir500[i])
         wind.append(1000)
         wind.append(wind1000[i])
         wind.append(wind_dir1000[i])
@@ -659,25 +589,21 @@ while i < len(time) and j < 5:
         # create thermal data
         create_thermal_data(i - 4)  # 14:00 - 4 = 10:00 Uhr
         # title
-        img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-                  + ", data-source: open-meteo / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
-                  + " CET", (20, 20, 20), font=font)
+        if j < 2:
+            img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+                      + ", ICON-D2, run: " + icon_d2 + ", updated: " + now.strftime("%d/%m/%Y %H:%M")
+                      + " CET", (20, 20, 20), font=font)
+        else:
+            img1.text((10, 20), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
+                      + ", ICON-EU (7km), run: " + icon_eu + ", updated: " + now.strftime("%d/%m/%Y %H:%M")
+                      + " CET", (20, 20, 20), font=font)
         # save the image here
-        img.save("forecast" + str(j) + ".png")
+        img.save(image_path + "forecast" + str(j) + ".png")
         # remember the weekday for the overview
         if j == 0:
             ov_days.append("7")
         else:
             ov_days.append(x.strftime("%w"))
-        # the second image for the wind
-        img = Image.new("RGB", (w, h), color=(250, 250, 250, 250))
-        img1 = ImageDraw.Draw(img)
-        img1.rectangle(shape, fill="#ffffff", outline="white")
-        wind_diagram(i - 8)  # 14:00 - 8 = 06:00Uhr
-        img1.text((10, 25), "Alp Scheidegg forecast for " + x.strftime("%A, %d/%m/%Y")
-                  + ", data-source: open-meteo" + " / ICON. Last update: " + now.strftime("%d/%m/%Y %H:%M")
-                  + " CET", (20, 20, 20), font=font)
-        img.save("meteo_wind" + str(j) + ".png")
 
         # reset variables
         j = j + 1
@@ -690,6 +616,7 @@ while i < len(time) and j < 5:
         img1.rectangle(shape, fill="#ffffff", outline="white")
     i = i + 1
 print("Create overview")
+
 h = 180
 days = 5
 wov = int(w / days)
@@ -719,10 +646,10 @@ while i < days:
             color = 'orange'
         img1.ellipse((140, 15, 170, 45), fill=color)
         img1.text((141, 20), soar_text, (240, 240, 240), font=font)
-    img.save("thermal_button" + str(i) + ".png")
+    img.save(image_path + "thermal_button" + str(i) + ".png")
     i = i + 1
+
 # create csv with thermal updrafts
-image_path = ''
 final_string = ''
 for data in model_html_string:
     final_string += data
@@ -730,5 +657,11 @@ print(final_string)  # append model-data)
 result_file = open(image_path + "thermal_data.txt", "w")
 result_file.write(final_string)
 result_file.close()
-print("Hoi Thomas - everything done")
 
+# create csv with the interpolated wind data
+final_string = ''
+for data in wind_html_string:
+    final_string += data
+file = open(image_path + "wind_data.txt", "w")
+file.write(final_string)
+file.close()
