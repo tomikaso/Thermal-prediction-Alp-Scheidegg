@@ -90,21 +90,23 @@ class thermal_model:
                                           + mixing_dry * self.__dews[-1])
                 self.__condensation.append('no')
             else:
+                factor = max(1, 2 - updraft)  # the weaker the updraft, the more mixes ambient air into the parcel
                 if self.__temps[-1] > self.__parcel_dews[-1] + 0.5:
                     # no condensation case
                     if i <= mountain_top:  # add some energy as long as the peaks of the mountains are reached
                         self.__parcel_temps.append(self.__parcel_temps[-1] - dry_adiabatic
                                                    + std_pressure / alt2pres(i) * radiation / 2400)
                     else:
-                        self.__parcel_temps.append(self.__parcel_temps[-1] - dry_adiabatic)
-                    self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_dry)
-                                              + mixing_dry * self.__dews[-1])
+                        self.__parcel_temps.append((self.__parcel_temps[-1] - dry_adiabatic) * (1 - mixing_dry * factor)
+                                                   + mixing_dry * factor * self.__temps[-1])
+                    self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_dry * factor)
+                                              + mixing_dry * factor * self.__dews[-1])
                     self.__condensation.append('no')
                 else:
                     self.__condensation.append('yes')
-                    factor = max(1, 2 - updraft)  # the weaker the updraft, the more mixes ambient air into the parcel
                     # condensation case
-                    self.__parcel_temps.append(self.__parcel_temps[-1] - moisture_adiabatic)
+                    self.__parcel_temps.append((self.__parcel_temps[-1] - moisture_adiabatic)
+                                               * (1 - mixing_wet * factor) + mixing_wet * factor * self.__temps[-1])
                     self.__parcel_dews.append((self.__parcel_dews[-1] - moisture_adiabatic) * (1 - mixing_wet * factor)
                                               + mixing_wet * factor * self.__dews[-1])
 
