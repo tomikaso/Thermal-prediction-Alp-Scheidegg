@@ -1,7 +1,7 @@
 # thermal model to simulate a rising air parcel in the given atmosphere.
 import math
 
-updraft_factor = 40
+updraft_factor = 60
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
 mixing_dry = 0.15
