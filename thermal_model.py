@@ -1,7 +1,7 @@
 # thermal model to simulate a rising air parcel in the given atmosphere.
 import math
 
-updraft_factor = 60
+updraft_factor = 52
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
 mixing_dry = 0.15
@@ -127,7 +127,10 @@ class thermal_model:
                 else:
                     if self.__condensation[-1] == 'yes':
                         if 95 <= weather_cd < 100:
-                            self.html_string.append(str(i) + ',cloud_flash')
+                            if self.__temps[-1] >= 0:
+                                self.html_string.append(str(i) + ',cloud_flash')
+                            else:
+                                self.html_string.append(str(i) + ',cloud_flash_snow')
                         elif precipitation > 2:
                             if self.__temps[-1] >= 0:
                                 self.html_string.append(str(i) + ',cloud_rain2')
