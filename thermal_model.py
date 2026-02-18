@@ -42,7 +42,7 @@ class thermal_model:
     def __init__(self, temp_2m, dew_2m, temp_1000, dew_1000, temp_1500, dew_1500, temp_1900, dew_1900, temp_3000,
                  dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, mountain_top, radiation,
                  precipitation, weather_cd):
-        self.__start_level = 700
+        self.__start_level = 500
         self.__temps = []
         self.__dews = []
         self.__parcel_temps = []
@@ -121,7 +121,7 @@ class thermal_model:
             self.__updraft.append(updraft)
 
             # write out results
-            if i <= 4000 and i % 200 == 0:  # one data point each 200 meters
+            if 800 <= i <= 4000 and i % 200 == 0:  # one data point each 200 meters
                 if i <= calculation_base:
                     self.html_string.append(str(i) + ',Green')
                 else:
