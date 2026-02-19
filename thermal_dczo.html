@@ -1,0 +1,436 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>DCZO-local</title>
+  </head>
+  <style>
+.overview {
+  position: relative;
+  width: 100%;
+  margin: 0%;
+  border-radius: 5px;
+}
+
+    .button1 {
+        width: 18%;
+        background-color: transparent;
+        border-radius: 5px;
+        color: #444;
+        cursor: pointer;
+        transition-duration: 0.4s;
+    }
+        .button1:hover {
+            box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 10px 25px 0 rgba(0,0,0,0.19);
+        }
+    .active_button {
+       width: 18%;
+        background-color: transparent;
+        border-radius: 5px;
+        cursor: pointer;
+        border-color: #b00;
+    }
+    .thermal_model {line-height: 1.2;}
+    .switch {
+  position: relative;  display: inline-block;  width: 30px;  height: 17px;
+}
+.switch input {
+  opacity: 0;  width: 0;  height: 0;
+}
+.slider {
+  position: absolute;  cursor: pointer;  top: 0;  left: 0;  right: 0;  bottom: 0;  border-radius: 17px;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;  content: "";  height: 13px;  width: 13px;  left: 2px;  bottom: 2px;  border-radius: 50%;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: red;
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px red;
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(13px);
+  -ms-transform: translateX(13px);
+  transform: translateX(13px);
+}
+.wind_font {
+  font-size: 12px;
+  color: darkslategray;
+  padding: 0px 0px 0px 0px;
+}
+</style>
+	  <h1>Thermikprognose Alp Scheidegg</h1>
+	  <script>
+    const h = new Date();
+    let day = 0;
+    let mode = "thermal";
+    const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag", "Montag","Dienstag","Mittwoch","Donnerstag"];
+    const wind_color = ["limegreen", "springgreen", "lawngreen", "greenyellow", "yellow", "gold", "orange", "orangered", "tomato", "lightcoral", "indianred", "orchid", "darkorchid"];
+    const models = ["ICON-D2", "ICON-D2", "ICON-EU", "ICON-EU", "ICON-EU" , "ICON-EU"];
+    function datehour() {return h.getHours() + 100 * h.getDate() + 10000 * h.getMonth();}
+	function show_forecast(d) {
+					document.getElementById("display_temp").innerHTML = "<img src='/images/thomaskamps/forecast" + d + ".png?" + datehour() + "'>";
+					for (let j = 0; j <= 4; j++) {
+				document.getElementById("my-div" + j).className = "button1";
+document.getElementById("my-div" + j).innerHTML = "<img src='/images/thomaskamps/thermal_button" + j + ".png?" + datehour() + "'>";}
+
+					document.getElementById("my-div" + d).className  = "active_button";
+        day = d;
+        change_color(day);
+    load_data();}
+var thermlist = new Array();
+function col(lift){
+          		var l = parseFloat(lift);
+                if (l > 5 ){l = 5;}
+          		l = l * 30;
+                let r = 255 - l;
+                let fac = (15625 - (l - 125)**2) / 260;
+                return `rgba(${r}, ${r + fac}, ${r - fac}, 1)`
+                }
+function new_day(){day ++; if(day > 4){day=0;} clear_table(); show_forecast(day);change_color(day);}
+function clear_table(){ for (let t = 10; t<=20; t++){ for (let h = 800; h<=3000; h=h+200){
+      document.getElementById(h + "-" + t).innerHTML = ""; document.getElementById(h + "-" + t).style.backgroundColor = "white"}}}
+async function load_thermal_model()
+  {
+  let x = await fetch("/images/thomaskamps/thermal_data.txt?"+ datehour());
+  let y = await x.text();
+  thermlist = y.split(',');
+  let adr = "invalid";
+  let adr_flag = 0;
+  clear_table();
+  document.getElementById("3000").innerHTML = "Cloud";
+  document.getElementById("b3").innerHTML = "Thermik-Modell";
+  for (let t in thermlist)
+    {
+	if(thermlist[t].substring(0,3) == "DAY" && thermlist[t].substring(3,4) == day && (parseInt(thermlist[t].substring(9,13)) <= 2800 || parseInt(thermlist[t].substring(9,13)) == 4200))
+		{lt = thermlist[t].substring(6,8); height = thermlist[t].substring(9,13); if(height=='4200'){height='3000'}
+         adr = height + "-" + lt; adr_flag = 1;}
+	else
+		{
+		if (adr_flag == 1)
+			{
+			adr_flag = 0;
+            if(isNaN(thermlist[t]))
+				{
+				svg_adr = thermlist[t] + '.svg'
+				document.getElementById(adr).innerHTML = "<img src='/images/thomaskamps/svg/" + svg_adr + "'>";
+				}
+			else
+				{
+				document.getElementById(adr).innerHTML = thermlist[t];
+				document.getElementById(adr).style.backgroundColor = col(thermlist[t]);
+				}
+			}
+		}
+	 }
+  }
+ function arrow_svg(angle){
+      var pi180 = Math.PI / 180;
+      let r = 5;
+      let padd = 1;
+      let ax = r + padd - Math.sin(angle * pi180) * r;
+      let ay = r + padd + Math.cos(angle * pi180) * r;
+      let a2x = r + padd - Math.sin((angle + 180) * pi180) * r * 0.2;
+      let a2y = r + padd + Math.cos((angle + 180) * pi180) * r * 0.2;
+      let bx = r + padd - Math.sin((angle + 130) * pi180) * r * 0.8;
+      let by = r + padd + Math.cos((angle + 130) * pi180) * r * 0.8;
+      let cx = r + padd - Math.sin((angle - 130) * pi180) * r * 0.8;
+      let cy = r + padd + Math.cos((angle - 130) * pi180) * r * 0.8;
+      return `<svg height="10" width="10" xmlns=http://www.w3.org/2000/svg><polygon points="${cx},${cy} ${ax},${ay} ${bx},${by} ${a2x},${a2y}" fill = "darkslategray"></svg>`}
+async function load_wind()
+  {
+  let w = await fetch("/images/thomaskamps/wind_data.txt?"+ datehour());
+  let y = await w.text();
+  windlist = y.split(',');
+  document.getElementById("3000").innerHTML = "3'000";
+  document.getElementById("b3").innerHTML = "Windprognose, " + models[day];
+  let adr = "invalid";
+  let adr_flag = 0;
+  clear_table();
+  for (let t in windlist)
+    {
+	if(windlist[t].substring(0,3) == "DAY" && windlist[t].substring(3,4) == day && (parseInt(windlist[t].substring(9,13)) <= 3000))
+		{lt = windlist[t].substring(6,8); height = windlist[t].substring(9,13); adr = height + "-" + lt; adr_flag = 1;}
+	else
+		{
+		if (adr_flag == 1)
+			{
+			adr_flag = 0;
+			wind_speed = parseInt(windlist[t].substring(0,3));
+			wind_angle = parseInt(windlist[t].substring(6,9));
+			document.getElementById(adr).innerHTML = arrow_svg(wind_angle) + "<span class='wind_font'>" + wind_speed + "</span>";
+			if ((wind_angle >= 140 && wind_angle <= 320) || wind_speed >= 20){
+			    document.getElementById(adr).style.backgroundColor = wind_color[Math.min(Math.floor(wind_speed/5), 12)];
+			    } else {
+			    document.getElementById(adr).style.backgroundColor = "khaki";
+			    }
+			}
+		}
+	}
+  }
+ function show_wind() {
+    thermal_wind_switch = document.getElementById("wind_therm_chk").checked;
+    if (thermal_wind_switch) {
+        mode = "thermal";
+    } else {
+        mode = "wind";
+    }
+    setTimeout(function (){load_data()}, 500);
+}
+function load_data()
+    {clear_table();
+    document.getElementById("b2").innerHTML = weekday[h.getDay() + day] + " >";
+    if (mode == "thermal")
+        {load_thermal_model();}
+        else {load_wind();}
+    }
+var potarray = new Array();
+async function load_potential(){document.getElementById("display_temp").innerHTML = "<h3>loading...</h3>";
+        let x = await fetch('/images/thomaskamps/multitherm/potential.txt?'+ datehour());
+        let y = await x.text();
+        potarray = y.split(',');
+        setTimeout(function (){change_color(0)}, 300);
+        }
+function change_color(i) {
+   for (let l = 0; l <= 9; l++) {
+     document.getElementById("thermal" + l).style.backgroundColor = col(potarray[l + 10 * i]/25);
+     document.getElementById("thermal" + l).innerHTML = "<a class='km'>" + potarray[l + 10 * i] + "</a>";
+   } document.getElementById("weekday0").innerHTML = "<a class='km'>" + weekday[h.getDay() + day] + "</a>";
+}
+setTimeout(function (){load_potential()}, 200);
+setTimeout(function (){show_forecast(0)}, 1000);
+</script>
+	  <div class="overview" id="ov">
+		  <button class="button1" id="my-div0" onclick="show_forecast(0)"><img src="/images/thomaskamps/thermal_button0.png"></button>
+		  <button class="button1" id="my-div1" onclick="show_forecast(1)"><img src="/images/thomaskamps/thermal_button1.png"></button>
+		  <button class="button1" id="my-div2" onclick="show_forecast(2)"><img src="/images/thomaskamps/thermal_button2.png"></button>
+		  <button class="button1" id="my-div3" onclick="show_forecast(3)"><img src="/images/thomaskamps/thermal_button3.png"></button>
+		  <button class="button1" id="my-div4" onclick="show_forecast(4)"><img src="/images/thomaskamps/thermal_button4.png"></button>
+	  </div>
+	  <h3>Thermik und Temp</h3>
+	  <div id="display_temp"><img src="/images/thomaskamps/forecast0.png"></div>
+	  <h3><span id="b3">Thermik-Modell</span>: <a id="b2" onclick="new_day()"></a></h3>
+	  <span>Wind  </span><label class="switch" id="wind_therm_select" onclick="show_wind()" ><input type="checkbox" id="wind_therm_chk" checked><span class="slider"></span></label><span>  Thermik</span>
+	  <table class = "thermal_model">
+		  <tr>
+			  <th id="3000">Cloud</th>
+			  <td id="3000-10"></td>
+			  <td id="3000-11"></td>
+			  <td id="3000-12"></td>
+			  <td id="3000-13"></td>
+			  <td id="3000-14"></td>
+			  <td id="3000-15"></td>
+			  <td id="3000-16"></td>
+			  <td id="3000-17"></td>
+			  <td id="3000-18"></td>
+			  <td id="3000-19"></td>
+			  <td id="3000-20"></td>
+		  </tr>
+		  <tr>
+			  <th>2'800</th>
+			  <td id="2800-10"></td>
+			  <td id="2800-11"></td>
+			  <td id="2800-12"></td>
+			  <td id="2800-13"></td>
+			  <td id="2800-14"></td>
+			  <td id="2800-15"></td>
+			  <td id="2800-16"></td>
+			  <td id="2800-17"></td>
+			  <td id="2800-18"></td>
+			  <td id="2800-19"></td>
+			  <td id="2800-20"></td>
+		  </tr>
+		  <tr>
+			  <th>2'600</th>
+			  <td id="2600-10"></td>
+			  <td id="2600-11"></td>
+			  <td id="2600-12"></td>
+			  <td id="2600-13"></td>
+			  <td id="2600-14"></td>
+			  <td id="2600-15"></td>
+			  <td id="2600-16"></td>
+			  <td id="2600-17"></td>
+			  <td id="2600-18"></td>
+			  <td id="2600-19"></td>
+			  <td id="2600-20"></td>
+		  </tr>
+		  <tr>
+			  <th>2'400</th>
+			  <td id="2400-10"></td>
+			  <td id="2400-11"></td>
+			  <td id="2400-12"></td>
+			  <td id="2400-13"></td>
+			  <td id="2400-14"></td>
+			  <td id="2400-15"></td>
+			  <td id="2400-16"></td>
+			  <td id="2400-17"></td>
+			  <td id="2400-18"></td>
+			  <td id="2400-19"></td>
+			  <td id="2400-20"></td>
+		  </tr>
+		  <tr>
+			  <th>2'200</th>
+			  <td id="2200-10"></td>
+			  <td id="2200-11"></td>
+			  <td id="2200-12"></td>
+			  <td id="2200-13"></td>
+			  <td id="2200-14"></td>
+			  <td id="2200-15"></td>
+			  <td id="2200-16"></td>
+			  <td id="2200-17"></td>
+			  <td id="2200-18"></td>
+			  <td id="2200-19"></td>
+			  <td id="2200-20"></td>
+		  </tr>
+		  <tr>
+			  <th>2'000</th>
+			  <td id="2000-10"></td>
+			  <td id="2000-11"></td>
+			  <td id="2000-12"></td>
+			  <td id="2000-13"></td>
+			  <td id="2000-14"></td>
+			  <td id="2000-15"></td>
+			  <td id="2000-16"></td>
+			  <td id="2000-17"></td>
+			  <td id="2000-18"></td>
+			  <td id="2000-19"></td>
+			  <td id="2000-20"></td>
+		  </tr>
+		  <tr>
+			  <th>1'800</th>
+			  <td id="1800-10"></td>
+			  <td id="1800-11"></td>
+			  <td id="1800-12"></td>
+			  <td id="1800-13"></td>
+			  <td id="1800-14"></td>
+			  <td id="1800-15"></td>
+			  <td id="1800-16"></td>
+			  <td id="1800-17"></td>
+			  <td id="1800-18"></td>
+			  <td id="1800-19"></td>
+			  <td id="1800-20"></td>
+		  </tr>
+		  <tr>
+			  <th>1'600</th>
+			  <td id="1600-10"></td>
+			  <td id="1600-11"></td>
+			  <td id="1600-12"></td>
+			  <td id="1600-13"></td>
+			  <td id="1600-14"></td>
+			  <td id="1600-15"></td>
+			  <td id="1600-16"></td>
+			  <td id="1600-17"></td>
+			  <td id="1600-18"></td>
+			  <td id="1600-19"></td>
+			  <td id="1600-20"></td>
+		  </tr>
+		  <tr>
+			  <th>1'400</th>
+			  <td id="1400-10"></td>
+			  <td id="1400-11"></td>
+			  <td id="1400-12"></td>
+			  <td id="1400-13"></td>
+			  <td id="1400-14"></td>
+			  <td id="1400-15"></td>
+			  <td id="1400-16"></td>
+			  <td id="1400-17"></td>
+			  <td id="1400-18"></td>
+			  <td id="1400-19"></td>
+			  <td id="1400-20"></td>
+		  </tr>
+		  <tr>
+			  <th>1'200</th>
+			  <td id="1200-10"></td>
+			  <td id="1200-11"></td>
+			  <td id="1200-12"></td>
+			  <td id="1200-13"></td>
+			  <td id="1200-14"></td>
+			  <td id="1200-15"></td>
+			  <td id="1200-16"></td>
+			  <td id="1200-17"></td>
+			  <td id="1200-18"></td>
+			  <td id="1200-19"></td>
+			  <td id="1200-20"></td>
+		  </tr>
+		  <tr>
+			  <th>1'000</th>
+			  <td id="1000-10"></td>
+			  <td id="1000-11"></td>
+			  <td id="1000-12"></td>
+			  <td id="1000-13"></td>
+			  <td id="1000-14"></td>
+			  <td id="1000-15"></td>
+			  <td id="1000-16"></td>
+			  <td id="1000-17"></td>
+			  <td id="1000-18"></td>
+			  <td id="1000-19"></td>
+			  <td id="1000-20"></td>
+		  </tr>
+		  <tr>
+			  <th>800</th>
+			  <td id="800-10"></td>
+			  <td id="800-11"></td>
+			  <td id="800-12"></td>
+			  <td id="800-13"></td>
+			  <td id="800-14"></td>
+			  <td id="800-15"></td>
+			  <td id="800-16"></td>
+			  <td id="800-17"></td>
+			  <td id="800-18"></td>
+			  <td id="800-19"></td>
+			  <td id="800-20"></td>
+		  </tr>
+		  <tr>
+			  <th>H/Lt</th>
+			  <th> 10h </th>
+			  <th> 11h </th>
+			  <th> 12h </th>
+			  <th> 13h </th>
+			  <th> 14h </th>
+			  <th> 15h </th>
+			  <th> 16h </th>
+			  <th> 17h </th>
+			  <th> 18h </th>
+			  <th> 19h </th>
+			  <th> 20h </th>
+		  </tr>
+	  </table>
+<br>
+<style>
+.km {font-size: 14px; font-weight: bold; color: #314483;}
+.smalltherm {
+  position: relative; width: 100%; padding-top: 59%;
+  background-image: url('/images/thomaskamps/multitherm/swiss_outline_gr.png');background-size: 100%;
+  background-repeat: no-repeat; margin: 0px; border-radius: 0px; cursor: pointer; }
+.smov {position: absolute; width: 28px; height: 28px; margin: 0px; padding: 0px 0px 0px 0px; border-radius: 14px; border: 2px solid gainsboro; line-height: normal; text-align: center; }
+.thermal0 { left: 59%; top:  21%;}
+.thermal1 { left: 55%; top:  74%;}
+.thermal2 { left: 63%; top:  31%;}
+.thermal3 { left: 73%; top:  40%;}
+.thermal4 { left: 28%; top:  26%;}
+.thermal5 { left: 83%; top:  50%;}
+.thermal6 { left: 39%; top:  65%;}
+.thermal7 { left: 32%; top:  50%;}
+.thermal8 { left: 60%; top:  40%;}
+.thermal9 { left: 57%; top:  61%;}
+.weekday0 { left: 8%; top:  8%; width: 80px; background-color: #EEF6FA;}
+</style>
+<div class="smalltherm" id="overview" onclick="window.open('https://www.dczo.ch/startseite-des-dczo/thermikprognose', '_self')">
+	<span class="thermal0 smov" id="thermal0"><a class="km">AS</a></span>
+	<span class="thermal1 smov" id="thermal1"><a class="km">LO</a></span>
+	<span class="thermal3 smov" id="thermal3"><a class="km">PY</a></span>
+	<span class="thermal4 smov" id="thermal4"><a class="km">SO</a></span>
+	<span class="thermal5 smov" id="thermal5"><a class="km">SC</a></span>
+	<span class="thermal6 smov" id="thermal6"><a class="km">FI</a></span>
+	<span class="thermal7 smov" id="thermal7"><a class="km">NI</a></span>
+	<span class="thermal8 smov" id="thermal8"><a class="km">BR</a></span>
+	<span class="thermal2 smov" id="thermal2"><a class="km">HÜ</a></span>
+	<span class="thermal9 smov" id="thermal9"><a class="km">CA</a></span>
+	<span class="weekday0 smov" id="weekday0"><a class="km">Day-0</a></span>
+</div>
