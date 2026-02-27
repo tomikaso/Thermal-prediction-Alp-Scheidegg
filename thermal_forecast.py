@@ -331,7 +331,7 @@ def create_thermal_data(index):
             else:
                 lift = 0
                 content = "Wind"
-            if press_diff >= 4:  # no lift with foehn
+            if press_diff >= 4.5:  # no lift with foehn
                 lift = 0
                 content = str(lift)
             if lift >= 1:  # real thermals with green background
@@ -361,7 +361,7 @@ def create_thermal_data(index):
                 major_wind_dir = wind_calc_dir
             # base
             base_height = int(round((model.base_top / 50)) * 50)
-            if press_diff >= 4:
+            if press_diff >= 4.5:
                 foehn = max(foehn, press_diff)
                 content = str(int(press_diff + 0.5)) + "hPa"
             elif cloud_cover_mid[index + k] < 0.1 and cloud_cover_low[index + k] < 0.1:

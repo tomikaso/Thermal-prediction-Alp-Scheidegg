@@ -4,8 +4,8 @@ import math
 updraft_factor = 52
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
-mixing_dry = 0.15
-mixing_wet = 0.25
+mixing_dry = 0.12
+mixing_wet = 0.20
 std_pressure = 101325
 
 
