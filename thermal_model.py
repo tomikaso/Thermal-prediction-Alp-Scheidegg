@@ -1,13 +1,14 @@
 # thermal model to simulate a rising air parcel in the given atmosphere.
 import math
+from datetime import datetime
 
+# thermodynamic parameters
 updraft_factor = 52
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
 mixing_dry = 0.12
 mixing_wet = 0.20
 std_pressure = 101325
-
 
 # calculate density
 def density(pressure, temp, humi):
@@ -55,6 +56,20 @@ class thermal_model:
         calculation_base = max(self.start_level, start_height - 500)
         condensed = 0
         updraft = 0
+        # astro parameters for alpine starting places.
+        latitude = 47.255
+        longitude = 8.771
+        time = datetime.now()
+        post_winter_solstice = time.month * 30 + time.day - 20
+        if post_winter_solstice >= 360:
+            post_winter_solstice = post_winter_solstice - 360
+        maxdeclination = 90 - latitude - 23.5 * math.cos(post_winter_solstice / 360 * 6.28)
+        # calculate the distribution of sun in the valley and sub in the mountains from the declination of the sun
+        sun_valley = 2.0 - max(1.0, math.cos(maxdeclination / 360 * 6.282) + 0.6)
+        sun_mountain = max(1.0, math.cos(maxdeclination / 360 * 6.282) + 0.6)
+        if mountain_top < 2000:  # allow better sun distribution for alpine starting places.
+            sun_valley = 1
+            sun_mountain = 1
         self.html_string.clear()
         i = self.__start_level
         while i <= 5600:
@@ -85,7 +100,7 @@ class thermal_model:
                 self.__parcel_dews.append(dew_2m)
                 self.__condensation.append('no')
             elif calculation_base <= i < calculation_base + 100:  # add 1 Kelvin under perfect conditions
-                self.__parcel_temps.append(self.__temps[-1] + std_pressure / alt2pres(i) * radiation / 800)
+                self.__parcel_temps.append(self.__temps[-1] + sun_valley * std_pressure / alt2pres(i) * radiation / 800)
                 self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_dry)
                                           + mixing_dry * self.__dews[-1])
                 self.__condensation.append('no')
@@ -95,7 +110,7 @@ class thermal_model:
                     # no condensation case
                     if i <= mountain_top:  # add some energy as long as the peaks of the mountains are reached
                         self.__parcel_temps.append(self.__parcel_temps[-1] - dry_adiabatic
-                                                   + std_pressure / alt2pres(i) * radiation / 2400)
+                                                   + sun_mountain * std_pressure / alt2pres(i) * radiation / 2400)
                     else:
                         self.__parcel_temps.append((self.__parcel_temps[-1] - dry_adiabatic) * (1 - mixing_dry * factor)
                                                    + mixing_dry * factor * self.__temps[-1])
