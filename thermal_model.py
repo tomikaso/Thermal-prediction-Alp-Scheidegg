@@ -6,8 +6,8 @@ from datetime import datetime
 updraft_factor = 52
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
-mixing_dry = 0.12
-mixing_wet = 0.20
+mixing_dry = 0.10
+mixing_wet = 0.16
 std_pressure = 101325
 
 # calculate density
@@ -77,15 +77,15 @@ class thermal_model:
                 val2st = 1000 - self.__start_level  # valley to start level
                 self.__temps.append(temp_2m * (1000 - i) / val2st + temp_1000 * (i - self.__start_level) / val2st)
                 self.__dews.append(dew_2m * (1000 - i) / val2st + dew_1000 * (i - self.__start_level) / val2st)
-            if 1500 >= i > 1000:
-                self.__temps.append(temp_1000 * (1500 - i) / 500 + temp_1500 * (i - 1000) / 500)
-                self.__dews.append(dew_1000 * (1500 - i) / 500 + dew_1500 * (i - 1000) / 500)
-            elif 1900 >= i > 1500:
-                self.__temps.append(temp_1500 * (1900 - i) / 400 + temp_1900 * (i - 1500) / 400)
-                self.__dews.append(dew_1500 * (1900 - i) / 400 + dew_1900 * (i - 1500) / 400)
-            elif 3000 >= i > 1900:
-                self.__temps.append(temp_1900 * (3000 - i) / 1100 + temp_3000 * (i - 1900) / 1100)
-                self.__dews.append(dew_1900 * (3000 - i) / 1100 + dew_3000 * (i - 1900) / 1100)
+            if 1460 >= i > 1000:
+                self.__temps.append(temp_1000 * (1460 - i) / 460 + temp_1500 * (i - 1000) / 460)
+                self.__dews.append(dew_1000 * (1460 - i) / 460 + dew_1500 * (i - 1000) / 460)
+            elif 1930 >= i > 1460:
+                self.__temps.append(temp_1500 * (1930 - i) / 470 + temp_1900 * (i - 1460) / 470)
+                self.__dews.append(dew_1500 * (1930 - i) / 470 + dew_1900 * (i - 1460) / 470)
+            elif 3000 >= i > 1930:
+                self.__temps.append(temp_1900 * (3000 - i) / 1100 + temp_3000 * (i - 1930) / 1100)
+                self.__dews.append(dew_1900 * (3000 - i) / 1100 + dew_3000 * (i - 1930) / 1100)
             elif 4200 >= i > 3000:
                 self.__temps.append(temp_3000 * (4200 - i) / 1200 + temp_4200 * (i - 3000) / 1200)
                 self.__dews.append(dew_3000 * (4200 - i) / 1200 + dew_4200 * (i - 3000) / 1200)

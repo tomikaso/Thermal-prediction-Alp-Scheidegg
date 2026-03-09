@@ -29,7 +29,7 @@ start_height = [1200, 1500, 1020, 1950, 1440, 2150, 2200, 2200, 2050, 2280]
 flight_range_low = [1200, 1200, 1020, 1950, 1000, 2150, 1900, 2000, 2050, 2000]
 start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180, 190]
 mountain_top = [1400, 2200, 1500, 2400, 1440, 2900, 2900, 2500, 2600, 2500]
-xc_potential = [1, 1.2, 1, 1.3, 1.5, 1.2, 1.5, 1.3, 1.1, 1.3]
+xc_potential = [1, 1.2, 1, 1.3, 1.5, 1.2, 1.4, 1.3, 1.1, 1.3]
 north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5]
 south_foehn_tolerance = [4.5, 100, 4.5, 4, 6, 4, 3.5, 3.5, 3.5, 4]
 sunset = {1: 17, 2: 18, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
@@ -480,9 +480,9 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     temp.append(temp500[loc, i])
     temp.append(1000)
     temp.append(temp1000[loc, i])
-    temp.append(1500)
+    temp.append(1460)
     temp.append(temp1500[loc, i])
-    temp.append(1900)
+    temp.append(1930)
     temp.append(temp1900[loc, i])
     temp.append(3000)
     temp.append(temp3000[loc, i])
@@ -495,9 +495,9 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     dew_point.append(dew500[loc, i])
     dew_point.append(1000)
     dew_point.append(dew1000[loc, i])
-    dew_point.append(1500)
+    dew_point.append(1460)
     dew_point.append(dew1500[loc, i])
-    dew_point.append(1900)
+    dew_point.append(1930)
     dew_point.append(dew1900[loc, i])
     dew_point.append(3000)
     dew_point.append(dew3000[loc, i])
@@ -512,10 +512,10 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     wind.append(1000)
     wind.append(wind1000[loc, i])
     wind.append(wind_dir1000[loc, i])
-    wind.append(1500)
+    wind.append(1460)
     wind.append(wind1500[loc, i])
     wind.append(wind_dir1500[loc, i])
-    wind.append(1900)
+    wind.append(1930)
     wind.append(wind1900[loc, i])
     wind.append(wind_dir1900[loc, i])
     wind.append(3000)
