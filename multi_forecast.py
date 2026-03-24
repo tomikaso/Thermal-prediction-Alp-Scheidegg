@@ -25,7 +25,7 @@ locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol',
 coordinates = np.array([[47.289, 8.915], [46.175384, 8.793927], [47.181896, 9.051195], [46.927030, 9.771950],
                         [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389], [46.617260, 7.671066],
                         [46.927241, 9.001098], [46.511744, 8.820113]])
-start_height = [1200, 1500, 1020, 1950, 1440, 2150, 2200, 2200, 2050, 2280]
+start_height = [1240, 1500, 1020, 1950, 1440, 2150, 2200, 2200, 2050, 2280]
 flight_range_low = [1200, 1200, 1020, 1950, 1000, 2150, 1900, 2000, 2050, 2000]
 start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180, 190]
 mountain_top = [1400, 2200, 1500, 2400, 1440, 2900, 2900, 2500, 2600, 2500]
@@ -529,7 +529,7 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     wind.append(wind_dir5600[loc, i])
     # draw the temp
     # fix scale
-    offset = - int(temp1900[loc, i] / 10)  # for negative temperatures 1, then 0 for low positive and +1 if hot.
+    offset = - int(temp3000[loc, i] / 10)  # for negative temperatures 1, then 0 for low positive and +1 if hot.
     draw_temp(temp, dew_point, offset)
     # draw the wind
     draw_wind(wind)
