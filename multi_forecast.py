@@ -32,6 +32,8 @@ mountain_top = [1400, 2200, 1500, 2400, 1440, 2900, 2900, 2500, 2600, 2500]
 xc_potential = [1, 1.2, 1, 1.3, 1.5, 1.2, 1.4, 1.3, 1.1, 1.3]
 north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5]
 south_foehn_tolerance = [4.5, 100, 4.5, 4, 6, 4, 3.5, 3.5, 3.5, 4]
+wind_limit_start = [25, 20, 25, 20, 20, 20, 20, 20, 20, 20]
+wind_limit_top = [30, 25, 30, 25, 25, 25, 25, 25, 25, 25]
 sunset = {1: 17, 2: 18, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
 max_locations = 10
 flight_distance = np.zeros([max_locations, 5])
@@ -371,7 +373,7 @@ def create_thermal_data(index):
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp)
                       , (20, 20, 20), font=font)
             # lift
-            if wind_start <= 25 and wind_top <= 30:
+            if wind_start <= wind_limit_start[loc] and wind_top <= wind_limit_top[loc]:
                 lift = model.average_lift
                 content = str(lift)
             else:
@@ -550,9 +552,11 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     img.save(image_path + "forecast" + locations[loc] + str(day) + ".png")
 
 
-# here we start. The loop queries open Meteo with all specified locations. The result is stored in arrays
+# Query the metadata of the weather model
 icon_eu = get_meta_data('https://api.open-meteo.com/data/dwd_icon_eu/static/meta.json')
 icon_d2 = get_meta_data('https://api.open-meteo.com/data/dwd_icon_d2/static/meta.json')
+
+# here we start. The loop queries open Meteo with all specified locations. The result is stored in arrays
 i = 0
 while i < max_locations:
     latitude = coordinates[i, 0]
@@ -655,6 +659,40 @@ while pos < len(pressure_msl[0]):
     north_south_diff.append(pressure_msl[1, pos] - pressure_msl[0, pos])
     pos = pos + 1
 
+###########################################
+# detect cold-fronts in the pressure-diff
+###########################################
+t = 1
+cold_fronts = []
+max_p = 0
+min_p = 0
+front_begin = 0
+front_end = 0
+front_event = ""
+while t < len(north_south_diff) - 1:
+    if (north_south_diff[t - 1] < north_south_diff[t] > north_south_diff[t + 1]) and north_south_diff[t] > -3:
+        max_p = north_south_diff[t]
+        min_p = north_south_diff[t]
+        front_begin = t
+        # peak detected
+        q = 1
+        while q < 10 and t + q + 1 < len(north_south_diff):
+            if north_south_diff[t + q] < min_p:
+                min_p = north_south_diff[t + q]
+                front_end = t + q
+            q = q + 1
+        if max_p - min_p > 10:
+            front_event = "markante Kaltfront"
+            front_color = (255, 0, 0, 127)  # rot
+        elif max_p - min_p > 6:
+            front_event = "Kaltfront"
+            front_color = (255, 165, 0, 127)  # orange
+            cold_fronts.append({"event": front_event, "front_begin": front_begin, "front_end": front_end,
+                                "front_color": front_color})
+            t = t + 8
+    t = t + 1
+print('coldfronts: ', cold_fronts)
+
 ###################
 # prepare diagram
 ###################
@@ -718,6 +756,14 @@ while d < 5:  # create days and lines
     img1.text((border + d * 204 + padding, h - border), wds[wday], (20, 20, 20), font=font)
     d = d + 1
     wday = (weekday + d) % 7
+
+cf = 0  # highlight cold front
+while cf < len(cold_fronts):
+    box = (border + 8.5 * cold_fronts[cf].get("front_begin"), border,
+           border + 8.5 * cold_fronts[cf].get("front_end"), h - border)
+    img1.rectangle(box, fill=cold_fronts[cf].get("front_color"))
+    cf = cf + 1
+
 s = - 12
 while s <= 12:  # y-lines
     img1.line((border, (h / 2) - 20 * s, w - border, (h / 2) - 20 * s), fill="darkred", width=1 + 3 * (s == 0))
