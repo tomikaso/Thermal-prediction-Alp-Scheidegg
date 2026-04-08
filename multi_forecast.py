@@ -669,27 +669,27 @@ min_p = 0
 front_begin = 0
 front_end = 0
 front_event = ""
-while t < len(north_south_diff) - 1:
-    if (north_south_diff[t - 1] < north_south_diff[t] > north_south_diff[t + 1]) and north_south_diff[t] > -3:
+while t < len(north_south_diff) - 16:
+    if (north_south_diff[t - 1] <= north_south_diff[t] > max(north_south_diff[t + 1: t + 5])) \
+            and north_south_diff[t] > -3:  # local maximum detected
         max_p = north_south_diff[t]
         min_p = north_south_diff[t]
         front_begin = t
-        # peak detected
         q = 1
-        while q < 10 and t + q + 1 < len(north_south_diff):
+        while q <= 14:
             if north_south_diff[t + q] < min_p:
                 min_p = north_south_diff[t + q]
                 front_end = t + q
             q = q + 1
-        if max_p - min_p > 10:
-            front_event = "markante Kaltfront"
-            front_color = (255, 0, 0, 127)  # rot
-        elif max_p - min_p > 6:
-            front_event = "Kaltfront"
+        if max_p - min_p > 6:
+            front_event = "Front"
             front_color = (255, 165, 0, 127)  # orange
+            t = t + 8
+            if max_p - min_p > 10:
+                front_event = "markante Kaltfront"
+                front_color = (255, 0, 0, 127)  # rot
             cold_fronts.append({"event": front_event, "front_begin": front_begin, "front_end": front_end,
                                 "front_color": front_color})
-            t = t + 8
     t = t + 1
 print('coldfronts: ', cold_fronts)
 
@@ -760,8 +760,10 @@ while d < 5:  # create days and lines
 cf = 0  # highlight cold front
 while cf < len(cold_fronts):
     box = (border + 8.5 * cold_fronts[cf].get("front_begin"), border,
-           border + 8.5 * cold_fronts[cf].get("front_end"), h - border)
+           border + 8.5 * min(cold_fronts[cf].get("front_end"), 5 * 24), h - border)
     img1.rectangle(box, fill=cold_fronts[cf].get("front_color"))
+    img1.text((border + 8.5 * cold_fronts[cf].get("front_begin"), border + 20), cold_fronts[cf].get("event"),
+              (20, 20, 20), font=font)
     cf = cf + 1
 
 s = - 12
