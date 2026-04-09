@@ -670,8 +670,7 @@ front_begin = 0
 front_end = 0
 front_event = ""
 while t < len(north_south_diff) - 16:
-    if (north_south_diff[t - 1] <= north_south_diff[t] > max(north_south_diff[t + 1: t + 5])) \
-            and north_south_diff[t] > -3:  # local maximum detected
+    if north_south_diff[t] > max(north_south_diff[t + 1: t + 5]) and north_south_diff[t] > -3:  # local max detected
         max_p = north_south_diff[t]
         min_p = north_south_diff[t]
         front_begin = t
@@ -683,11 +682,11 @@ while t < len(north_south_diff) - 16:
             q = q + 1
         if max_p - min_p > 6:
             front_event = "Front"
-            front_color = (255, 165, 0, 127)  # orange
+            front_color = (255, 165, 0, 20)  # orange, transparent
             t = t + 8
             if max_p - min_p > 10:
-                front_event = "markante Kaltfront"
-                front_color = (255, 0, 0, 127)  # rot
+                front_event = "markante\nKaltfront"
+                front_color = (255, 0, 0, 20)  # red, transparent
             cold_fronts.append({"event": front_event, "front_begin": front_begin, "front_end": front_end,
                                 "front_color": front_color})
     t = t + 1
