@@ -682,11 +682,11 @@ while t < len(north_south_diff) - 16:
             q = q + 1
         if max_p - min_p > 6:
             front_event = "Front"
-            front_color = (255, 165, 0, 20)  # orange, transparent
+            front_color = (255, 165, 0)  # orange
             t = t + 8
             if max_p - min_p > 10:
                 front_event = "markante\nKaltfront"
-                front_color = (255, 0, 0, 20)  # red, transparent
+                front_color = (255, 0, 0)  # red
             cold_fronts.append({"event": front_event, "front_begin": front_begin, "front_end": front_end,
                                 "front_color": front_color})
     t = t + 1
@@ -705,7 +705,7 @@ padding = 8
 shape = ((border, border), (w - border, h - border))
 
 # create new image
-img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
+img = Image.new("RGB", (w, h), color=(240, 240, 250))
 # create rectangle image
 img1 = ImageDraw.Draw(img)  # Emagramm Image
 img1.rectangle(shape, fill="#ffffff", outline="white")
@@ -743,7 +743,7 @@ while loc < max_locations:  # loops over all locations
 ################################
 # create pressure_diff-diagram
 ################################
-img = Image.new("RGB", (w, h), color=(240, 240, 250, 250))
+img = Image.new("RGB", (w, h), color=(240, 240, 250))
 img1 = ImageDraw.Draw(img)  # pressure_diff image
 d = 0
 weekday = int(now.strftime("%w"))
@@ -758,11 +758,19 @@ while d < 5:  # create days and lines
 
 cf = 0  # highlight cold front
 while cf < len(cold_fronts):
+    f_col = cold_fronts[cf].get("front_color")
     box = (border + 8.5 * cold_fronts[cf].get("front_begin"), border,
            border + 8.5 * min(cold_fronts[cf].get("front_end"), 5 * 24), h - border)
-    img1.rectangle(box, fill=cold_fronts[cf].get("front_color"))
-    img1.text((border + 8.5 * cold_fronts[cf].get("front_begin"), border + 20), cold_fronts[cf].get("event"),
-              (20, 20, 20), font=font)
+    img1.rectangle(box, fill=f_col, outline='darkred')
+
+    if math.floor(cold_fronts[cf].get("front_begin") / 24) !=\
+            math.floor(min(cold_fronts[cf].get("front_end"), 5 * 24) / 24):  # split the box at the daybreak
+        box = (border + 8.5 * math.floor(min(cold_fronts[cf].get("front_end"), 5 * 24) / 24) * 24, border,
+               border + 8.5 * min(cold_fronts[cf].get("front_end"), 5 * 24), h - border)
+        img1.rectangle(box, fill=(f_col[0] - 20, f_col[1], f_col[2]), outline='darkred')
+
+    img1.text((border + 8.5 * cold_fronts[cf].get("front_begin") + padding, border + 20),
+              cold_fronts[cf].get("event"), (20, 20, 20), font=font)
     cf = cf + 1
 
 s = - 12
