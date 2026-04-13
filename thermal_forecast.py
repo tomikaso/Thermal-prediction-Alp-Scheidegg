@@ -364,7 +364,7 @@ def create_thermal_data(index):
             if press_diff >= 4.5:
                 foehn = max(foehn, press_diff)
                 content = str(int(press_diff + 0.5)) + "hPa"
-            elif cloud_cover_mid[index + k] < 0.1 and cloud_cover_low[index + k] < 0.1:
+            elif cloud_cover_low[index + k] < 0.1:
                 content = 'blau'
             elif precipitation[index + k] > 0.1 and temp1000[index + k] >= 1:
                 content = 'Regen'

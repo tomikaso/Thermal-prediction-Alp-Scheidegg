@@ -3,7 +3,7 @@ import math
 from datetime import datetime
 
 # thermodynamic parameters
-updraft_factor = 52
+updraft_factor = 48
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
 mixing_dry = 0.10

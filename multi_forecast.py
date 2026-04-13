@@ -298,9 +298,9 @@ def create_thermal_data(index):
             # headline
         if k == -1:
             img1.text((2 * border + tx + padding, border + ty / lines * (k + 1)),
-                      'Zeit     Wind   Sonne  Wolken  Temp   Lift   Basis', (20, 20, 20), font=font)
+                      'Zeit    Wind   Sonne  Wolken  Temp  Lift  Base/Top', (20, 20, 20), font=font)
             img1.text((2 * border + tx + padding, border + 2.5 * padding + ty / lines * (k + 1)),
-                      ' LT      km/h              l-m-h   K/100m  m/s   m', (20, 20, 20), font=font)
+                      ' LT      km/h              l-m-h   K/100m  m/s  m', (20, 20, 20), font=font)
         else:
             content = time[index + k][11:]
             img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)), content, (20, 20, 20),
@@ -421,8 +421,6 @@ def create_thermal_data(index):
                     foehn = min(foehn, north_south_diff[index + k])
                 content = str(int(north_south_diff[index + k] + 0.5)) + "hPa"
                 lift = 0
-            elif cloud_cover_mid[loc, index + k] < 0.1 and cloud_cover_low[loc, index + k] < 0.1:
-                content = 'blau'
             elif precipitation[loc, index + k] > 0.1 and temp1500[loc, index + k] >= 1:
                 content = 'Regen'
             elif precipitation[loc, index + k] > 0.1 and temp1500[loc, index + k] < 1:
