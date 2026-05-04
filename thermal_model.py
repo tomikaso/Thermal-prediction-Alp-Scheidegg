@@ -6,8 +6,8 @@ from datetime import datetime
 updraft_factor = 48
 dry_adiabatic = 0.979
 moisture_adiabatic = 0.562
-mixing_dry = 0.10
-mixing_wet = 0.16
+mixing_dry = 0.1
+mixing_wet = 0.10
 std_pressure = 101325
 
 # calculate density
