@@ -438,7 +438,7 @@ def create_thermal_data(index):
             elif lift > 0.5:
                 distance = distance + 1
         k = k + 1
-    box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 3)))
+    # creation of comments
     if bise > 1:
         extra_text = "Bisentendenz"
         if bise_start > 12:
@@ -461,11 +461,23 @@ def create_thermal_data(index):
         bindung = ''
     else:
         bindung = '- '
+    box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, h - border * 0.62))
     img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
     img1.text((2 * border + tx + padding, border + padding + ty / lines * (k + 1)),
               'Pot. Distanz: ' + str(distance) + 'km ' + bindung + extra_text, (20, 20, 20), font=font)
     img1.text((2 * border + tx + padding, border + ty / lines * (k + 2)),
               'Nullgradgrenze auf ' + str(int(freezing_level[loc, index + 5])) + 'm. ', (20, 20, 20), font=font)
+    # create comment-text, line 3
+    comment_text = ''
+    cfr = 0  # highlight cold front
+    while cfr < len(cold_fronts):
+        if index < cold_fronts[cfr].get("front_begin") < index + 10 or \
+                index + 3 < cold_fronts[cfr].get("front_end") < index + 14:
+            comment_text = 'Vorsicht: Front!'
+        cfr = cfr + 1
+    # print comment line into the picture
+    img1.text((2 * border + tx + padding, border - padding + ty / lines * (k + 3)),
+              comment_text, (20, 20, 20), font=font)
     # remember key figures for the overview
     flight_distance[loc, day] = distance
 
@@ -667,7 +679,7 @@ min_p = 0
 front_begin = 0
 front_end = 0
 front_event = ""
-while t < len(north_south_diff) - 16:
+while t < 24 * 5:
     if north_south_diff[t] > max(north_south_diff[t + 1: t + 5]) and north_south_diff[t] > -3:  # local max detected
         max_p = north_south_diff[t]
         min_p = north_south_diff[t]
@@ -676,13 +688,13 @@ while t < len(north_south_diff) - 16:
         while q <= 14:
             if north_south_diff[t + q] < min_p:
                 min_p = north_south_diff[t + q]
-                front_end = t + q
+                front_end = min(t + q, 24 * 5)
             q = q + 1
         if max_p - min_p > 6:
             front_event = "Front"
             front_color = (255, 165, 0)  # orange
-            t = t + 8
-            if max_p - min_p > 10:
+            t = front_end
+            if max_p - min_p > 9:
                 front_event = "markante\nKaltfront"
                 front_color = (255, 0, 0)  # red
             cold_fronts.append({"event": front_event, "front_begin": front_begin, "front_end": front_end,
