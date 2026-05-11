@@ -288,8 +288,7 @@ def create_thermal_data(index):
     foehn = 0
     major_wind_dir, wind_max, temp_below = 0, 0, 0
     extra_text = ""
-    wind_start = 0
-    wind_top = 0
+    wind_start, high_altitude_wind_max, wind_top = 0, 0, 0
     k = -1
     while k < lines - 3:
         box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2)))
@@ -309,15 +308,21 @@ def create_thermal_data(index):
             if start_height[loc] <= 1000:
                 tmp = -int(100 * ((temp1500[loc, index + k] - temp500[loc, index + k]) / 10)) / 100
                 wind_start = wind1000[loc, index + k]
+                wind_dir_start = wind_dir1000[loc, index + k]
                 wind_top = wind1500[loc, index + k]
+                wind_high = wind1900[loc, index + k]
             if 1000 < start_height[loc] <= 1500:
                 tmp = -int(100 * ((temp1900[loc, index + k] - temp1000[loc, index + k]) / 9)) / 100
                 wind_start = wind1500[loc, index + k]
+                wind_dir_start = wind_dir1500[loc, index + k]
                 wind_top = wind1900[loc, index + k]
+                wind_high = wind3000[loc, index + k]
             if 1500 < start_height[loc] <= 2500:
                 tmp = -int(100 * ((temp3000[loc, index + k] - temp1500[loc, index + k]) / 15)) / 100
                 wind_start = wind1900[loc, index + k]
+                wind_dir_start = wind_dir1900[loc, index + k]
                 wind_top = wind3000[loc, index + k]
+                wind_high = wind4200[loc, index + k]
 
             # call thermal model
             model = thermal_model(temp500[loc, index + k], dew500[loc, index + k], temp1000[loc, index + k],
@@ -345,7 +350,7 @@ def create_thermal_data(index):
                 wind_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10)
                                         + 'H' + wind_data + ',')
             # wind
-            content = str(int(wind_start)) + wind_direction(wind_dir1500[loc, index + k])
+            content = str(int(wind_start)) + wind_direction(wind_dir_start)
             img1.text((2 * border + tx + padding + col * 1, border + padding + ty / lines * (k + 1)), content,
                       (20, 20, 20), font=font)
             # sun
@@ -397,20 +402,17 @@ def create_thermal_data(index):
             elif wind_start > 25:
                 strong_wind = strong_wind + 1
             # bise
-            if (wind_dir1500[loc, index + k] < 120 or wind_dir1500[loc, index + k] > 340) and \
-                    wind_start > 20:
+            if (wind_dir_start < 120 or wind_dir_start > 340) and wind_start > 20:
                 bise = bise + 100
-            elif (wind_dir1500[loc, index + k] < 120 or wind_dir1500[loc, index + k] > 340) \
-                    and wind_start > 15:
+            elif (wind_dir_start < 120 or wind_dir_start > 340) and wind_start > 15:
                 bise = bise + 10
-            elif (wind_dir1500[loc, index + k] < 120 or wind_dir1500[loc, index + k] > 340) \
-                    and wind_start > 5:
+            elif (wind_dir_start < 120 or wind_dir_start > 340) and wind_start > 5:
                 bise = bise + 1
                 if bise_start == 0:
                     bise_start = k + 10
-            if wind1500[loc, index + k] > wind_max:  # determine direction of the wind-max
-                wind_max = wind1500[loc, index + k]
-                major_wind_dir = wind_dir1500[loc, index + k]
+            if wind_start > wind_max:  # determine direction of the wind-max
+                wind_max = wind_start
+                major_wind_dir = wind_dir_start
             # base
             base_height = int(round((model.base_top / 50)) * 50)
             if north_south_diff[index + k] > south_foehn_tolerance[loc] or \
@@ -437,6 +439,10 @@ def create_thermal_data(index):
                                * pow(max((base_height - flight_range_low[loc]), 0), 0.5) / 28.2)
             elif lift > 0.5:
                 distance = distance + 1
+            # high altitude wind
+            if wind_high > high_altitude_wind_max and 2 < k < 8:
+                high_altitude_wind_max = wind_high
+
         k = k + 1
     # creation of comments
     if bise > 1:
@@ -469,10 +475,14 @@ def create_thermal_data(index):
               'Nullgradgrenze auf ' + str(int(freezing_level[loc, index + 5])) + 'm. ', (20, 20, 20), font=font)
     # create comment-text, line 3
     comment_text = ''
+    if strong_wind < 5: # altutude wind comment
+        if high_altitude_wind_max > 35:
+            comment_text = 'mässiger Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
+        if high_altitude_wind_max > 50:
+            comment_text = 'starker Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
     cfr = 0  # highlight cold front
     while cfr < len(cold_fronts):
-        if index < cold_fronts[cfr].get("front_begin") < index + 10 or \
-                index + 3 < cold_fronts[cfr].get("front_end") < index + 14:
+        if index - 5 < cold_fronts[cfr].get("front_begin") < index + 10:
             comment_text = 'Vorsicht: Front!'
         cfr = cfr + 1
     # print comment line into the picture
