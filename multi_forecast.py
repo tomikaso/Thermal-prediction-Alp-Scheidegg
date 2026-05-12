@@ -285,10 +285,10 @@ def create_thermal_data(index):
     bise = 0
     bise_start = 0
     strong_wind = 0
-    foehn = 0
-    major_wind_dir, wind_max, temp_below = 0, 0, 0
     extra_text = ""
-    wind_start, high_altitude_wind_max, wind_top = 0, 0, 0
+    foehn, high_altitude_wind_dir, wind_dir_high = 0, 0, 0
+    major_wind_dir, wind_max, temp_below, wind_dir_start = 0, 0, 0, 0
+    wind_start, high_altitude_wind_max, wind_top, wind_high = 0, 0, 0, 0
     k = -1
     while k < lines - 3:
         box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2)))
@@ -311,18 +311,21 @@ def create_thermal_data(index):
                 wind_dir_start = wind_dir1000[loc, index + k]
                 wind_top = wind1500[loc, index + k]
                 wind_high = wind1900[loc, index + k]
+                wind_dir_high = wind_dir1900[loc, index + k]
             if 1000 < start_height[loc] <= 1500:
                 tmp = -int(100 * ((temp1900[loc, index + k] - temp1000[loc, index + k]) / 9)) / 100
                 wind_start = wind1500[loc, index + k]
                 wind_dir_start = wind_dir1500[loc, index + k]
                 wind_top = wind1900[loc, index + k]
                 wind_high = wind3000[loc, index + k]
+                wind_dir_high = wind_dir3000[loc, index + k]
             if 1500 < start_height[loc] <= 2500:
                 tmp = -int(100 * ((temp3000[loc, index + k] - temp1500[loc, index + k]) / 15)) / 100
                 wind_start = wind1900[loc, index + k]
                 wind_dir_start = wind_dir1900[loc, index + k]
                 wind_top = wind3000[loc, index + k]
                 wind_high = wind4200[loc, index + k]
+                wind_dir_high = wind_dir4200[loc, index + k]
 
             # call thermal model
             model = thermal_model(temp500[loc, index + k], dew500[loc, index + k], temp1000[loc, index + k],
@@ -442,6 +445,7 @@ def create_thermal_data(index):
             # high altitude wind
             if wind_high > high_altitude_wind_max and 2 < k < 8:
                 high_altitude_wind_max = wind_high
+                high_altitude_wind_dir = wind_dir_high
 
         k = k + 1
     # creation of comments
@@ -476,10 +480,13 @@ def create_thermal_data(index):
     # create comment-text, line 3
     comment_text = ''
     if strong_wind < 5: # altutude wind comment
-        if high_altitude_wind_max > 35:
-            comment_text = 'mässiger Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
-        if high_altitude_wind_max > 50:
-            comment_text = 'starker Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
+        wd = wind_direction(high_altitude_wind_dir)
+        if high_altitude_wind_max > 25:
+            comment_text = 'mässiger ' + wd + '-Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
+        if high_altitude_wind_max > 40:
+            comment_text = 'kräftiger ' + wd + '-Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
+        if high_altitude_wind_max > 60:
+            comment_text = 'starker ' + wd + '-Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
     cfr = 0  # highlight cold front
     while cfr < len(cold_fronts):
         if index - 5 < cold_fronts[cfr].get("front_begin") < index + 10:
