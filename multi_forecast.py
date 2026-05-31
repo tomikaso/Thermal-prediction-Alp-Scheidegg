@@ -29,7 +29,7 @@ start_height = [1240, 1500, 1020, 1950, 1440, 2150, 2200, 2200, 2050, 2280]
 flight_range_low = [1200, 1200, 1020, 1950, 1000, 2150, 1900, 2000, 2050, 2000]
 start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180, 190]
 mountain_top = [1400, 2200, 1500, 2400, 1440, 2900, 2900, 2500, 2600, 2500]
-xc_potential = [1, 1.2, 1, 1.3, 1.5, 1.2, 1.4, 1.3, 1.1, 1.3]
+xc_potential = [1, 1.2, 1, 1.3, 1.5, 1.2, 1.3, 1.3, 1.1, 1.3]
 north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5]
 south_foehn_tolerance = [4.5, 100, 4.5, 4, 6, 4, 3.5, 3.5, 3.5, 4]
 wind_limit_start = [25, 20, 25, 20, 20, 20, 20, 20, 20, 20]
@@ -707,7 +707,7 @@ while t < 24 * 5:
                 min_p = north_south_diff[t + q]
                 front_end = min(t + q, 24 * 5)
             q = q + 1
-        if max_p - min_p > 6:
+        if max_p - min_p > 5:
             front_event = "Front"
             front_color = (255, 165, 0)  # orange
             t = front_end
