@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from thermal_model import thermal_model
 from wind_interpolation import wind_interpolation
+from thermal_low import thermal_low
 import ftplib
 import constants
 
@@ -719,6 +720,12 @@ while t < 24 * 5:
     t = t + 1
 print('coldfronts: ', cold_fronts)
 
+#######################################
+# calculate strength of the thermal low
+#######################################
+
+low_data = thermal_low(temp1500, temp3000, radiation, start_height)
+
 ###################
 # prepare diagram
 ###################
@@ -841,7 +848,12 @@ for data in wind_html_string:
 file2 = open(image_path + "wind_data_multi.txt", "w")
 file2.write(final_string)
 
-print("everything done :-)")
+# write thermal-low-string
+final_string = low_data.html_string
+file1 = open(image_path + "thermal_low.txt", "w")
+file1.write(final_string)
+
+print("all calculations done :-)")
 
 # send it to DCZO-webserver
 session = ftplib.FTP('ftp.dczo.ch', constants.ftp_user, constants.ftp_pw)
@@ -868,6 +880,8 @@ file2 = open('/var/www/html/thermals/pressure_diff.png', 'rb')  # file to send
 session.storbinary('STOR multitherm/pressure_diff.png', file2)  # send the file
 file3 = open('/var/www/html/thermals/wind_data_multi.txt', 'rb')  # multi-data to send
 session.storbinary('STOR multitherm/wind_data_multi.txt', file3)  # send the file
+file4 = open('/var/www/html/thermals/thermal_low.txt', 'rb')  # multi-data to send
+session.storbinary('STOR multitherm/thermal_low.txt', file4)  # send the file
 file0.close()
 file1.close()
 file2.close()
