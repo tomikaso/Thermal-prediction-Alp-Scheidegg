@@ -17,6 +17,7 @@ class thermal_low:
         # one percentage per thermal_low per hour from 10:00 to 20:00
         # estimate the snow frontier by the date
         day = 0
+        snow_factor = snow_level[int(now.strftime('%m'))] / 3500
         while day < 5:
             time = 10
             while time <= 20:
@@ -27,7 +28,6 @@ class thermal_low:
                     if start_height[loc] > 1600:  # we have an alpine starting grid
                         alpine_count += 1
                         tmp = (temp1500[loc, day * 24 + time] - temp3000[loc, day * 24 + time]) / 15
-                        snow_factor = snow_level[int(now.strftime('%m'))] / 3500
                         alps_convection += max(tmp-0.5, 0) * radiation[loc, day * 24 + time] * snow_factor
                     loc += 1
                 self.thermal_activity.append(alps_convection/alpine_count)  # sum of convection / number of stations
@@ -39,7 +39,7 @@ class thermal_low:
         while day < 5:
             t = 1
             while t <= 11:
-                value = sum(self.thermal_activity[max(0, (t - 3)) + day * 11: t + day * 11]) / 8
+                value = sum(self.thermal_activity[max(0, (t - 3)) + day * 11: t + day * 11]) * 0.14
                 self.html_string += str(round(value, 1)) + ', '
                 t += 1
             day += 1
