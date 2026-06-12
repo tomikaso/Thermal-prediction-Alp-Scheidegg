@@ -6,6 +6,7 @@ now = datetime.now()
 snow_level = {1: 1200, 2: 1000, 3: 1600, 4: 1800, 5: 2200, 6: 2600,
               7: 3000, 8: 3300, 9: 3500, 10: 3200, 11: 2500, 12: 1600}
 
+
 class thermal_low:
     html_string = ''
     thermal_activity = []
@@ -27,11 +28,11 @@ class thermal_low:
                 while loc < len(start_height):
                     if start_height[loc] > 1600:  # we have an alpine starting grid
                         alpine_count += 1
-                        tmp = (temp1500[loc, day * 24 + time] - temp3000[loc, day * 24 + time]) / 15
-                        alps_convection += max(tmp-0.5, 0) * radiation[loc, day * 24 + time] * snow_factor
+                        tmp = (temp1500[loc, day * 24 + time] - temp3000[loc, day * 24 + time]) / 15  # 15 -> 1'500m
+                        alps_convection += max(tmp-0.4, 0) * radiation[loc, day * 24 + time] * snow_factor
                     loc += 1
                 self.thermal_activity.append(alps_convection/alpine_count)  # sum of convection / number of stations
-                print('day: ', day, ' time:', time, ' convection: ', alps_convection/alpine_count )
+                print('day: ', day, ' time:', time, ' convection: ', alps_convection/alpine_count)
                 time += 1
             day += 1
         # create the HTML
@@ -39,7 +40,7 @@ class thermal_low:
         while day < 5:
             t = 1
             while t <= 11:
-                value = sum(self.thermal_activity[max(0, (t - 3)) + day * 11: t + day * 11]) * 0.14
+                value = sum(self.thermal_activity[max(0, (t - 3)) + day * 11: t + day * 11]) * 0.11
                 self.html_string += str(round(value, 1)) + ', '
                 t += 1
             day += 1
