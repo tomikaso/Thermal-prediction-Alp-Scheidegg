@@ -40,7 +40,7 @@ class thermal_low:
         while day < 5:
             t = 1
             while t <= 11:
-                value = sum(self.thermal_activity[max(0, (t - 3)) + day * 11: t + day * 11]) * 0.11
+                value = sum(self.thermal_activity[max(0, (t - 3)) + day * 11: t + day * 11]) * 0.09  # Scaling-Factor
                 self.html_string += str(round(value, 1)) + ', '
                 t += 1
             day += 1
