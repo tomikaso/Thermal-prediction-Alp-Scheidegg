@@ -4,7 +4,10 @@
 from datetime import datetime
 now = datetime.now()
 snow_level = {1: 1200, 2: 1000, 3: 1600, 4: 1800, 5: 2200, 6: 2600,
-              7: 3000, 8: 3300, 9: 3500, 10: 3200, 11: 2500, 12: 1600}
+              7: 3000, 8: 3300, 9: 3500, 10: 3200, 11: 2500, 12: 1600, 13: 1200}
+month_fraction = int(now.strftime('%d')) / 31
+month = int(now.strftime('%m'))  # interpolation of monthly snow levels
+snow_l = snow_level[int(month)] * (1 - month_fraction) + snow_level[int(month + 1)] * month_fraction
 
 
 class thermal_low:
@@ -18,7 +21,7 @@ class thermal_low:
         # one percentage per thermal_low per hour from 10:00 to 20:00
         # estimate the snow frontier by the date
         day = 0
-        snow_factor = snow_level[int(now.strftime('%m'))] / 3500
+        snow_factor = snow_l / 3500
         while day < 5:
             time = 10
             while time <= 20:
