@@ -558,8 +558,8 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
     wind.append(wind5600[loc, i])
     wind.append(wind_dir5600[loc, i])
     # draw the temp
-    # fix scale
-    offset = - int(temp3000[loc, i] / 10)  # for negative temperatures 1, then 0 for low positive and +1 if hot.
+    # fix scale: for negative temperatures 1, then 0 for low positive and +1 if hot. Mean of 1500m and 3000m
+    offset = - int((temp3000[loc, i] + temp1500[loc, i]) / 20)
     draw_temp(temp, dew_point, offset)
     # draw the wind
     draw_wind(wind)
