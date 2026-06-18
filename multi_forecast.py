@@ -290,6 +290,7 @@ def create_thermal_data(index):
     foehn, high_altitude_wind_dir, wind_dir_high = 0, 0, 0
     major_wind_dir, wind_max, temp_below, wind_dir_start = 0, 0, 0, 0
     wind_start, high_altitude_wind_max, wind_top, wind_high = 0, 0, 0, 0
+    soar_pot = 0
     k = -1
     while k < lines - 3:
         box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2)))
@@ -448,6 +449,26 @@ def create_thermal_data(index):
                 high_altitude_wind_max = wind_high
                 high_altitude_wind_dir = wind_dir_high
 
+            # soaring - only for alp Scheidegg
+            if loc == 0:
+                content = "-"
+                font_color = (20, 20, 20)
+                if (220 < wind_dir_start <= 290) and foehn < 4.5 and (15 < wind_start <= 35) and \
+                        wind1900[loc, index + k] < 50 \
+                        and (precipitation[loc, index + k] + precipitation[loc, index + k + 1] < 0.1):
+                    content = "GH"
+                    if soar_pot == 0:
+                        soar_pot = 1
+                    if wind_start > 20:
+                        content = "S"
+                        font_color = (20, 164, 20)  # green
+                        if soar_pot < 2:
+                            soar_pot = 2
+                    if wind_start > 25:
+                        font_color = (255, 164, 20)  # orange
+                        soar_pot = 3
+                img1.text((2 * border + tx + padding + col * 7, border + padding + ty / lines * (k + 1)), content,
+                          font_color, font=font)
         k = k + 1
     # creation of comments
     if bise > 1:
@@ -480,7 +501,7 @@ def create_thermal_data(index):
               'Nullgradgrenze auf ' + str(int(freezing_level[loc, index + 5])) + 'm. ', (20, 20, 20), font=font)
     # create comment-text, line 3
     comment_text = ''
-    if strong_wind < 5: # altutude wind comment
+    if strong_wind < 5:  # altutude wind comment
         wd = wind_direction(high_altitude_wind_dir)
         if high_altitude_wind_max > 25:
             comment_text = 'mässiger ' + wd + '-Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
@@ -797,7 +818,7 @@ while cf < len(cold_fronts):
            border + 8.5 * min(cold_fronts[cf].get("front_end"), 5 * 24), h - border)
     img1.rectangle(box, fill=f_col, outline='darkred')
 
-    if math.floor(cold_fronts[cf].get("front_begin") / 24) !=\
+    if math.floor(cold_fronts[cf].get("front_begin") / 24) != \
             math.floor(min(cold_fronts[cf].get("front_end"), 5 * 24) / 24):  # split the box at the daybreak
         box = (border + 8.5 * math.floor(min(cold_fronts[cf].get("front_end"), 5 * 24) / 24) * 24, border,
                border + 8.5 * min(cold_fronts[cf].get("front_end"), 5 * 24), h - border)
