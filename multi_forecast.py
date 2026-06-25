@@ -454,16 +454,16 @@ def create_thermal_data(index):
             # soaring - only for alp Scheidegg
             if loc == 0:
                 content = ""
-                bubble_color = 'white'
-                if (220 < wind_dir_start <= 290) and foehn < 4.5 and (15 < wind_start <= 35) and \
+                bubble_color = 'grey'
+                if (210 < wind_dir_start <= 300) and foehn < 4.5 and (15 < wind_start <= 35) and \
                         wind1900[loc, index + k] < 50 \
-                        and (precipitation[loc, index + k] + precipitation[loc, index + k + 1] < 0.1):
+                        and (precipitation[loc, index + k] + precipitation[loc, index + k + 1] < 0.2):
                     content = "GH"
                     if soar_pot == 0:
                         soar_pot = 1
-                        bubble_color = 'blue'
+                        bubble_color = 'grey'
                     if wind_start > 20:
-                        content = "S"
+                        content = "  S"
                         bubble_color = 'green'
                         if soar_pot < 2:
                             soar_pot = 2
@@ -471,9 +471,9 @@ def create_thermal_data(index):
                         bubble_color = 'orange'
                         soar_pot = 3
                 if content != "":
-                    img1.ellipse((2 * border + tx + padding + col * 7.08, border + padding + ty / lines * (k + 1) - 5,
-                                  2 * border + tx + padding + col * 7.08 + 30,
-                                  30 - 5 + border + padding + ty / lines * (k + 1)),
+                    img1.ellipse((2 * border + tx + padding + col * 7.08, border + padding + ty / lines * (k + 1) - 6,
+                                  2 * border + tx + padding + col * 7.08 + 32,
+                                  32 - 6 + border + padding + ty / lines * (k + 1)),
                                  fill=bubble_color, outline='gainsboro', width=2)
                 img1.text((2 * border + tx + padding + col * 7.1, border + padding + ty / lines * (k + 1)), content,
                           (200, 200, 200), font=font)
