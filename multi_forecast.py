@@ -484,7 +484,7 @@ def create_thermal_data(index):
         extra_text = "Bisentendenz"
         if bise_start > 12:
             extra_text = "Bisentendenz ab " + str(int(bise_start)) + "Uhr"
-    if strong_wind > 4:
+    if strong_wind > 3:
         extra_text = "mässiger " + wind_string(major_wind_dir)
     if bise > 25:
         extra_text = "Bise"
@@ -510,7 +510,7 @@ def create_thermal_data(index):
               'Nullgradgrenze auf ' + str(int(freezing_level[loc, index + 5])) + 'm. ', (20, 20, 20), font=font)
     # create comment-text, line 3
     comment_text = ''
-    if strong_wind < 5:  # altutude wind comment
+    if strong_wind < 51:  # altitude wind comment in case the wind is below "kräftig"
         wd = wind_direction(high_altitude_wind_dir)
         if high_altitude_wind_max > 25:
             comment_text = 'mässiger ' + wd + '-Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
