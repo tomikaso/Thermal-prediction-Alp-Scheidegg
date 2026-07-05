@@ -17,7 +17,6 @@ wind_html_string = []
 # for the data grid
 col = 64
 lines = 14
-soar_potential = []
 north_south_diff = []
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
 
@@ -39,6 +38,9 @@ sunset = {1: 17, 2: 18, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18,
 max_locations = 10
 flight_distance = np.zeros([max_locations, 5])
 time = []
+ov_days = []
+ov_remark = []
+soar_potential = []
 temp2m = np.array([])
 temp500 = np.array([])
 temp1000 = np.array([])
@@ -290,6 +292,7 @@ def create_thermal_data(index):
     foehn, high_altitude_wind_dir, wind_dir_high = 0, 0, 0
     major_wind_dir, wind_max, temp_below, wind_dir_start = 0, 0, 0, 0
     wind_start, high_altitude_wind_max, wind_top, wind_high = 0, 0, 0, 0
+    soar_pot = 0
     k = -1
     while k < lines - 3:
         box = ((2 * border + tx, border + ty / lines * (k + 1)), (w - border, border + ty / lines * (k + 2)))
@@ -448,13 +451,40 @@ def create_thermal_data(index):
                 high_altitude_wind_max = wind_high
                 high_altitude_wind_dir = wind_dir_high
 
+            # soaring - only for alp Scheidegg
+            if loc == 0:
+                content = ""
+                bubble_color = 'grey'
+                if (210 < wind_dir_start <= 300) and foehn < 4.5 and (15 < wind_start <= 35) and \
+                        wind1900[loc, index + k] < 50 \
+                        and (precipitation[loc, index + k] + precipitation[loc, index + k + 1] < 0.2):
+                    content = "GH"
+                    if soar_pot == 0:
+                        soar_pot = 1
+                        bubble_color = 'grey'
+                    if wind_start > 20:
+                        content = "  S"
+                        bubble_color = 'green'
+                        if soar_pot < 2:
+                            soar_pot = 2
+                    if wind_start > 25:
+                        bubble_color = 'orange'
+                        soar_pot = 3
+                if content != "":
+                    img1.ellipse((2 * border + tx + padding + col * 7.08, border + padding + ty / lines * (k + 1) - 6,
+                                  2 * border + tx + padding + col * 7.08 + 32,
+                                  32 - 6 + border + padding + ty / lines * (k + 1)),
+                                 fill=bubble_color, outline='gainsboro', width=2)
+                img1.text((2 * border + tx + padding + col * 7.1, border + padding + ty / lines * (k + 1)), content,
+                          (200, 200, 200), font=font)
+
         k = k + 1
     # creation of comments
     if bise > 1:
         extra_text = "Bisentendenz"
         if bise_start > 12:
             extra_text = "Bisentendenz ab " + str(int(bise_start)) + "Uhr"
-    if strong_wind > 4:
+    if strong_wind > 3:
         extra_text = "mässiger " + wind_string(major_wind_dir)
     if bise > 25:
         extra_text = "Bise"
@@ -480,7 +510,7 @@ def create_thermal_data(index):
               'Nullgradgrenze auf ' + str(int(freezing_level[loc, index + 5])) + 'm. ', (20, 20, 20), font=font)
     # create comment-text, line 3
     comment_text = ''
-    if strong_wind < 5: # altutude wind comment
+    if strong_wind < 51:  # altitude wind comment in case the wind is below "kräftig"
         wd = wind_direction(high_altitude_wind_dir)
         if high_altitude_wind_max > 25:
             comment_text = 'mässiger ' + wd + '-Höhenwind: ' + str(round(high_altitude_wind_max / 5) * 5) + 'km/h.'
@@ -498,7 +528,9 @@ def create_thermal_data(index):
               comment_text, (20, 20, 20), font=font)
     # remember key figures for the overview
     flight_distance[loc, day] = distance
-
+    if loc == 0:  # Alp Scheidegg specific key figures
+        ov_remark.append(extra_text)
+        soar_potential.append(soar_pot)
 
 def create_forecast(loc, i):  # loc-location, i position in the data-array
     # initialize variable
@@ -578,6 +610,12 @@ def create_forecast(loc, i):  # loc-location, i position in the data-array
                   + now.strftime("%H:%M") + " CET", (20, 20, 20), font=font)
     # save the image here
     img.save(image_path + "forecast" + locations[loc] + str(day) + ".png")
+    # remember the weekday for the overview
+    if loc == 0:
+        if day == 0:
+            ov_days.append("7")
+        else:
+            ov_days.append(x.strftime("%w"))
 
 
 # Query the metadata of the weather model
@@ -797,7 +835,7 @@ while cf < len(cold_fronts):
            border + 8.5 * min(cold_fronts[cf].get("front_end"), 5 * 24), h - border)
     img1.rectangle(box, fill=f_col, outline='darkred')
 
-    if math.floor(cold_fronts[cf].get("front_begin") / 24) !=\
+    if math.floor(cold_fronts[cf].get("front_begin") / 24) != \
             math.floor(min(cold_fronts[cf].get("front_end"), 5 * 24) / 24):  # split the box at the daybreak
         box = (border + 8.5 * math.floor(min(cold_fronts[cf].get("front_end"), 5 * 24) / 24) * 24, border,
                border + 8.5 * min(cold_fronts[cf].get("front_end"), 5 * 24), h - border)
@@ -821,6 +859,39 @@ while i < 5 * 24:  # create pressure difference
 img1.text((10, 15), "Druckdifferenz Locarno - Wald ZH. ICON. Updated: " + now.strftime("%d/%m/%Y %H:%M")
           + " CET. Positiv: Südföhn. Negativ: Nordwind", (20, 20, 20), font=font)
 img.save(image_path + "pressure_diff.png")
+
+# generate overview buttons
+h = 180
+days = 5
+wov = int(w / days)
+# create rectangle images fo the overview
+i = 0
+while i < days:
+    img = Image.new("RGB", (wov, h), color=(240, 240, 250, 250))
+    # create rectangle image
+    img1 = ImageDraw.Draw(img)  # overview image
+
+    box = ((0, 0), (wov, h))
+    distance = int(flight_distance[0, i])
+    soar = soar_potential[i]
+    img1.rectangle(box, fill=dist_color(distance), outline=dist_color(distance))
+    img1.text((3 * padding, 3 * padding), wds[int(ov_days.pop(0))], (20, 20, 20), font=font)
+    img1.text((0.3 * wov, 0.3 * h), str(distance), (20, 20, 20), font=font_el)
+    img1.text((3 * padding, h - 36), ov_remark.pop(0), (20, 20, 20), font=font)
+    # soaring
+    if soar > 0:
+        color = 'grey'
+        soar_text = ' S'
+        if soar == 1:
+            soar_text = 'GH'
+        if soar == 2:
+            color = 'green'
+        if soar == 3:
+            color = 'orange'
+        img1.ellipse((140, 15, 170, 45), fill=color)
+        img1.text((141, 20), soar_text, (240, 240, 240), font=font)
+    img.save(image_path + "thermal_button" + str(i) + ".png")
+    i = i + 1
 
 # create csv with the potential distances
 distances = ''
@@ -872,6 +943,17 @@ while loc < max_locations:
     session.storbinary('STOR multitherm/forecast' + locations[loc] + '3.png', file3)  # send the file
     session.storbinary('STOR multitherm/forecast' + locations[loc] + '4.png', file4)  # send the file
     loc = loc + 1
+
+# send Alp Scheidegg-Files and overview buttons
+day = 0
+while day < 5:
+    file0 = open('/var/www/html/thermals/thermal_button' + str(day) + '.png', 'rb')  # overview0 to send
+    file1 = open('/var/www/html/thermals/forecast' + locations[0] + str(day) + '.png', 'rb')
+    session.storbinary('STOR thermal_button' + str(day) + '.png', file0)  # send the file
+    session.storbinary('STOR forecast' + str(day) + '.png', file1)  # send the file
+    day = day + 1
+
+# send potential data
 file0 = open('/var/www/html/thermals/potential.txt', 'rb')  # file to send
 session.storbinary('STOR multitherm/potential.txt', file0)  # send the file
 file1 = open('/var/www/html/thermals/thermal_data_multi.txt', 'rb')  # multi-data to send
