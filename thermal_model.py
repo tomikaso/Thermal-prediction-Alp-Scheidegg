@@ -1,6 +1,7 @@
 # thermal model to simulate a rising air parcel in the given atmosphere.
 import math
 from datetime import datetime
+import time
 
 # thermodynamic parameters
 updraft_factor = 48
@@ -42,7 +43,7 @@ class thermal_model:
 
     def __init__(self, temp_2m, dew_2m, temp_1000, dew_1000, temp_1500, dew_1500, temp_1900, dew_1900, temp_3000,
                  dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, mountain_top, radiation,
-                 precipitation, weather_cd):
+                 precipitation, weather_cd, time_hr, terrain):
         self.__start_level = 500
         self.__temps = []
         self.__dews = []
@@ -58,13 +59,27 @@ class thermal_model:
         updraft = 0
         # astro parameters for alpine starting places.
         latitude = 47.255
-        longitude = 8.771
-        time = datetime.now()
-        post_winter_solstice = time.month * 30 + time.day - 20
+        date = datetime.now()
+        post_winter_solstice = date.month * 30 + date.day - 20
         if post_winter_solstice >= 360:
             post_winter_solstice = post_winter_solstice - 360
+        # calculate the position of the sun
         maxdeclination = 90 - latitude - 23.5 * math.cos(post_winter_solstice / 360 * 6.28)
-        # calculate the distribution of sun in the valley and sub in the mountains from the declination of the sun
+        maxdeclination = 19.5
+        post_winter_solstice = 0
+        if time.localtime().tm_isdst > 0:  # adjust midday to daylight saving time
+            midday = 13.5
+        else:
+            midday = 12.5
+        daylength = 12.2 - 3.74 * math.cos(post_winter_solstice / 360 * 6.28)
+        delta_zenit = (midday - time_hr) * 12 / daylength
+        sun_angle = max(math.asin(math.sin(math.radians(maxdeclination))
+                              * math.cos(math.radians(delta_zenit * 15))) * 180 / math.pi, 0)
+        print('time: ', time_hr, ' sun angle: ', sun_angle, ' post winter solstice:', post_winter_solstice,
+               ' max decl. ', maxdeclination, ' Terrain: ', terrain)
+
+
+        # calculate the distribution of sun in the valley and in the mountains from the declination of the sun
         sun_valley = 2.0 - max(1.0, math.cos(maxdeclination / 360 * 6.282) + 0.6)
         sun_mountain = max(1.0, math.cos(maxdeclination / 360 * 6.282) + 0.6)
         if mountain_top < 2000:  # allow better sun distribution for alpine starting places.

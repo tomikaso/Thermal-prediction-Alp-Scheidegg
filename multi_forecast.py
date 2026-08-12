@@ -285,9 +285,7 @@ def create_lines(offset):
 def create_thermal_data(index):
     tmp: float = 0
     distance = 0
-    bise = 0
-    bise_start = 0
-    strong_wind = 0
+    bise, bise_start, light_bise_start, strong_wind = 0, 0, 0, 0
     extra_text = ""
     foehn, high_altitude_wind_dir, wind_dir_high = 0, 0, 0
     major_wind_dir, wind_max, temp_below, wind_dir_start = 0, 0, 0, 0
@@ -409,14 +407,16 @@ def create_thermal_data(index):
             elif wind_start > 25:
                 strong_wind = strong_wind + 1
             # bise
-            if (wind_dir_start < 120 or wind_dir_start > 340) and wind_start > 20:
+            if (wind_dir_start < 120 or wind_dir_start > 340) and wind_start > 25:
                 bise = bise + 100
             elif (wind_dir_start < 120 or wind_dir_start > 340) and wind_start > 15:
                 bise = bise + 10
+                if bise_start == 0 and light_bise_start == 0:  # bise by change of wind-direction
+                    bise_start = k + 10
             elif (wind_dir_start < 120 or wind_dir_start > 340) and wind_start > 5:
                 bise = bise + 1
-                if bise_start == 0:
-                    bise_start = k + 10
+                if light_bise_start == 0:
+                    light_bise_start = k + 10
             if wind_start > wind_max:  # determine direction of the wind-max
                 wind_max = wind_start
                 major_wind_dir = wind_dir_start
@@ -477,17 +477,18 @@ def create_thermal_data(index):
                                  fill=bubble_color, outline='gainsboro', width=2)
                 img1.text((2 * border + tx + padding + col * 7.1, border + padding + ty / lines * (k + 1)), content,
                           (200, 200, 200), font=font)
-
         k = k + 1
     # creation of comments
     if bise > 1:
         extra_text = "Bisentendenz"
-        if bise_start > 12:
-            extra_text = "Bisentendenz ab " + str(int(bise_start)) + "Uhr"
+        if light_bise_start >= 12:
+            extra_text = "Bisentendenz ab " + str(int(light_bise_start)) + "Uhr"
     if strong_wind > 3:
         extra_text = "mässiger " + wind_string(major_wind_dir)
     if bise > 25:
         extra_text = "Bise"
+        if bise_start >= 12:
+            extra_text = "Bise ab " + str(int(bise_start)) + "Uhr"
     if abs(foehn) > 4:
         extra_text = "Druckdifferenz " + str(int(foehn + 0.5)) + "hPa!"
     if bise > 250:
