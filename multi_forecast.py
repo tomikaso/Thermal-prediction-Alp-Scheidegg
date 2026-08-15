@@ -34,6 +34,8 @@ north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5]
 south_foehn_tolerance = [4.5, 100, 4.5, 4, 6, 4, 3.5, 3.5, 3.5, 4]
 wind_limit_start = [25, 20, 25, 20, 20, 20, 20, 20, 20, 20]
 wind_limit_top = [30, 25, 30, 25, 25, 25, 25, 25, 25, 25]
+terrains = ['pre-alpine', 'pre-alpine', 'pre-alpine', 'alpine', 'pre-alpine', 'alpine', 'alpine', 'alpine',
+            'alpine', 'alpine']
 sunset = {1: 17, 2: 18, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
 max_locations = 10
 flight_distance = np.zeros([max_locations, 5])
@@ -337,7 +339,8 @@ def create_thermal_data(index):
                                   temp5600[loc, index + k], dew5600[loc, index + k], start_height[loc],
                                   mountain_top[loc],
                                   effective_sun(abs(radiation[loc, index + k]), start_angle[loc], k + 10),
-                                  precipitation[loc, index + k] - 0.1, weather_code[loc, index + k])
+                                  precipitation[loc, index + k] - 0.1, weather_code[loc, index + k],
+                                  k + 10, terrains[loc])
             # append model-data
             for model_data in model.html_string:
                 model_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10)

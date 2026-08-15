@@ -11,6 +11,7 @@ mixing_dry = 0.1
 mixing_wet = 0.10
 std_pressure = 101325
 
+
 # calculate density
 def density(pressure, temp, humi):
     Rda = 287.058  # R dry air
@@ -36,7 +37,7 @@ def rh_from_tdew(temp_air, temp_dew):
 # here the class starts
 class thermal_model:
     # simple thermal model
-    start_level = 700
+    ground_level = 700
     html_string = []
     average_lift = 0
     base_top = 0
@@ -44,7 +45,7 @@ class thermal_model:
     def __init__(self, temp_2m, dew_2m, temp_1000, dew_1000, temp_1500, dew_1500, temp_1900, dew_1900, temp_3000,
                  dew_3000, temp_4200, dew_4200, temp_5600, dew_5600, start_height, mountain_top, radiation,
                  precipitation, weather_cd, time_hr, terrain):
-        self.__start_level = 500
+        self.__ground_level = 500
         self.__temps = []
         self.__dews = []
         self.__parcel_temps = []
@@ -54,7 +55,7 @@ class thermal_model:
         self.__air_density = []
         self.__heights = []
         self.__updraft = []
-        calculation_base = max(self.start_level, start_height - 500)
+        calculation_base = max(self.ground_level, start_height - 500)
         condensed = 0
         updraft = 0
         # astro parameters for alpine starting places.
@@ -65,8 +66,8 @@ class thermal_model:
             post_winter_solstice = post_winter_solstice - 360
         # calculate the position of the sun
         maxdeclination = 90 - latitude - 23.5 * math.cos(post_winter_solstice / 360 * 6.28)
-        maxdeclination = 19.5
-        post_winter_solstice = 0
+        # maxdeclination = 19.5
+        # post_winter_solstice = 0
         if time.localtime().tm_isdst > 0:  # adjust midday to daylight saving time
             midday = 13.5
         else:
@@ -74,24 +75,25 @@ class thermal_model:
         daylength = 12.2 - 3.74 * math.cos(post_winter_solstice / 360 * 6.28)
         delta_zenit = (midday - time_hr) * 12 / daylength
         sun_angle = max(math.asin(math.sin(math.radians(maxdeclination))
-                              * math.cos(math.radians(delta_zenit * 15))) * 180 / math.pi, 0)
+                                  * math.cos(math.radians(delta_zenit * 15))) * 180 / math.pi, 0)
+        rad90 = radiation / math.sin(max(math.radians(sun_angle), 0.1))
         print('time: ', time_hr, ' sun angle: ', sun_angle, ' post winter solstice:', post_winter_solstice,
-               ' max decl. ', maxdeclination, ' Terrain: ', terrain)
-
+              ' max decl. ', maxdeclination, ' Terrain: ', terrain, ' radiation:', radiation, ' 90-deg:', rad90)
 
         # calculate the distribution of sun in the valley and in the mountains from the declination of the sun
-        sun_valley = 2.0 - max(1.0, math.cos(maxdeclination / 360 * 6.282) + 0.6)
-        sun_mountain = max(1.0, math.cos(maxdeclination / 360 * 6.282) + 0.6)
-        if mountain_top < 2000:  # allow better sun distribution for alpine starting places.
-            sun_valley = 1
-            sun_mountain = 1
+        if terrain == 'alpine':
+            rad_effective = math.sin(math.radians(sun_angle + 40)) * rad90  # 40° steepness
+        elif terrain == 'pre-alpine':
+            rad_effective = math.sin(math.radians(sun_angle + 20)) * rad90  # 20° steepness
+        else:
+            rad_effective = 0  # boilerplate case
         self.html_string.clear()
-        i = self.__start_level
+        i = self.__ground_level
         while i <= 5600:
             if i <= 1000:
-                val2st = 1000 - self.__start_level  # valley to start level
-                self.__temps.append(temp_2m * (1000 - i) / val2st + temp_1000 * (i - self.__start_level) / val2st)
-                self.__dews.append(dew_2m * (1000 - i) / val2st + dew_1000 * (i - self.__start_level) / val2st)
+                val2st = 1000 - self.__ground_level  # valley to start level
+                self.__temps.append(temp_2m * (1000 - i) / val2st + temp_1000 * (i - self.__ground_level) / val2st)
+                self.__dews.append(dew_2m * (1000 - i) / val2st + dew_1000 * (i - self.__ground_level) / val2st)
             if 1460 >= i > 1000:
                 self.__temps.append(temp_1000 * (1460 - i) / 460 + temp_1500 * (i - 1000) / 460)
                 self.__dews.append(dew_1000 * (1460 - i) / 460 + dew_1500 * (i - 1000) / 460)
@@ -110,12 +112,12 @@ class thermal_model:
             self.__heights.append(i)
 
             # parcel conditions
-            if i == self.__start_level:
-                self.__parcel_temps.append(temp_2m + radiation / 2400)  # just 1/3rd
+            if i == self.__ground_level:  # boilerplate-case
+                self.__parcel_temps.append(temp_2m + radiation / 2400)  # just 1/3 rd
                 self.__parcel_dews.append(dew_2m)
                 self.__condensation.append('no')
             elif calculation_base <= i < calculation_base + 100:  # add 1 Kelvin under perfect conditions
-                self.__parcel_temps.append(self.__temps[-1] + sun_valley * std_pressure / alt2pres(i) * radiation / 800)
+                self.__parcel_temps.append(self.__temps[-1] + std_pressure / alt2pres(i) * radiation / 800)
                 self.__parcel_dews.append(self.__parcel_dews[-1] * (1 - mixing_dry)
                                           + mixing_dry * self.__dews[-1])
                 self.__condensation.append('no')
@@ -125,7 +127,7 @@ class thermal_model:
                     # no condensation case
                     if i <= mountain_top:  # add some energy as long as the peaks of the mountains are reached
                         self.__parcel_temps.append(self.__parcel_temps[-1] - dry_adiabatic
-                                                   + sun_mountain * std_pressure / alt2pres(i) * radiation / 2400)
+                                                   + std_pressure / alt2pres(i) * rad_effective / 3300)
                     else:
                         self.__parcel_temps.append((self.__parcel_temps[-1] - dry_adiabatic) * (1 - mixing_dry * factor)
                                                    + mixing_dry * factor * self.__temps[-1])
@@ -149,7 +151,7 @@ class thermal_model:
             #  updraft
             updraft = max(0, (updraft_factor * max(self.__air_density[-1] - (self.__parcel_density[-1]), 0) ** 0.6))
             self.__updraft.append(updraft)
-
+            # print('effective, rad90, rad', rad_effective, rad90, radiation, '  sun-angle: ', sun_angle)
             # write out results
             if 800 <= i <= 4000 and i % 200 == 0:  # one data point each 200 meters
                 if i <= calculation_base:
