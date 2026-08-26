@@ -65,6 +65,7 @@ input:checked + .slider:before {
     const h = new Date();
     let day = 0;
     let mode = "thermal";
+    let maxloc = 14;
     const weekday = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag", "Montag","Dienstag","Mittwoch","Donnerstag"];
     const wind_color = ["limegreen", "springgreen", "lawngreen", "greenyellow", "yellow", "gold", "orange", "orangered", "tomato", "lightcoral", "indianred", "orchid", "darkorchid"];
     const models = ["ICON-D2", "ICON-D2", "ICON-EU", "ICON-EU", "ICON-EU" , "ICON-EU"];
@@ -103,8 +104,8 @@ async function load_thermal_model()
   document.getElementById("b3").innerHTML = "Thermik-Modell";
   for (let t in thermlist)
     {
-	if(thermlist[t].substring(0,3) == "LOC" && thermlist[t].substring(3,4) == 0 && thermlist[t].substring(7,8) == day && (parseInt(thermlist[t].substring(13,17)) <= 2800 || parseInt(thermlist[t].substring(13,17)) == 4200))
-		{lt = thermlist[t].substring(10,12); height = thermlist[t].substring(13,17); if(height=='4200'){height='3000'}
+	if(thermlist[t].substring(0,3) == "LOC" && thermlist[t].substring(3,5) == '00' && thermlist[t].substring(8,9) == day && (parseInt(thermlist[t].substring(14,18)) <= 2800 || parseInt(thermlist[t].substring(14,18)) == 4200))
+		{lt = thermlist[t].substring(11,13); height = thermlist[t].substring(14,18); if(height=='4200'){height='3000'}
          adr = height + "-" + lt; adr_flag = 1;}
 	else
 		{
@@ -150,9 +151,9 @@ async function load_wind()
   clear_table();
   for (let t in windlist)
     {
-	if(windlist[t].substring(0,3) == "LOC" && windlist[t].substring(7,8) == day && windlist[t].substring(3,4) == 0
-       && (parseInt(windlist[t].substring(13,17)) <= 3000))
-		{lt = windlist[t].substring(10,12); height = windlist[t].substring(13,17); adr = height + "-" + lt; adr_flag = 1;}
+	if(windlist[t].substring(0,3) == "LOC" && windlist[t].substring(8,9) == day && windlist[t].substring(3,5) == '00'
+       && (parseInt(windlist[t].substring(14,18)) <= 3000))
+		{lt = windlist[t].substring(11,13); height = windlist[t].substring(14,18); adr = height + "-" + lt; adr_flag = 1;}
 	else
 		{
 		if (adr_flag == 1)
@@ -194,9 +195,9 @@ async function load_potential(){document.getElementById("display_temp").innerHTM
         setTimeout(function (){change_color(0)}, 300);
         }
 function change_color(i) {
-   for (let l = 0; l <= 9; l++) {
-     document.getElementById("thermal" + l).style.backgroundColor = col(potarray[l + 10 * i]/25);
-     document.getElementById("thermal" + l).innerHTML = "<a class='km'>" + potarray[l + 10 * i] + "</a>";
+   for (let l = 0; l < maxloc; l++) {
+     document.getElementById("thermal" + l).style.backgroundColor = col(potarray[l + maxloc * i]/25);
+     document.getElementById("thermal" + l).innerHTML = "<a class='km'>" + potarray[l + maxloc * i] + "</a>";
    } document.getElementById("weekday0").innerHTML = "<a class='km'>" + weekday[h.getDay() + day] + "</a>";
 }
 setTimeout(function (){load_potential()}, 200);
@@ -396,43 +397,4 @@ setTimeout(function (){show_forecast(0)}, 1000);
         <th> 19h </th>
         <th> 20h </th>
     </tr>
-</table></div>
-<h1>
-
-
-    <h3>Thermikprognosen für weitere Startplätze</h3>
-
-
-</h1><div><style>
-.km {font-size: 14px; font-weight: bold; color: #314483;}
-.smalltherm {
-  position: relative; width: 100%; padding-top: 59%;
-  background-image: url('/images/thomaskamps/multitherm/swiss_outline_gr.png');background-size: 100%;
-  background-repeat: no-repeat; margin: 0px; border-radius: 0px; cursor: pointer; }
-.smov {position: absolute; width: 28px; height: 28px; margin: 0px; padding: 0px 0px 0px 0px; border-radius: 14px; border: 2px solid gainsboro; line-height: normal; text-align: center; }
-.thermal0 { left: 59%; top:  21%;}
-.thermal1 { left: 55%; top:  74%;}
-.thermal2 { left: 63%; top:  31%;}
-.thermal3 { left: 73%; top:  40%;}
-.thermal4 { left: 28%; top:  26%;}
-.thermal5 { left: 83%; top:  50%;}
-.thermal6 { left: 39%; top:  65%;}
-.thermal7 { left: 32%; top:  50%;}
-.thermal8 { left: 60%; top:  40%;}
-.thermal9 { left: 57%; top:  61%;}
-.weekday0 { left: 8%; top:  8%; width: 80px; background-color: #EEF6FA;}
-</style>
-    <div class="smalltherm" id="overview" onclick="window.open('https://www.dczo.ch/startseite-des-dczo/thermikprognose', '_self')">
-        <span class="thermal0 smov" id="thermal0"><a class="km">AS</a></span>
-        <span class="thermal1 smov" id="thermal1"><a class="km">LO</a></span>
-        <span class="thermal3 smov" id="thermal3"><a class="km">PY</a></span>
-        <span class="thermal4 smov" id="thermal4"><a class="km">SO</a></span>
-        <span class="thermal5 smov" id="thermal5"><a class="km">SC</a></span>
-        <span class="thermal6 smov" id="thermal6"><a class="km">FI</a></span>
-        <span class="thermal7 smov" id="thermal7"><a class="km">NI</a></span>
-        <span class="thermal8 smov" id="thermal8"><a class="km">BR</a></span>
-        <span class="thermal2 smov" id="thermal2"><a class="km">HÜ</a></span>
-        <span class="thermal9 smov" id="thermal9"><a class="km">CA</a></span>
-        <span class="weekday0 smov" id="weekday0"><a class="km">Day-0</a></span>
-    </div>
-</div>
+</table>

@@ -21,23 +21,26 @@ north_south_diff = []
 wds = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Heute']
 
 locations = ['Scheidegg', 'Locarno', 'Hüsliberg', 'Pany', 'Solothurn', 'Scuol', 'Fiesch', 'Niesen',
-             'Braunwald-Gumen', 'Cari']
+             'Braunwald-Gumen', 'Cari', 'Ebenalp', 'Galgenen', 'Zugerberg', 'Engelberg']
 coordinates = np.array([[47.289, 8.915], [46.175384, 8.793927], [47.181896, 9.051195], [46.927030, 9.771950],
                         [47.233629, 7.497267], [46.798445, 10.299627], [46.404585, 8.13389], [46.617260, 7.671066],
-                        [46.927241, 9.001098], [46.511744, 8.820113]])
-start_height = [1240, 1500, 1020, 1950, 1440, 2150, 2200, 2200, 2050, 2280]
-flight_range_low = [1200, 1200, 1020, 1950, 1000, 2150, 1900, 2000, 2050, 2000]
-start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180, 190]
-mountain_top = [1400, 2200, 1500, 2400, 1440, 2900, 2900, 2500, 2600, 2500]
-xc_potential = [1, 1.2, 1, 1.3, 1.5, 1.2, 1.3, 1.3, 1.1, 1.3]
-north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5]
-south_foehn_tolerance = [4.5, 100, 4.5, 4, 6, 4, 3.5, 3.5, 3.5, 4]
-wind_limit_start = [25, 20, 25, 20, 20, 20, 20, 20, 20, 20]
-wind_limit_top = [30, 25, 30, 25, 25, 25, 25, 25, 25, 25]
+                        [46.927241, 9.001098], [46.511744, 8.820113], [47.279408, 9.419929], [47.175256, 8.880510],
+                        [47.162343, 8.516407], [46.821780, 8.406177]])
+start_height = [1200, 1500, 1020, 1650, 1440, 2150, 2200, 2200, 2050, 2280, 1600, 1070, 940, 1860]
+start_angle = [200, 200, 235, 190, 200, 180, 180, 180, 180, 190, 180, 320, 240, 190]
+valley_height = [700, 340, 430, 810, 600, 1250, 1050, 1200, 615, 720, 880, 430, 440, 1010]
+mountain_top = [1400, 2200, 1500, 2400, 1440, 3200, 3300, 2500, 2600, 2500, 2400, 1100, 1000, 2570]
+flight_range_low = [1200, 1200, 1020, 1950, 1000, 2150, 1900, 2000, 2050, 2000, 1500, 750, 750, 1600]
+valley_factor = [1, 1, 1, 1.1, 1, 1.1, 1.2, 1.2, 1.1, 1.1, 1.1, 1, 1, 1]
+xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2, 1.1, 1.1, 1.1, 1, 1, 1]
+north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5, -100, -100, -100, -100]
+south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3, 3, 4, 4, 5, 5, 4.5]
+wind_limit_start = [25, 20, 25, 20, 20, 20, 20, 20, 20, 20, 20, 25, 25, 20]
+wind_limit_top = [30, 25, 30, 25, 25, 25, 25, 25, 25, 25, 25, 30, 30, 30]
 terrains = ['pre-alpine', 'pre-alpine', 'pre-alpine', 'alpine', 'pre-alpine', 'alpine', 'alpine', 'alpine',
-            'alpine', 'alpine']
+            'alpine', 'alpine', 'alpine', 'boilerplate', 'boilerplate', 'alpine']
 sunset = {1: 17, 2: 18, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
-max_locations = 10
+max_locations = 14
 flight_distance = np.zeros([max_locations, 5])
 time = []
 ov_days = []
@@ -343,7 +346,7 @@ def create_thermal_data(index):
                                   k + 10, terrains[loc])
             # append model-data
             for model_data in model.html_string:
-                model_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10)
+                model_html_string.append('LOC'  + f'{loc:02d}' + 'DAY' + str(day) + 'LT' + str(k + 10)
                                          + 'H' + model_data + ',')
 
             # call wind interpolation
@@ -355,7 +358,7 @@ def create_thermal_data(index):
                                         wind4200[loc, index + k], wind_dir4200[loc, index + k])
             # append wind-data
             for wind_data in w_data.html_string:
-                wind_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10)
+                wind_html_string.append('LOC' + f'{loc:02d}' + 'DAY' + str(day) + 'LT' + str(k + 10)
                                         + 'H' + wind_data + ',')
             # wind
             content = str(int(wind_start)) + wind_direction(wind_dir_start)
@@ -380,7 +383,7 @@ def create_thermal_data(index):
                 cloud = 'cirrus' + moon + '0' + str(clouds_h) + ','
             else:
                 cloud = 'stratus' + moon + '0' + str(clouds_m) + ','
-            model_html_string.append('LOC' + str(loc) + 'DAY' + str(day) + 'LT' + str(k + 10) + 'H4200,' + cloud)
+            model_html_string.append('LOC' + f'{loc:02d}' + 'DAY' + str(day) + 'LT' + str(k + 10) + 'H4200,' + cloud)
 
             # temp
             img1.text((2 * border + tx + padding + col * 4, border + padding + ty / lines * (k + 1)), str(tmp)
