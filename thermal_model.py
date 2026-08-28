@@ -86,7 +86,7 @@ class thermal_model:
         elif terrain == 'pre-alpine':
             rad_effective = math.sin(math.radians(sun_angle + 20)) * rad90  # 20° steepness
         else:
-            rad_effective = 0  # boilerplate case
+            rad_effective = 0  # hotplate case
         self.html_string.clear()
         i = self.__ground_level
         while i <= 5600:
