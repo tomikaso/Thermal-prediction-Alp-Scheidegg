@@ -1,8 +1,9 @@
 <script>
 const today = new Date();
 const history = new Date();
-const hist_available = new Date("September 23, 2025");
-const hist_grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen", "Cari"];
+const hist_available = new Date("February 01, 2026");
+const hist_new_format = new Date("August 27, 2026");
+const hist_grids = ["Scheidegg", "Locarno", "Hüsliberg", "Pany", "Solothurn", "Scuol", "Fiesch", "Niesen", "Braunwald-Gumen", "Cari", "Ebenalp", "Galgenen", "Zugerberg", "Engelberg"];
 var active_location = 0;
 setTimeout(function (){plusDate(-1)}, 1000);
 function plusDate(dif){if ((today.getTime() >= history.getTime() + (dif * 60 * 60 * 24000 + 3600 * 7000)) && (hist_available.getTime() <= history.getTime() + dif * 60 * 60 * 24000))
@@ -15,14 +16,14 @@ hist_thermal_model(date_string2(history));
 function date_string(d){ return ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear();}
 function date_string2(d){ return (d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2) + ("0" + d.getDate()).slice(-2));}
 function set_hist_location(loc){
-             for (let l = 0; l <= 9; l++) {document.getElementById("hist" + l).className = "thermal" + l;}
+             for (let l = 0; l < maxloc; l++) {document.getElementById("hist" + l).className = "smov thermal" + l;}
              document.getElementById("hist" + loc).className   += " thermal_active";}
 async function read_hist_potential(date){let x = await fetch('/images/thomaskamps/thermal_history/potential' + date + '.txt');
    let y = await x.text();
    histarray = y.split(',');
-      for (let l = 0; l <= 9; l++) {document.getElementById("hist" + l).innerHTML = "<a class='km'>" + histarray[l] + "</a>";
-          document.getElementById("hist" + l).style.backgroundColor = col(histarray[l]);}
+      for (let l = 0; l < maxloc; l++){if(history < hist_new_format && l > 9) {document.getElementById("hist" + l).innerHTML = "<a class='km'>na</a>";document.getElementById("hist" + l).style.backgroundColor = "cornsilk";} else {document.getElementById("hist" + l).innerHTML = "<a class='km'>" + histarray[l] + "</a>"; document.getElementById("hist" + l).style.backgroundColor = col(histarray[l]);}
 	}
+                                        }
 function show_hist(loc){active_location = loc; document.getElementById("display_hist").innerHTML = "<img src='/images/thomaskamps/thermal_history/forecast" + hist_grids[active_location] + date_string2(history) + ".png'>";  document.getElementById("hist_headline").innerHTML = "Temp-Prognose: " + hist_grids[active_location] + " vom " + date_string(history);
 set_hist_location(loc);
 hist_thermal_model(date_string2(history));}
@@ -42,8 +43,9 @@ async function hist_thermal_model(date)
   clear_hist();
   for (let t in histlist)
     {
-	if(histlist[t].substring(0,3) == "LOC" && histlist[t].substring(7,8) == "0" && histlist[t].substring(3,4) == active_location )
-		{lt = histlist[t].substring(10,12); height = histlist[t].substring(13,17); adr = "hist" + height + "-" + lt; adr_flag = 1;}
+    if(histlist[t].substring(4,7) == "DAY"){histlist[t]="LOC0" + histlist[t].substring(3,18);}
+	if(histlist[t].substring(0,3) == "LOC" && histlist[t].substring(8,9) == "0" && histlist[t].substring(3,5) == active_location )
+		{lt = histlist[t].substring(11,13); height = histlist[t].substring(14,18); adr = "hist" + height + "-" + lt; adr_flag = 1;}
 	else
 		{
 		if (adr_flag == 1)
@@ -108,286 +110,347 @@ async function hist_thermal_model(date)
         text-decoration: none;
 		}
 </style>
+<style>
+    .date_div {
+     position: relative;
+     display: table;
+     width: 100%;
+     margin-left: auto;
+     margin-right: auto;
+     background-color: #0261AB;
+     color: darkslategray;
+     font-size: 18pt;
+     line-height: 1.6;
+	 text-align: center;
+	 padding: 3px;
+   }
+/* Next & previous buttons */
+	.prev, .next, .h_date {
+		cursor: pointer;
+		position: relative;
+		top: 0%;
+		width: auto;
+		padding: 12px;
+		margin-top: 0px;
+		color: lightgrey;
+		font-weight: bold;
+		font-size: 18px;
+		transition: 0.6s ease;
+		border-radius: 3px 3px 3px 3px;
+		user-select: none;
+		}
+/* Position the "next button" to the right */
+		.next {
+		right: 0;
+		}
 
-// Script part above
-// Accordion Part below
+		/* On hover, add a black background color with a little bit see-through */
+		.prev:hover, .next:hover {
+		background-color: rgba(40,40,80,0.8);
+        text-decoration: none;
+		}
+        .h_date:hover {
+        text-decoration: none;
+		}
+</style>
 
-
-<p>Historische Prognosen seit dem 23.09.2025. Jeweils die früh-morgens-Version.</p>
-<div class="date_div"><a class="prev" onclick="plusDate(-1)">-1d</a><a class="prev" onclick="plusDate(-10)">-10d</a> <a class="h_date" id="picked_date" onclick="plusDate(0)"></a><a class="next" onclick="plusDate(10)">+10d</a> <a class="next" onclick="plusDate(1)"> +1d</a></div>
-<div class="overview" id="hist_overview"><button class="thermal1" id="hist1" onclick="show_hist(1)"><a class="km">LO</a></button> <button class="thermal8" id="hist8" onclick="show_hist(8)"><a class="km">BR</a></button> <button class="thermal2" id="hist2" onclick="show_hist(2)"><a class="km">HÜ</a></button> <button class="thermal0" id="hist0" onclick="show_hist(0)"><a class="km">AS</a></button> <button class="thermal3" id="hist3" onclick="show_hist(3)"><a class="km">PY</a></button> <button class="thermal4" id="hist4" onclick="show_hist(4)"><a class="km">SO</a></button> <button class="thermal5" id="hist5" onclick="show_hist(5)"><a class="km">SC</a></button> <button class="thermal6" id="hist6" onclick="show_hist(6)"><a class="km">FI</a></button> <button class="thermal7" id="hist7" onclick="show_hist(7)"><a class="km">NI</a></button> <button class="thermal9" id="hist9" onclick="show_hist(9)"><a class="km">CA</a></button></div>
-<h3 id="hist_headline">Thermik und Temp</h3>
-<div id="display_hist"><img src="images/thomaskamps/multitherm/forecastScheidegg0.png" /></div>
-<div>
-  <h3 id="hist_headline_modell">Thermik-Modell</h3>
-  <table class="thermal_model">
-    <tbody>
-    <tr>
-      <th>4'200</th>
-      <td id="hist4200-10"></td>
-      <td id="hist4200-11"></td>
-      <td id="hist4200-12"></td>
-      <td id="hist4200-13"></td>
-      <td id="hist4200-14"></td>
-      <td id="hist4200-15"></td>
-      <td id="hist4200-16"></td>
-      <td id="hist4200-17"></td>
-      <td id="hist4200-18"></td>
-      <td id="hist4200-19"></td>
-      <td id="hist4200-20"></td>
-    </tr>
-    <tr>
-      <th>4'000</th>
-      <td id="hist4000-10"></td>
-      <td id="hist4000-11"></td>
-      <td id="hist4000-12"></td>
-      <td id="hist4000-13"></td>
-      <td id="hist4000-14"></td>
-      <td id="hist4000-15"></td>
-      <td id="hist4000-16"></td>
-      <td id="hist4000-17"></td>
-      <td id="hist4000-18"></td>
-      <td id="hist4000-19"></td>
-      <td id="hist4000-20"></td>
-    </tr>
-    <tr>
-      <th>3'800</th>
-      <td id="hist3800-10"></td>
-      <td id="hist3800-11"></td>
-      <td id="hist3800-12"></td>
-      <td id="hist3800-13"></td>
-      <td id="hist3800-14"></td>
-      <td id="hist3800-15"></td>
-      <td id="hist3800-16"></td>
-      <td id="hist3800-17"></td>
-      <td id="hist3800-18"></td>
-      <td id="hist3800-19"></td>
-      <td id="hist3800-20"></td>
-    </tr>
-    <tr>
-      <th>3'600</th>
-      <td id="hist3600-10"></td>
-      <td id="hist3600-11"></td>
-      <td id="hist3600-12"></td>
-      <td id="hist3600-13"></td>
-      <td id="hist3600-14"></td>
-      <td id="hist3600-15"></td>
-      <td id="hist3600-16"></td>
-      <td id="hist3600-17"></td>
-      <td id="hist3600-18"></td>
-      <td id="hist3600-19"></td>
-      <td id="hist3600-20"></td>
-    </tr>
-    <tr>
-      <th>3'400</th>
-      <td id="hist3400-10"></td>
-      <td id="hist3400-11"></td>
-      <td id="hist3400-12"></td>
-      <td id="hist3400-13"></td>
-      <td id="hist3400-14"></td>
-      <td id="hist3400-15"></td>
-      <td id="hist3400-16"></td>
-      <td id="hist3400-17"></td>
-      <td id="hist3400-18"></td>
-      <td id="hist3400-19"></td>
-      <td id="hist3400-20"></td>
-    </tr>
-    <tr>
-      <th>3'200</th>
-      <td id="hist3200-10"></td>
-      <td id="hist3200-11"></td>
-      <td id="hist3200-12"></td>
-      <td id="hist3200-13"></td>
-      <td id="hist3200-14"></td>
-      <td id="hist3200-15"></td>
-      <td id="hist3200-16"></td>
-      <td id="hist3200-17"></td>
-      <td id="hist3200-18"></td>
-      <td id="hist3200-19"></td>
-      <td id="hist3200-20"></td>
-    </tr>
-    <tr>
-      <th>3'000</th>
-      <td id="hist3000-10"></td>
-      <td id="hist3000-11"></td>
-      <td id="hist3000-12"></td>
-      <td id="hist3000-13"></td>
-      <td id="hist3000-14"></td>
-      <td id="hist3000-15"></td>
-      <td id="hist3000-16"></td>
-      <td id="hist3000-17"></td>
-      <td id="hist3000-18"></td>
-      <td id="hist3000-19"></td>
-      <td id="hist3000-20"></td>
-    </tr>
-    <tr>
-      <th>2'800</th>
-      <td id="hist2800-10"></td>
-      <td id="hist2800-11"></td>
-      <td id="hist2800-12"></td>
-      <td id="hist2800-13"></td>
-      <td id="hist2800-14"></td>
-      <td id="hist2800-15"></td>
-      <td id="hist2800-16"></td>
-      <td id="hist2800-17"></td>
-      <td id="hist2800-18"></td>
-      <td id="hist2800-19"></td>
-      <td id="hist2800-20"></td>
-    </tr>
-    <tr>
-      <th>2'600</th>
-      <td id="hist2600-10"></td>
-      <td id="hist2600-11"></td>
-      <td id="hist2600-12"></td>
-      <td id="hist2600-13"></td>
-      <td id="hist2600-14"></td>
-      <td id="hist2600-15"></td>
-      <td id="hist2600-16"></td>
-      <td id="hist2600-17"></td>
-      <td id="hist2600-18"></td>
-      <td id="hist2600-19"></td>
-      <td id="hist2600-20"></td>
-    </tr>
-    <tr>
-      <th>2'400</th>
-      <td id="hist2400-10"></td>
-      <td id="hist2400-11"></td>
-      <td id="hist2400-12"></td>
-      <td id="hist2400-13"></td>
-      <td id="hist2400-14"></td>
-      <td id="hist2400-15"></td>
-      <td id="hist2400-16"></td>
-      <td id="hist2400-17"></td>
-      <td id="hist2400-18"></td>
-      <td id="hist2400-19"></td>
-      <td id="hist2400-20"></td>
-    </tr>
-    <tr>
-      <th>2'200</th>
-      <td id="hist2200-10"></td>
-      <td id="hist2200-11"></td>
-      <td id="hist2200-12"></td>
-      <td id="hist2200-13"></td>
-      <td id="hist2200-14"></td>
-      <td id="hist2200-15"></td>
-      <td id="hist2200-16"></td>
-      <td id="hist2200-17"></td>
-      <td id="hist2200-18"></td>
-      <td id="hist2200-19"></td>
-      <td id="hist2200-20"></td>
-    </tr>
-    <tr>
-      <th>2'000</th>
-      <td id="hist2000-10"></td>
-      <td id="hist2000-11"></td>
-      <td id="hist2000-12"></td>
-      <td id="hist2000-13"></td>
-      <td id="hist2000-14"></td>
-      <td id="hist2000-15"></td>
-      <td id="hist2000-16"></td>
-      <td id="hist2000-17"></td>
-      <td id="hist2000-18"></td>
-      <td id="hist2000-19"></td>
-      <td id="hist2000-20"></td>
-    </tr>
-    <tr>
-      <th>1'800</th>
-      <td id="hist1800-10"></td>
-      <td id="hist1800-11"></td>
-      <td id="hist1800-12"></td>
-      <td id="hist1800-13"></td>
-      <td id="hist1800-14"></td>
-      <td id="hist1800-15"></td>
-      <td id="hist1800-16"></td>
-      <td id="hist1800-17"></td>
-      <td id="hist1800-18"></td>
-      <td id="hist1800-19"></td>
-      <td id="hist1800-20"></td>
-    </tr>
-    <tr>
-      <th>1'600</th>
-      <td id="hist1600-10"></td>
-      <td id="hist1600-11"></td>
-      <td id="hist1600-12"></td>
-      <td id="hist1600-13"></td>
-      <td id="hist1600-14"></td>
-      <td id="hist1600-15"></td>
-      <td id="hist1600-16"></td>
-      <td id="hist1600-17"></td>
-      <td id="hist1600-18"></td>
-      <td id="hist1600-19"></td>
-      <td id="hist1600-20"></td>
-    </tr>
-    <tr>
-      <th>1'400</th>
-      <td id="hist1400-10"></td>
-      <td id="hist1400-11"></td>
-      <td id="hist1400-12"></td>
-      <td id="hist1400-13"></td>
-      <td id="hist1400-14"></td>
-      <td id="hist1400-15"></td>
-      <td id="hist1400-16"></td>
-      <td id="hist1400-17"></td>
-      <td id="hist1400-18"></td>
-      <td id="hist1400-19"></td>
-      <td id="hist1400-20"></td>
-    </tr>
-    <tr>
-      <th>1'200</th>
-      <td id="hist1200-10"></td>
-      <td id="hist1200-11"></td>
-      <td id="hist1200-12"></td>
-      <td id="hist1200-13"></td>
-      <td id="hist1200-14"></td>
-      <td id="hist1200-15"></td>
-      <td id="hist1200-16"></td>
-      <td id="hist1200-17"></td>
-      <td id="hist1200-18"></td>
-      <td id="hist1200-19"></td>
-      <td id="hist1200-20"></td>
-    </tr>
-    <tr>
-      <th>1'000</th>
-      <td id="hist1000-10"></td>
-      <td id="hist1000-11"></td>
-      <td id="hist1000-12"></td>
-      <td id="hist1000-13"></td>
-      <td id="hist1000-14"></td>
-      <td id="hist1000-15"></td>
-      <td id="hist1000-16"></td>
-      <td id="hist1000-17"></td>
-      <td id="hist1000-18"></td>
-      <td id="hist1000-19"></td>
-      <td id="hist1000-20"></td>
-    </tr>
-    <tr>
-      <th>800</th>
-      <td id="hist800-10"></td>
-      <td id="hist800-11"></td>
-      <td id="hist800-12"></td>
-      <td id="hist800-13"></td>
-      <td id="hist800-14"></td>
-      <td id="hist800-15"></td>
-      <td id="hist800-16"></td>
-      <td id="hist800-17"></td>
-      <td id="hist800-18"></td>
-      <td id="hist800-19"></td>
-      <td id="hist800-20"></td>
-    </tr>
-    <tr>
-      <th>H/Lt</th>
-      <th>10h</th>
-      <th>11h</th>
-      <th>12h</th>
-      <th>13h</th>
-      <th>14h</th>
-      <th>15h</th>
-      <th>16h</th>
-      <th>17h</th>
-      <th>18h</th>
-      <th>19h</th>
-      <th>20h</th>
-    </tr>
-    </tbody>
-  </table>
 </div>
+<div class="uk-accordion-default" uk-accordion="collapsible: true;" id="rueckblick">
+
+  <div class="el-item">
+    <a class="el-title uk-accordion-title" href>Rückblick: Prognosen-Archiv <span uk-accordion-icon></span></a>
+
+    <div class="uk-accordion-content">
+
+      <div class="el-content uk-panel"><p>Historische Prognosen seit dem 27.08.2026. Jeweils die früh-morgens-Version.</p>
+        <div class="date_div"><a class="prev" onclick="plusDate(-1)">-1d</a><a class="prev" onclick="plusDate(-10)">-10d</a> <a class="h_date" id="picked_date" onclick="plusDate(0)"></a><a class="next" onclick="plusDate(10)">+10d</a> <a class="next" onclick="plusDate(1)"> +1d</a></div>
+        <div class="overview" id="hist_overview">
+          <button class="smov thermal1" id="hist1" onclick="show_hist(1)"><a class="km">LO</a></button>
+          <button class="smov thermal8" id="hist8" onclick="show_hist(8)"><a class="km">BR</a></button>
+          <button class="smov thermal2" id="hist2" onclick="show_hist(2)"><a class="km">HÜ</a></button>
+          <button class="smov thermal0" id="hist0" onclick="show_hist(0)"><a class="km">AS</a></button>
+          <button class="smov thermal3" id="hist3" onclick="show_hist(3)"><a class="km">PY</a></button>
+          <button class="smov thermal4" id="hist4" onclick="show_hist(4)"><a class="km">SO</a></button>
+          <button class="smov thermal5" id="hist5" onclick="show_hist(5)"><a class="km">SC</a></button>
+          <button class="smov thermal6" id="hist6" onclick="show_hist(6)"><a class="km">FI</a></button>
+          <button class="smov thermal7" id="hist7" onclick="show_hist(7)"><a class="km">NI</a></button>
+          <button class="smov thermal9" id="hist9" onclick="show_hist(9)"><a class="km">CA</a></button>
+          <button class="smov thermal10" id="hist10" onclick="show_hist(10)"><a class="km">EA</a></button>
+          <button class="smov thermal11" id="hist11" onclick="show_hist(11)"><a class="km">GA</a></button>
+          <button class="smov thermal12" id="hist12" onclick="show_hist(12)"><a class="km">ZB</a></button>
+          <button class="smov thermal13" id="hist13" onclick="show_hist(13)"><a class="km">EB</a></button></div>
+        <h3 id="hist_headline">Thermik und Temp</h3>
+        <div id="display_hist"><img src="/images/thomaskamps/multitherm/forecastScheidegg0.png" /></div>
+        <div>
+          <h3 id="hist_headline_modell">Thermik-Modell</h3>
+          <table class="thermal_model">
+            <tbody>
+            <tr>
+              <th>4'200</th>
+              <td id="hist4200-10"></td>
+              <td id="hist4200-11"></td>
+              <td id="hist4200-12"></td>
+              <td id="hist4200-13"></td>
+              <td id="hist4200-14"></td>
+              <td id="hist4200-15"></td>
+              <td id="hist4200-16"></td>
+              <td id="hist4200-17"></td>
+              <td id="hist4200-18"></td>
+              <td id="hist4200-19"></td>
+              <td id="hist4200-20"></td>
+            </tr>
+            <tr>
+              <th>4'000</th>
+              <td id="hist4000-10"></td>
+              <td id="hist4000-11"></td>
+              <td id="hist4000-12"></td>
+              <td id="hist4000-13"></td>
+              <td id="hist4000-14"></td>
+              <td id="hist4000-15"></td>
+              <td id="hist4000-16"></td>
+              <td id="hist4000-17"></td>
+              <td id="hist4000-18"></td>
+              <td id="hist4000-19"></td>
+              <td id="hist4000-20"></td>
+            </tr>
+            <tr>
+              <th>3'800</th>
+              <td id="hist3800-10"></td>
+              <td id="hist3800-11"></td>
+              <td id="hist3800-12"></td>
+              <td id="hist3800-13"></td>
+              <td id="hist3800-14"></td>
+              <td id="hist3800-15"></td>
+              <td id="hist3800-16"></td>
+              <td id="hist3800-17"></td>
+              <td id="hist3800-18"></td>
+              <td id="hist3800-19"></td>
+              <td id="hist3800-20"></td>
+            </tr>
+            <tr>
+              <th>3'600</th>
+              <td id="hist3600-10"></td>
+              <td id="hist3600-11"></td>
+              <td id="hist3600-12"></td>
+              <td id="hist3600-13"></td>
+              <td id="hist3600-14"></td>
+              <td id="hist3600-15"></td>
+              <td id="hist3600-16"></td>
+              <td id="hist3600-17"></td>
+              <td id="hist3600-18"></td>
+              <td id="hist3600-19"></td>
+              <td id="hist3600-20"></td>
+            </tr>
+            <tr>
+              <th>3'400</th>
+              <td id="hist3400-10"></td>
+              <td id="hist3400-11"></td>
+              <td id="hist3400-12"></td>
+              <td id="hist3400-13"></td>
+              <td id="hist3400-14"></td>
+              <td id="hist3400-15"></td>
+              <td id="hist3400-16"></td>
+              <td id="hist3400-17"></td>
+              <td id="hist3400-18"></td>
+              <td id="hist3400-19"></td>
+              <td id="hist3400-20"></td>
+            </tr>
+            <tr>
+              <th>3'200</th>
+              <td id="hist3200-10"></td>
+              <td id="hist3200-11"></td>
+              <td id="hist3200-12"></td>
+              <td id="hist3200-13"></td>
+              <td id="hist3200-14"></td>
+              <td id="hist3200-15"></td>
+              <td id="hist3200-16"></td>
+              <td id="hist3200-17"></td>
+              <td id="hist3200-18"></td>
+              <td id="hist3200-19"></td>
+              <td id="hist3200-20"></td>
+            </tr>
+            <tr>
+              <th>3'000</th>
+              <td id="hist3000-10"></td>
+              <td id="hist3000-11"></td>
+              <td id="hist3000-12"></td>
+              <td id="hist3000-13"></td>
+              <td id="hist3000-14"></td>
+              <td id="hist3000-15"></td>
+              <td id="hist3000-16"></td>
+              <td id="hist3000-17"></td>
+              <td id="hist3000-18"></td>
+              <td id="hist3000-19"></td>
+              <td id="hist3000-20"></td>
+            </tr>
+            <tr>
+              <th>2'800</th>
+              <td id="hist2800-10"></td>
+              <td id="hist2800-11"></td>
+              <td id="hist2800-12"></td>
+              <td id="hist2800-13"></td>
+              <td id="hist2800-14"></td>
+              <td id="hist2800-15"></td>
+              <td id="hist2800-16"></td>
+              <td id="hist2800-17"></td>
+              <td id="hist2800-18"></td>
+              <td id="hist2800-19"></td>
+              <td id="hist2800-20"></td>
+            </tr>
+            <tr>
+              <th>2'600</th>
+              <td id="hist2600-10"></td>
+              <td id="hist2600-11"></td>
+              <td id="hist2600-12"></td>
+              <td id="hist2600-13"></td>
+              <td id="hist2600-14"></td>
+              <td id="hist2600-15"></td>
+              <td id="hist2600-16"></td>
+              <td id="hist2600-17"></td>
+              <td id="hist2600-18"></td>
+              <td id="hist2600-19"></td>
+              <td id="hist2600-20"></td>
+            </tr>
+            <tr>
+              <th>2'400</th>
+              <td id="hist2400-10"></td>
+              <td id="hist2400-11"></td>
+              <td id="hist2400-12"></td>
+              <td id="hist2400-13"></td>
+              <td id="hist2400-14"></td>
+              <td id="hist2400-15"></td>
+              <td id="hist2400-16"></td>
+              <td id="hist2400-17"></td>
+              <td id="hist2400-18"></td>
+              <td id="hist2400-19"></td>
+              <td id="hist2400-20"></td>
+            </tr>
+            <tr>
+              <th>2'200</th>
+              <td id="hist2200-10"></td>
+              <td id="hist2200-11"></td>
+              <td id="hist2200-12"></td>
+              <td id="hist2200-13"></td>
+              <td id="hist2200-14"></td>
+              <td id="hist2200-15"></td>
+              <td id="hist2200-16"></td>
+              <td id="hist2200-17"></td>
+              <td id="hist2200-18"></td>
+              <td id="hist2200-19"></td>
+              <td id="hist2200-20"></td>
+            </tr>
+            <tr>
+              <th>2'000</th>
+              <td id="hist2000-10"></td>
+              <td id="hist2000-11"></td>
+              <td id="hist2000-12"></td>
+              <td id="hist2000-13"></td>
+              <td id="hist2000-14"></td>
+              <td id="hist2000-15"></td>
+              <td id="hist2000-16"></td>
+              <td id="hist2000-17"></td>
+              <td id="hist2000-18"></td>
+              <td id="hist2000-19"></td>
+              <td id="hist2000-20"></td>
+            </tr>
+            <tr>
+              <th>1'800</th>
+              <td id="hist1800-10"></td>
+              <td id="hist1800-11"></td>
+              <td id="hist1800-12"></td>
+              <td id="hist1800-13"></td>
+              <td id="hist1800-14"></td>
+              <td id="hist1800-15"></td>
+              <td id="hist1800-16"></td>
+              <td id="hist1800-17"></td>
+              <td id="hist1800-18"></td>
+              <td id="hist1800-19"></td>
+              <td id="hist1800-20"></td>
+            </tr>
+            <tr>
+              <th>1'600</th>
+              <td id="hist1600-10"></td>
+              <td id="hist1600-11"></td>
+              <td id="hist1600-12"></td>
+              <td id="hist1600-13"></td>
+              <td id="hist1600-14"></td>
+              <td id="hist1600-15"></td>
+              <td id="hist1600-16"></td>
+              <td id="hist1600-17"></td>
+              <td id="hist1600-18"></td>
+              <td id="hist1600-19"></td>
+              <td id="hist1600-20"></td>
+            </tr>
+            <tr>
+              <th>1'400</th>
+              <td id="hist1400-10"></td>
+              <td id="hist1400-11"></td>
+              <td id="hist1400-12"></td>
+              <td id="hist1400-13"></td>
+              <td id="hist1400-14"></td>
+              <td id="hist1400-15"></td>
+              <td id="hist1400-16"></td>
+              <td id="hist1400-17"></td>
+              <td id="hist1400-18"></td>
+              <td id="hist1400-19"></td>
+              <td id="hist1400-20"></td>
+            </tr>
+            <tr>
+              <th>1'200</th>
+              <td id="hist1200-10"></td>
+              <td id="hist1200-11"></td>
+              <td id="hist1200-12"></td>
+              <td id="hist1200-13"></td>
+              <td id="hist1200-14"></td>
+              <td id="hist1200-15"></td>
+              <td id="hist1200-16"></td>
+              <td id="hist1200-17"></td>
+              <td id="hist1200-18"></td>
+              <td id="hist1200-19"></td>
+              <td id="hist1200-20"></td>
+            </tr>
+            <tr>
+              <th>1'000</th>
+              <td id="hist1000-10"></td>
+              <td id="hist1000-11"></td>
+              <td id="hist1000-12"></td>
+              <td id="hist1000-13"></td>
+              <td id="hist1000-14"></td>
+              <td id="hist1000-15"></td>
+              <td id="hist1000-16"></td>
+              <td id="hist1000-17"></td>
+              <td id="hist1000-18"></td>
+              <td id="hist1000-19"></td>
+              <td id="hist1000-20"></td>
+            </tr>
+            <tr>
+              <th>800</th>
+              <td id="hist800-10"></td>
+              <td id="hist800-11"></td>
+              <td id="hist800-12"></td>
+              <td id="hist800-13"></td>
+              <td id="hist800-14"></td>
+              <td id="hist800-15"></td>
+              <td id="hist800-16"></td>
+              <td id="hist800-17"></td>
+              <td id="hist800-18"></td>
+              <td id="hist800-19"></td>
+              <td id="hist800-20"></td>
+            </tr>
+            <tr>
+              <th>H/Lt</th>
+              <th>10h</th>
+              <th>11h</th>
+              <th>12h</th>
+              <th>13h</th>
+              <th>14h</th>
+              <th>15h</th>
+              <th>16h</th>
+              <th>17h</th>
+              <th>18h</th>
+              <th>19h</th>
+              <th>20h</th>
+            </tr>
+            </tbody>
+          </table>
+        </div>

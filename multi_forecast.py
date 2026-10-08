@@ -36,9 +36,9 @@ xc_potential = [1, 1, 1, 1.1, 1.2, 1.2, 1.2, 1.2, 1.1, 1.1, 1.1, 1, 1, 1]
 north_wind_tolerance = [-100, -4, -100, -100, -100, -4, -4, -100, -100, -3.5, -100, -100, -100, -100]
 south_foehn_tolerance = [4, 100, 4.5, 4, 5, 4, 3, 3, 3, 4, 4, 5, 5, 4.5]
 wind_limit_start = [25, 20, 25, 20, 20, 20, 20, 20, 20, 20, 20, 25, 25, 20]
-wind_limit_top = [30, 25, 30, 25, 25, 25, 25, 25, 25, 25, 25, 30, 30, 30]
+wind_limit_top = [30, 25, 30, 25, 25, 25, 25, 25, 25, 25, 30, 30, 30, 30]
 terrains = ['pre-alpine', 'pre-alpine', 'pre-alpine', 'alpine', 'pre-alpine', 'alpine', 'alpine', 'alpine',
-            'alpine', 'alpine', 'alpine', 'hotplate', 'hotplate', 'alpine']
+            'alpine', 'alpine', 'alpine', 'pre-alpine', 'pre-alpine', 'alpine']  # 'hotplate' removed
 sunset = {1: 17, 2: 18, 3: 19, 4: 20, 5: 21, 6: 22, 7: 21, 8: 20, 9: 19, 10: 18, 11: 17, 12: 16}
 max_locations = 14
 flight_distance = np.zeros([max_locations, 5])
@@ -748,7 +748,7 @@ while t < 24 * 5:
         min_p = north_south_diff[t]
         front_begin = t
         q = 1
-        while q <= 14:
+        while q <= 16:
             if north_south_diff[t + q] < min_p:
                 min_p = north_south_diff[t + q]
                 front_end = min(t + q, 24 * 5)
